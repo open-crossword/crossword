@@ -1,14 +1,14 @@
-module Puzzle exposing (Puzzle, parse)
+module Puzzle exposing (Puzzle, parse, Metadata)
 
 import Array exposing (Array)
-import Parser exposing (Parser)
+import Parser exposing ((|.), (|=), Parser)
 
 
 type alias Puzzle =
-    { grid : Array (Array Cell)
-    , clues : List Clue
-    , metadata : Metadata
+    { clues : List Clue
+    , grid : Array (Array Cell)
     , notes : Maybe String
+    , metadata : Metadata
     }
 
 
@@ -44,14 +44,35 @@ parse input =
 
 puzzleParser : Parser Puzzle
 puzzleParser =
-    Parser.succeed
-        { grid = Array.empty
-        , clues = []
-        , metadata =
-            { title = Nothing
-            , author = Nothing
-            , editor = Nothing
-            , date = Nothing
-            }
-        , notes = Nothing
-        }
+    Parser.succeed (Puzzle [] Array.empty Nothing)
+        |= metadataParser
+
+
+metadataParser : Parser Metadata
+metadataParser =
+    Parser.succeed Metadata
+        |= metadataLineParser "Title"
+        |= metadataLineParser "Author"
+        |= metadataLineParser "Editor"
+        |= metadataLineParser "Date"
+
+
+metadataLineParser : String -> Parser (Maybe String)
+metadataLineParser key =
+    Parser.oneOf
+        [ (Parser.succeed Just
+            |. Parser.spaces
+            |. Parser.symbol key
+            |. Parser.symbol ":"
+            |. Parser.spaces
+            |= remainder
+          )
+        , Parser.succeed Nothing
+        ]
+
+
+remainder : Parser String
+remainder =
+    Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompWhile (\c -> c /= '\n')
