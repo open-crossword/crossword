@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Data
 import Html exposing (..)
-import Puzzle exposing (Puzzle, Metadata)
+import Puzzle exposing (Metadata, Puzzle)
 
 
 type alias Model =
@@ -41,10 +41,10 @@ viewPuzzle puzzle =
 viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
     div []
-        [ div [] [ text (Maybe.withDefault "" metadata.title) ]
-        , div [] [ text (Maybe.withDefault "" metadata.author) ]
-        , div [] [ text (Maybe.withDefault "" metadata.editor) ]
-        , div [] [ text (Maybe.withDefault "" metadata.date) ]
+        [ div [] [ text ("Title: " ++ Maybe.withDefault "" metadata.title) ]
+        , div [] [ text ("Author: " ++ Maybe.withDefault "" metadata.author) ]
+        , div [] [ text ("Editor: " ++ Maybe.withDefault "" metadata.editor) ]
+        , div [] [ text ("Date: " ++ Maybe.withDefault "" metadata.date) ]
         ]
 
 

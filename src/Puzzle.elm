@@ -1,7 +1,8 @@
-module Puzzle exposing (Puzzle, parse, Metadata)
+module Puzzle exposing (Metadata, Puzzle, parse)
 
 import Array exposing (Array)
-import Parser exposing ((|.), (|=), Parser)
+import Dict exposing (Dict)
+import Parser exposing (..)
 
 
 type alias Puzzle =
@@ -39,40 +40,72 @@ type Cell
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
 parse input =
-    Parser.run puzzleParser input
+    Parser.run puzzle input
 
 
-puzzleParser : Parser Puzzle
-puzzleParser =
+puzzle : Parser Puzzle
+puzzle =
     Parser.succeed (Puzzle [] Array.empty Nothing)
-        |= metadataParser
+        |= metadata
 
 
-metadataParser : Parser Metadata
-metadataParser =
-    Parser.succeed Metadata
-        |= metadataLineParser "Title"
-        |= metadataLineParser "Author"
-        |= metadataLineParser "Editor"
-        |= metadataLineParser "Date"
+metadata : Parser Metadata
+metadata =
+    metadataPairs
+        |> Parser.map Dict.fromList
+        |> Parser.map dictToMetadata
 
 
-metadataLineParser : String -> Parser (Maybe String)
-metadataLineParser key =
-    Parser.oneOf
-        [ (Parser.succeed Just
-            |. Parser.spaces
-            |. Parser.symbol key
-            |. Parser.symbol ":"
-            |. Parser.spaces
-            |= remainder
-          )
-        , Parser.succeed Nothing
-        ]
+metadataPairs : Parser (List ( String, String ))
+metadataPairs =
+    let
+        helper revStmts =
+            oneOf
+                [ succeed (\pair -> Parser.Loop (pair :: revStmts))
+                    |= metadataLineParser
+                    |. symbol "\n"
+                , succeed ()
+                    |> map (\_ -> Parser.Done (List.reverse revStmts))
+                ]
+    in
+    loop [] helper
 
 
-remainder : Parser String
-remainder =
+dictToMetadata : Dict String String -> Metadata
+dictToMetadata dict =
+    { author = Dict.get "Author" dict
+    , title = Dict.get "Title" dict
+    , editor = Dict.get "Editor" dict
+    , date = Dict.get "Date" dict
+    }
+
+
+metadataLineParser : Parser ( String, String )
+metadataLineParser =
+    Parser.succeed Tuple.pair
+        |. Parser.backtrackable Parser.spaces
+        |= Parser.backtrackable (whileNot ':')
+        |. Parser.backtrackable Parser.spaces
+        |= Parser.backtrackable (untilNot "\n")
+
+
+whileNot : Char -> Parser String
+whileNot stoppingPoint =
     Parser.getChompedString <|
         Parser.succeed ()
-            |. Parser.chompWhile (\c -> c /= '\n')
+            |. Parser.chompWhile (\c -> c /= stoppingPoint)
+
+
+untilNot : String -> Parser String
+untilNot stoppingPoint =
+    Parser.getChompedString <|
+        Parser.succeed ()
+            |. Parser.chompUntil stoppingPoint
+
+
+
+-- remainder : Parser String
+-- remainder =
+--     Parser.getChompedString <|
+--         Parser.succeed ()
+--             |. Parser.chompWhile (\c -> c /= '\n')
