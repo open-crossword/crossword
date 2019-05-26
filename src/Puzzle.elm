@@ -1,6 +1,7 @@
-module Puzzle exposing (Puzzle)
+module Puzzle exposing (Puzzle, parse)
 
 import Array exposing (Array)
+import Parser exposing (Parser)
 
 
 type alias Puzzle =
@@ -34,3 +35,23 @@ type Index
 type Cell
     = Shaded
     | Letter Char
+
+
+parse : String -> Result (List Parser.DeadEnd) Puzzle
+parse input =
+    Parser.run puzzleParser input
+
+
+puzzleParser : Parser Puzzle
+puzzleParser =
+    Parser.succeed
+        { grid = Array.empty
+        , clues = []
+        , metadata =
+            { title = Nothing
+            , author = Nothing
+            , editor = Nothing
+            , date = Nothing
+            }
+        , notes = Nothing
+        }

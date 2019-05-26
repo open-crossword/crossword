@@ -3,6 +3,7 @@ module Main exposing (main)
 import Browser
 import Data
 import Html exposing (..)
+import Puzzle
 
 
 type alias Model =
@@ -24,7 +25,7 @@ main =
 
 view : Model -> Html Msg
 view model =
-    pre [] [ text Data.sampleData ]
+    pre [] [ text (Debug.toString (Puzzle.parse Data.sampleData)) ]
 
 
 update : Msg -> Model -> Model
