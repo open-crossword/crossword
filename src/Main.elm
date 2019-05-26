@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Data
 import Html exposing (..)
-import Puzzle
+import Puzzle exposing (Puzzle)
 
 
 type alias Model =
@@ -25,7 +25,26 @@ main =
 
 view : Model -> Html Msg
 view model =
-    pre [] [ text (Debug.toString (Puzzle.parse Data.sampleData)) ]
+    case Puzzle.parse Data.sampleData of
+        Ok puzzle ->
+            viewPuzzle puzzle
+
+        Err err ->
+            pre [] [ text (Debug.toString err) ]
+
+
+viewPuzzle : Puzzle -> Html Msg
+viewPuzzle puzzle =
+    let
+        metadata =
+            puzzle.metadata
+    in
+    div []
+        [ div [] [ text (Maybe.withDefault "" metadata.title) ]
+        , div [] [ text (Maybe.withDefault "" metadata.author) ]
+        , div [] [ text (Maybe.withDefault "" metadata.editor) ]
+        , div [] [ text (Maybe.withDefault "" metadata.date) ]
+        ]
 
 
 update : Msg -> Model -> Model
