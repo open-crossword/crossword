@@ -55,12 +55,12 @@ viewMetadata metadata =
 
 viewGrid : Grid -> Html Msg
 viewGrid grid =
-    div [ style "width" "300px" ] (List.map viewRow grid)
+    div [ style "width" "300px", style "border" "1px solid black" ] (List.map viewRow grid)
 
 
 viewRow : List Cell -> Html Msg
 viewRow row =
-    div
+    pre
         [ style "display" "flex"
         , style "justify-content" "space-around"
         ]
@@ -74,7 +74,7 @@ viewCell cell =
             div [] [ text (String.fromChar x) ]
 
         Shaded ->
-            b [] [ text "#" ]
+            b [] [ text "■" ]
 
 
 update : Msg -> Model -> Model
