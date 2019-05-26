@@ -1,5 +1,6 @@
 module Main exposing (main)
 
+import Data
 import Html exposing (..)
 import Browser
 
@@ -23,9 +24,9 @@ main =
 
 view : Model -> Html Msg
 view model =
-    div [] [ text "hey" ]
+    pre [] [ text Data.sampleData ]
 
 
-update : Msg -> Model -> Model  
+update : Msg -> Model -> Model
 update msg model =
      model
