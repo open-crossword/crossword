@@ -6,7 +6,7 @@ import Parser exposing (..)
 
 
 type alias Grid =
-    Array (Array Cell)
+    List (List Cell)
 
 
 type alias Puzzle =
@@ -120,10 +120,9 @@ grid =
                 ]
     in
     loop [] helper
-        |> Parser.map Array.fromList
 
 
-line : Parser (Array Cell)
+line : Parser (List Cell)
 line =
     let
         helper cells =
@@ -135,7 +134,6 @@ line =
                 ]
     in
     loop [] helper
-        |> Parser.map Array.fromList
 
 
 cell : Parser Cell
