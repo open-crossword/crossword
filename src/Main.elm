@@ -3,7 +3,8 @@ module Main exposing (main)
 import Browser
 import Data
 import Html exposing (..)
-import Puzzle exposing (Grid, Metadata, Puzzle)
+import Html.Attributes exposing (..)
+import Puzzle exposing (Cell(..), Grid, Metadata, Puzzle)
 
 
 type alias Model =
@@ -37,6 +38,7 @@ viewPuzzle : Puzzle -> Html Msg
 viewPuzzle puzzle =
     div []
         [ viewMetadata puzzle.metadata
+        , hr [] []
         , viewGrid puzzle.grid
         ]
 
@@ -53,7 +55,22 @@ viewMetadata metadata =
 
 viewGrid : Grid -> Html Msg
 viewGrid grid =
-    text (Debug.toString grid)
+    div [] (List.map viewRow grid)
+
+
+viewRow : List Cell -> Html Msg
+viewRow row =
+    div [ style "display" "flex" ] (List.map viewCell row)
+
+
+viewCell : Cell -> Html Msg
+viewCell cell =
+    case cell of
+        Letter x ->
+            div [] [ text (String.fromChar x) ]
+
+        Shaded ->
+            div [] [ text "#" ]
 
 
 update : Msg -> Model -> Model

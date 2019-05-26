@@ -1,4 +1,4 @@
-module Puzzle exposing (Grid, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, parse)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
