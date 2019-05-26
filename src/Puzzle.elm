@@ -1,15 +1,19 @@
-module Puzzle exposing (Metadata, Puzzle, parse)
+module Puzzle exposing (Grid, Metadata, Puzzle, parse)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Parser exposing (..)
 
 
+type alias Grid =
+    Array (Array Cell)
+
+
 type alias Puzzle =
     { clues : List Clue
-    , grid : Array (Array Cell)
     , notes : Maybe String
     , metadata : Metadata
+    , grid : Grid
     }
 
 
@@ -45,8 +49,9 @@ parse input =
 
 puzzle : Parser Puzzle
 puzzle =
-    Parser.succeed (Puzzle [] Array.empty Nothing)
+    Parser.succeed (Puzzle [] Nothing)
         |= metadata
+        |= grid
 
 
 metadata : Parser Metadata
@@ -61,11 +66,11 @@ metadataPairs =
     let
         helper revStmts =
             oneOf
-                [ succeed (\pair -> Parser.Loop (pair :: revStmts))
+                [ symbol "\n\n"
+                    |> map (\_ -> Parser.Done (List.reverse revStmts))
+                , succeed (\pair -> Parser.Loop (pair :: revStmts))
                     |= metadataLineParser
                     |. symbol "\n"
-                , succeed ()
-                    |> map (\_ -> Parser.Done (List.reverse revStmts))
                 ]
     in
     loop [] helper
@@ -103,9 +108,58 @@ untilNot stoppingPoint =
             |. Parser.chompUntil stoppingPoint
 
 
+grid : Parser Grid
+grid =
+    let
+        helper lines =
+            oneOf
+                [ symbol "\n\n"
+                    |> map (\_ -> Parser.Done (List.reverse lines))
+                , succeed (\l -> Parser.Loop (l :: lines))
+                    |= line
+                ]
+    in
+    loop [] helper
+        |> Parser.map Array.fromList
 
--- remainder : Parser String
--- remainder =
---     Parser.getChompedString <|
---         Parser.succeed ()
---             |. Parser.chompWhile (\c -> c /= '\n')
+
+line : Parser (Array Cell)
+line =
+    let
+        helper cells =
+            oneOf
+                [ succeed (\c -> Parser.Loop (c :: cells))
+                    |= cell
+                , symbol "\n"
+                    |> map (\_ -> Parser.Done (List.reverse cells))
+                ]
+    in
+    loop [] helper
+        |> Parser.map Array.fromList
+
+
+cell : Parser Cell
+cell =
+    Parser.oneOf
+        [ character |> Parser.map (\x -> Letter x)
+        , symbol "#" |> Parser.map (always Shaded)
+        ]
+
+
+character : Parser Char
+character =
+    let
+        foo : String -> Parser Char
+        foo s =
+            case String.uncons s of
+                Just ( first, _ ) ->
+                    succeed first
+
+                Nothing ->
+                    problem "No character found!"
+    in
+    (getChompedString <|
+        succeed ()
+            |. chompIf Char.isAlphaNum
+    )
+        |> Parser.andThen foo

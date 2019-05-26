@@ -1,7 +1,9 @@
 module Data exposing (sampleData)
- 
+
+
 sampleData : String
-sampleData = """Title: New York Times, Thursday, January 12, 1961
+sampleData =
+    """Title: New York Times, Thursday, January 12, 1961
 Author: Unknown
 Editor: Margaret Farrar
 Date: 1961-01-12

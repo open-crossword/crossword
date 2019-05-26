@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Data
 import Html exposing (..)
-import Puzzle exposing (Metadata, Puzzle)
+import Puzzle exposing (Grid, Metadata, Puzzle)
 
 
 type alias Model =
@@ -35,7 +35,10 @@ view model =
 
 viewPuzzle : Puzzle -> Html Msg
 viewPuzzle puzzle =
-    viewMetadata puzzle.metadata
+    div []
+        [ viewMetadata puzzle.metadata
+        , viewGrid puzzle.grid
+        ]
 
 
 viewMetadata : Metadata -> Html Msg
@@ -46,6 +49,11 @@ viewMetadata metadata =
         , div [] [ text ("Editor: " ++ Maybe.withDefault "" metadata.editor) ]
         , div [] [ text ("Date: " ++ Maybe.withDefault "" metadata.date) ]
         ]
+
+
+viewGrid : Grid -> Html Msg
+viewGrid grid =
+    text (Debug.toString grid)
 
 
 update : Msg -> Model -> Model
