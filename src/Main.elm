@@ -1,8 +1,8 @@
 module Main exposing (main)
 
+import Browser
 import Data
 import Html exposing (..)
-import Browser
 
 
 type alias Model =
@@ -29,4 +29,4 @@ view model =
 
 update : Msg -> Model -> Model
 update msg model =
-     model
+    model

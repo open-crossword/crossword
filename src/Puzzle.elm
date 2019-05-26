@@ -34,5 +34,3 @@ type Index
 type Cell
     = Shaded
     | Letter Char
-
-
