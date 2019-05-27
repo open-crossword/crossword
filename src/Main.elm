@@ -1,11 +1,13 @@
 module Main exposing (main)
 
 import Browser
+import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, property, px, rgb, solid)
 import Data
 import File exposing (File)
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (preventDefaultOn)
+import Html
+import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (..)
+import Html.Styled.Events exposing (preventDefaultOn)
 import Json.Decode as Decode
 import Parser
 import Puzzle exposing (Cell(..), Clue, Grid, Metadata, Puzzle)
@@ -34,25 +36,10 @@ main : Program () Model Msg
 main =
     Browser.element
         { init = always init
-        , view = view
+        , view = view >> toUnstyled
         , update = update
         , subscriptions = always Sub.none
         }
-
-
-dropDecoder : Decode.Decoder Msg
-dropDecoder =
-    Decode.at [ "dataTransfer", "files" ] (Decode.oneOrMore OnDropFile File.decoder)
-
-
-hijackOn : String -> Decode.Decoder msg -> Attribute msg
-hijackOn event decoder =
-    Html.Events.preventDefaultOn event (Decode.map hijack decoder)
-
-
-hijack : msg -> ( msg, Bool )
-hijack msg =
-    ( msg, True )
 
 
 view : Model -> Html Msg
@@ -78,27 +65,6 @@ viewPuzzle puzzle =
         , viewGrid puzzle.grid
         , hr [] []
         , viewClues puzzle.clues
-        , node "style" [] [ text """
-.row {
-  display: flex;
-  margin: 0;
-}
-
-.cell {
-display: flex;
-justify-content: center;
-border: 1px solid black;
-height: 20px;
-width: 20px;
-align-items: center;
-font-size: 20px;
-}
-
-.cell.shaded {
-background-color: black;
-}
-
-""" ]
         ]
 
 
@@ -123,7 +89,7 @@ viewGrid grid =
 viewRow : List Cell -> Html Msg
 viewRow row =
     pre
-        [ class "row"
+        [ css [ rowStyle ]
         ]
         (List.map viewCell row)
 
@@ -132,10 +98,10 @@ viewCell : Cell -> Html Msg
 viewCell cell =
     case cell of
         Letter x ->
-            div [ class "cell" ] [ text (String.fromChar x) ]
+            div [ css [ cellStyle ] ] [ text (String.fromChar x) ]
 
         Shaded ->
-            b [ class "cell shaded" ] [ text "" ]
+            b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
 
 
 viewClues : List Clue -> Html Msg
@@ -159,3 +125,54 @@ update msg model =
 
         NoOp ->
             ( model, Cmd.none )
+
+
+
+--- STYLES ---
+
+
+justifyContentCenter =
+    Css.property "justify-content" "center"
+
+
+black =
+    rgb 0 0 0
+
+
+rowStyle =
+    Css.batch [ displayFlex, margin (px 0) ]
+
+
+cellStyle =
+    Css.batch
+        [ displayFlex
+        , justifyContentCenter
+        , border3 (px 1) solid black
+        , Css.height (px 20)
+        , Css.width (px 20)
+        , alignItems center
+        , fontSize (px 20)
+        ]
+
+
+shadedCellStyle =
+    backgroundColor black
+
+
+
+--- UTILS ---
+
+
+dropDecoder : Decode.Decoder Msg
+dropDecoder =
+    Decode.at [ "dataTransfer", "files" ] (Decode.oneOrMore OnDropFile File.decoder)
+
+
+hijackOn : String -> Decode.Decoder msg -> Attribute msg
+hijackOn event decoder =
+    preventDefaultOn event (Decode.map hijack decoder)
+
+
+hijack : msg -> ( msg, Bool )
+hijack msg =
+    ( msg, True )
