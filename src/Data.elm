@@ -106,5 +106,4 @@ D59. Vaulted part of a church. ~ APSE
 D61. Indo-Chinese. ~ TAI
 D62. Fuel. ~ OIL
 
-
 """

@@ -44,7 +44,8 @@ type Cell
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
 parse input =
-    run puzzle input
+    -- adding this newline because parsers are hard
+    run puzzle (input ++ "\n")
 
 
 puzzle : Parser Puzzle
