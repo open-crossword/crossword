@@ -42,6 +42,30 @@ viewPuzzle puzzle =
         , viewGrid puzzle.grid
         , hr [] []
         , viewClues puzzle.clues
+        , node "style" [] [ text """
+.row {
+  display: flex;
+  margin: 0;
+}
+.grid {
+  border: 1px solid black;
+}
+
+.cell {
+display: flex;
+justify-content: center;
+border: 1px solid black;
+height: 20px;
+width: 20px;
+align-items: center;
+font-size: 20px;
+}
+
+.cell.shaded {
+background-color: black;
+}
+
+"""]
         ]
 
 
@@ -58,9 +82,7 @@ viewMetadata metadata =
 viewGrid : Grid -> Html Msg
 viewGrid grid =
     div
-        [ style "width" "300px"
-        , style "border" "1px solid black"
-        , class "grid"
+        [ class "grid"
         ]
         (List.map viewRow grid)
 
@@ -68,9 +90,7 @@ viewGrid grid =
 viewRow : List Cell -> Html Msg
 viewRow row =
     pre
-        [ style "display" "flex"
-        , style "justify-content" "space-around"
-        , class "row"
+        [class "row"
         ]
         (List.map viewCell row)
 
@@ -82,7 +102,7 @@ viewCell cell =
             div [ class "cell" ] [ text (String.fromChar x) ]
 
         Shaded ->
-            b [ class "cell shaded" ] [ text "■" ]
+            b [ class "cell shaded" ] [ text "" ]
 
 
 viewClues : List Clue -> Html Msg
