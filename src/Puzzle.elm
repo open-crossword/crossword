@@ -151,7 +151,7 @@ clueLine =
 clueIndex : Parser Index
 clueIndex =
     let
-        -- couldn't get the build-in `int` to tolerate trailing non-digits for some reason
+        -- couldn't get the built-in `int` to tolerate trailing non-digits for some reason
         relaxedInt : Parser Int
         relaxedInt =
             (succeed String.toInt
