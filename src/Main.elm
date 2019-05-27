@@ -102,7 +102,7 @@ viewCell : Cell -> Html Msg
 viewCell cell =
     case cell of
         Letter x ->
-            div [ css [ cellStyle ] ] [ text (String.fromChar ' ') ]
+            div [ css [ cellStyle ] ] [ text "" ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
@@ -121,7 +121,6 @@ viewClues clues =
 
         ( acrossClues, downClues ) =
             List.partition isAcross clues
-
     in
     div [ css [ displayFlex ] ]
         [ div []
