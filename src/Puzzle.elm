@@ -1,4 +1,4 @@
-module Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, parse, Clue, Index)
+module Puzzle exposing (Cell(..), Clue, Grid, Index, Metadata, Puzzle, parse)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -55,6 +55,10 @@ puzzle =
         |= clues
 
 
+
+--- METADATA ---
+
+
 metadata : Parser Metadata
 metadata =
     metadataPairs
@@ -81,24 +85,14 @@ metadataLine : Parser ( String, String )
 metadataLine =
     succeed Tuple.pair
         |. spaces
-        |= (whileNot ':')
-        |. (symbol ":")
+        |= readUntil ":"
+        |. symbol ":"
         |. spaces
-        |= (readUntil "\n")
+        |= readUntil "\n"
 
 
-whileNot : Char -> Parser String
-whileNot stoppingPoint =
-    getChompedString <|
-        succeed ()
-            |. Parser.chompWhile (\c -> c /= stoppingPoint)
 
-
-readUntil : String -> Parser String
-readUntil stoppingPoint =
-    getChompedString <|
-        succeed ()
-            |. chompUntil stoppingPoint
+--- GRID ---
 
 
 grid : Parser Grid
@@ -123,19 +117,15 @@ cell =
 
 character : Parser Char
 character =
-    (getChompedString <|
-        succeed ()
-            |. chompIf Char.isAlphaNum
+    (succeed String.uncons
+        |= (getChompedString <| chompIf Char.isAlphaNum)
     )
-        |> andThen
-            (\s ->
-                case String.uncons s of
-                    Just ( first, _ ) ->
-                        succeed first
+        |> andThen (maybeToParser "No character found!")
+        |> map Tuple.first
 
-                    Nothing ->
-                        problem "No character found!"
-            )
+
+
+--- CLUES ---
 
 
 clues : Parser (List Clue)
@@ -155,28 +145,19 @@ clueLine =
 clueIndex : Parser Index
 clueIndex =
     let
-        myInt : Parser Int
-        myInt =
-            (getChompedString <|
-                succeed ()
-                    |. chompWhile (\c -> Char.isDigit c)
+        -- couldn't get the build-in `int` to tolerate trailing non-digits for some reason
+        relaxedInt : Parser Int
+        relaxedInt =
+            (succeed String.toInt
+                |= (getChompedString <| chompWhile Char.isDigit)
             )
-                |> andThen
-                    (\s ->
-                        case String.toInt s of
-                            Just i ->
-                                succeed i
-
-                            Nothing ->
-                                problem "expecting an int"
-                    )
+                |> andThen (maybeToParser "Expected int")
 
         helper : String -> (Int -> Index) -> Parser Index
         helper prefix toIndex =
             succeed toIndex
                 |. symbol prefix
-                |= myInt
-                |. spaces
+                |= relaxedInt
                 |. symbol "."
                 |. spaces
     in
@@ -197,17 +178,38 @@ clueAnswer =
         |. spaces
         |. symbol "~"
         |. spaces
-        |= whileNot '\n'
+        |= readUntil "\n"
 
 
-loopUntil endToken foo =
+
+--- UTILS ---
+
+
+maybeToParser : String -> Maybe a -> Parser a
+maybeToParser label maybe =
+    case maybe of
+        Just x ->
+            succeed x
+
+        Nothing ->
+            problem label
+
+
+loopUntil endToken body =
     let
         helper revStmts =
             oneOf
                 [ symbol endToken
                     |> map (\_ -> Parser.Done (List.reverse revStmts))
                 , succeed (\pair -> Parser.Loop (pair :: revStmts))
-                    |> foo
+                    |> body
                 ]
     in
     loop [] helper
+
+
+readUntil : String -> Parser String
+readUntil stoppingPoint =
+    getChompedString <|
+        succeed ()
+            |. chompUntil stoppingPoint
