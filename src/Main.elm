@@ -119,11 +119,9 @@ viewClues clues =
                 _ ->
                     False
 
-        acrossClues =
-            List.filter isAcross clues
+        ( acrossClues, downClues ) =
+            List.partition isAcross clues
 
-        downClues =
-            List.filter (isAcross >> not) clues
     in
     div [ css [ displayFlex ] ]
         [ div []
