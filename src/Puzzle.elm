@@ -44,12 +44,12 @@ type Cell
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
 parse input =
-    Parser.run puzzle input
+    run puzzle input
 
 
 puzzle : Parser Puzzle
 puzzle =
-    Parser.succeed (Puzzle Nothing)
+    succeed (Puzzle Nothing)
         |= metadata
         |= grid
         |= clues
@@ -58,14 +58,14 @@ puzzle =
 metadata : Parser Metadata
 metadata =
     metadataPairs
-        |> Parser.map Dict.fromList
-        |> Parser.map dictToMetadata
+        |> map Dict.fromList
+        |> map dictToMetadata
 
 
 metadataPairs : Parser (List ( String, String ))
 metadataPairs =
     loopUntil "\n\n"
-        (\x -> x |= metadataLineParser |. symbol "\n")
+        (\x -> x |= metadataLine |. symbol "\n")
 
 
 dictToMetadata : Dict String String -> Metadata
@@ -77,27 +77,28 @@ dictToMetadata dict =
     }
 
 
-metadataLineParser : Parser ( String, String )
-metadataLineParser =
-    Parser.succeed Tuple.pair
-        |. Parser.backtrackable Parser.spaces
-        |= Parser.backtrackable (whileNot ':')
-        |. Parser.backtrackable Parser.spaces
-        |= Parser.backtrackable (readUntil "\n")
+metadataLine : Parser ( String, String )
+metadataLine =
+    succeed Tuple.pair
+        |. spaces
+        |= (whileNot ':')
+        |. (symbol ":")
+        |. spaces
+        |= (readUntil "\n")
 
 
 whileNot : Char -> Parser String
 whileNot stoppingPoint =
-    Parser.getChompedString <|
-        Parser.succeed ()
+    getChompedString <|
+        succeed ()
             |. Parser.chompWhile (\c -> c /= stoppingPoint)
 
 
 readUntil : String -> Parser String
 readUntil stoppingPoint =
-    Parser.getChompedString <|
-        Parser.succeed ()
-            |. Parser.chompUntil stoppingPoint
+    getChompedString <|
+        succeed ()
+            |. chompUntil stoppingPoint
 
 
 grid : Parser Grid
@@ -114,9 +115,9 @@ line =
 
 cell : Parser Cell
 cell =
-    Parser.oneOf
-        [ character |> Parser.map (\x -> Letter x)
-        , symbol "#" |> Parser.map (always Shaded)
+    oneOf
+        [ character |> map (\x -> Letter x)
+        , symbol "#" |> map (always Shaded)
         ]
 
 
@@ -126,7 +127,7 @@ character =
         succeed ()
             |. chompIf Char.isAlphaNum
     )
-        |> Parser.andThen
+        |> andThen
             (\s ->
                 case String.uncons s of
                     Just ( first, _ ) ->
@@ -145,7 +146,7 @@ clues =
 
 clueLine : Parser Clue
 clueLine =
-    Parser.succeed Clue
+    succeed Clue
         |= clueIndex
         |= clueText
         |= clueAnswer
