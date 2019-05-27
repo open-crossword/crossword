@@ -1,4 +1,4 @@
-module Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, parse, Clue, Index)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -10,17 +10,17 @@ type alias Grid =
 
 
 type alias Puzzle =
-    { clues : List Clue
-    , notes : Maybe String
+    { notes : Maybe String
     , metadata : Metadata
     , grid : Grid
+    , clues : List Clue
     }
 
 
 type alias Clue =
-    { clue : String
+    { index : Index
+    , clue : String
     , answer : String
-    , index : Index
     }
 
 
@@ -49,9 +49,10 @@ parse input =
 
 puzzle : Parser Puzzle
 puzzle =
-    Parser.succeed (Puzzle [] Nothing)
+    Parser.succeed (Puzzle Nothing)
         |= metadata
         |= grid
+        |= clues
 
 
 metadata : Parser Metadata
@@ -63,17 +64,8 @@ metadata =
 
 metadataPairs : Parser (List ( String, String ))
 metadataPairs =
-    let
-        helper revStmts =
-            oneOf
-                [ symbol "\n\n"
-                    |> map (\_ -> Parser.Done (List.reverse revStmts))
-                , succeed (\pair -> Parser.Loop (pair :: revStmts))
-                    |= metadataLineParser
-                    |. symbol "\n"
-                ]
-    in
-    loop [] helper
+    loopUntil "\n\n"
+        (\x -> x |= metadataLineParser |. symbol "\n")
 
 
 dictToMetadata : Dict String String -> Metadata
@@ -91,7 +83,7 @@ metadataLineParser =
         |. Parser.backtrackable Parser.spaces
         |= Parser.backtrackable (whileNot ':')
         |. Parser.backtrackable Parser.spaces
-        |= Parser.backtrackable (untilNot "\n")
+        |= Parser.backtrackable (readUntil "\n")
 
 
 whileNot : Char -> Parser String
@@ -101,8 +93,8 @@ whileNot stoppingPoint =
             |. Parser.chompWhile (\c -> c /= stoppingPoint)
 
 
-untilNot : String -> Parser String
-untilNot stoppingPoint =
+readUntil : String -> Parser String
+readUntil stoppingPoint =
     Parser.getChompedString <|
         Parser.succeed ()
             |. Parser.chompUntil stoppingPoint
@@ -110,30 +102,14 @@ untilNot stoppingPoint =
 
 grid : Parser Grid
 grid =
-    let
-        helper lines =
-            oneOf
-                [ symbol "\n\n"
-                    |> map (\_ -> Parser.Done (List.reverse lines))
-                , succeed (\l -> Parser.Loop (l :: lines))
-                    |= line
-                ]
-    in
-    loop [] helper
+    loopUntil "\n\n"
+        (\x -> x |= line)
 
 
 line : Parser (List Cell)
 line =
-    let
-        helper cells =
-            oneOf
-                [ succeed (\c -> Parser.Loop (c :: cells))
-                    |= cell
-                , symbol "\n"
-                    |> map (\_ -> Parser.Done (List.reverse cells))
-                ]
-    in
-    loop [] helper
+    loopUntil "\n"
+        (\x -> x |= cell)
 
 
 cell : Parser Cell
@@ -146,18 +122,92 @@ cell =
 
 character : Parser Char
 character =
-    let
-        foo : String -> Parser Char
-        foo s =
-            case String.uncons s of
-                Just ( first, _ ) ->
-                    succeed first
-
-                Nothing ->
-                    problem "No character found!"
-    in
     (getChompedString <|
         succeed ()
             |. chompIf Char.isAlphaNum
     )
-        |> Parser.andThen foo
+        |> Parser.andThen
+            (\s ->
+                case String.uncons s of
+                    Just ( first, _ ) ->
+                        succeed first
+
+                    Nothing ->
+                        problem "No character found!"
+            )
+
+
+clues : Parser (List Clue)
+clues =
+    loopUntil "\n\n"
+        (\x -> x |. spaces |= clueLine)
+
+
+clueLine : Parser Clue
+clueLine =
+    Parser.succeed Clue
+        |= clueIndex
+        |= clueText
+        |= clueAnswer
+        |. symbol "\n"
+
+
+clueIndex : Parser Index
+clueIndex =
+    let
+        myInt : Parser Int
+        myInt =
+            (getChompedString <|
+                succeed ()
+                    |. chompWhile (\c -> Char.isDigit c)
+            )
+                |> andThen
+                    (\s ->
+                        case String.toInt s of
+                            Just i ->
+                                succeed i
+
+                            Nothing ->
+                                problem "expecting an int"
+                    )
+
+        helper : String -> (Int -> Index) -> Parser Index
+        helper prefix toIndex =
+            succeed toIndex
+                |. symbol prefix
+                |= myInt
+                |. spaces
+                |. symbol "."
+                |. spaces
+    in
+    oneOf
+        [ helper "A" Across
+        , helper "D" Down
+        ]
+
+
+clueText : Parser String
+clueText =
+    readUntil " ~"
+
+
+clueAnswer : Parser String
+clueAnswer =
+    succeed identity
+        |. spaces
+        |. symbol "~"
+        |. spaces
+        |= whileNot '\n'
+
+
+loopUntil endToken foo =
+    let
+        helper revStmts =
+            oneOf
+                [ symbol endToken
+                    |> map (\_ -> Parser.Done (List.reverse revStmts))
+                , succeed (\pair -> Parser.Loop (pair :: revStmts))
+                    |> foo
+                ]
+    in
+    loop [] helper

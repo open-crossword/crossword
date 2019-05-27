@@ -4,7 +4,7 @@ import Browser
 import Data
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Puzzle exposing (Cell(..), Grid, Metadata, Puzzle)
+import Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, Clue)
 
 
 type alias Model =
@@ -40,6 +40,8 @@ viewPuzzle puzzle =
         [ viewMetadata puzzle.metadata
         , hr [] []
         , viewGrid puzzle.grid
+        , hr [] []
+        , viewClues puzzle.clues
         ]
 
 
@@ -55,7 +57,12 @@ viewMetadata metadata =
 
 viewGrid : Grid -> Html Msg
 viewGrid grid =
-    div [ style "width" "300px", style "border" "1px solid black" ] (List.map viewRow grid)
+    div
+        [ style "width" "300px"
+        , style "border" "1px solid black"
+        , class "grid"
+        ]
+        (List.map viewRow grid)
 
 
 viewRow : List Cell -> Html Msg
@@ -63,6 +70,7 @@ viewRow row =
     pre
         [ style "display" "flex"
         , style "justify-content" "space-around"
+        , class "row"
         ]
         (List.map viewCell row)
 
@@ -71,10 +79,20 @@ viewCell : Cell -> Html Msg
 viewCell cell =
     case cell of
         Letter x ->
-            div [] [ text (String.fromChar x) ]
+            div [ class "cell" ] [ text (String.fromChar x) ]
 
         Shaded ->
-            b [] [ text "■" ]
+            b [ class "cell shaded" ] [ text "■" ]
+
+
+viewClues : List Clue -> Html Msg
+viewClues clues =
+    div [] (List.map viewClue clues)
+
+
+viewClue : Clue -> Html Msg
+viewClue clue =
+    div [] [ text (Debug.toString clue) ]
 
 
 update : Msg -> Model -> Model
