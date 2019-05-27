@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, property, px, rgb, solid)
+import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
 import Data
 import File exposing (File)
 import Html
@@ -10,7 +10,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (preventDefaultOn)
 import Json.Decode as Decode
 import Parser
-import Puzzle exposing (Cell(..), Clue, Grid, Metadata, Puzzle)
+import Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle)
 import Task
 
 
@@ -42,6 +42,10 @@ main =
         }
 
 
+
+--- VIEW ---
+
+
 view : Model -> Html Msg
 view model =
     div
@@ -62,9 +66,10 @@ viewPuzzle puzzle =
     div []
         [ viewMetadata puzzle.metadata
         , hr [] []
-        , viewGrid puzzle.grid
-        , hr [] []
-        , viewClues puzzle.clues
+        , div [ css [ displayFlex ] ]
+            [ div [ css [ marginTop (px 71) ] ] [ viewGrid puzzle.grid ]
+            , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle.clues ]
+            ]
         ]
 
 
@@ -81,8 +86,7 @@ viewMetadata metadata =
 viewGrid : Grid -> Html Msg
 viewGrid grid =
     div
-        [ class "grid"
-        ]
+        []
         (List.map viewRow grid)
 
 
@@ -98,7 +102,7 @@ viewCell : Cell -> Html Msg
 viewCell cell =
     case cell of
         Letter x ->
-            div [ css [ cellStyle ] ] [ text (String.fromChar x) ]
+            div [ css [ cellStyle ] ] [ text (String.fromChar ' ') ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
@@ -106,12 +110,54 @@ viewCell cell =
 
 viewClues : List Clue -> Html Msg
 viewClues clues =
-    div [] (List.map viewClue clues)
+    let
+        isAcross clue =
+            case clue.index of
+                Across _ ->
+                    True
+
+                _ ->
+                    False
+
+        acrossClues =
+            List.filter isAcross clues
+
+        downClues =
+            List.filter (isAcross >> not) clues
+    in
+    div [ css [ displayFlex ] ]
+        [ div []
+            [ h2 [] [ text "Across" ]
+            , div [] (List.map viewClue acrossClues)
+            ]
+        , div [ css [ marginLeft (px 20) ] ]
+            [ h2 [] [ text "Down" ]
+            , div [] (List.map viewClue downClues)
+            ]
+        ]
 
 
 viewClue : Clue -> Html Msg
 viewClue clue =
-    div [] [ text (Debug.toString clue) ]
+    div [] [ viewIndex clue.index, span [] [ text (" " ++ clue.clue) ] ]
+
+
+viewIndex : Index -> Html Msg
+viewIndex index =
+    b []
+        [ text
+            (case index of
+                Across i ->
+                    String.fromInt i
+
+                Down i ->
+                    String.fromInt i
+            )
+        ]
+
+
+
+--- UPDATE ---
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
