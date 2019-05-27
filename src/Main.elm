@@ -2,36 +2,72 @@ module Main exposing (main)
 
 import Browser
 import Data
+import File exposing (File)
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Puzzle exposing (Cell(..), Grid, Metadata, Puzzle, Clue)
+import Html.Events exposing (preventDefaultOn)
+import Json.Decode as Decode
+import Parser
+import Puzzle exposing (Cell(..), Clue, Grid, Metadata, Puzzle)
+import Task
 
 
 type alias Model =
-    {}
+    { puzzle : Result (List Parser.DeadEnd) Puzzle }
 
 
 type Msg
-    = NoOp
+    = OnDropFile File (List File)
+    | OnFileRead String
+    | NoOp
+
+
+init : ( Model, Cmd Msg )
+init =
+    ( { puzzle = Puzzle.parse Data.sampleData
+      }
+    , Cmd.none
+    )
 
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = {}
+    Browser.element
+        { init = always init
         , view = view
         , update = update
+        , subscriptions = always Sub.none
         }
+
+
+dropDecoder : Decode.Decoder Msg
+dropDecoder =
+    Decode.at [ "dataTransfer", "files" ] (Decode.oneOrMore OnDropFile File.decoder)
+
+
+hijackOn : String -> Decode.Decoder msg -> Attribute msg
+hijackOn event decoder =
+    Html.Events.preventDefaultOn event (Decode.map hijack decoder)
+
+
+hijack : msg -> ( msg, Bool )
+hijack msg =
+    ( msg, True )
 
 
 view : Model -> Html Msg
 view model =
-    case Puzzle.parse Data.sampleData of
-        Ok puzzle ->
-            viewPuzzle puzzle
+    div
+        [ hijackOn "drop" dropDecoder
+        , hijackOn "dragover" (Decode.succeed NoOp)
+        ]
+        [ case model.puzzle of
+            Ok puzzle ->
+                viewPuzzle puzzle
 
-        Err err ->
-            pre [] [ text (Debug.toString err) ]
+            Err err ->
+                pre [] [ text (Debug.toString err) ]
+        ]
 
 
 viewPuzzle : Puzzle -> Html Msg
@@ -62,7 +98,7 @@ font-size: 20px;
 background-color: black;
 }
 
-"""]
+""" ]
         ]
 
 
@@ -87,7 +123,7 @@ viewGrid grid =
 viewRow : List Cell -> Html Msg
 viewRow row =
     pre
-        [class "row"
+        [ class "row"
         ]
         (List.map viewCell row)
 
@@ -112,6 +148,14 @@ viewClue clue =
     div [] [ text (Debug.toString clue) ]
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    model
+    case msg of
+        OnDropFile file _ ->
+            ( model, File.toString file |> Task.perform OnFileRead )
+
+        OnFileRead content ->
+            ( { model | puzzle = Puzzle.parse content }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )

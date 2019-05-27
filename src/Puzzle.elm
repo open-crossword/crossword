@@ -149,7 +149,6 @@ clueLine =
         |= clueIndex
         |= clueText
         |= clueAnswer
-        |. symbol "\n"
 
 
 clueIndex : Parser Index
