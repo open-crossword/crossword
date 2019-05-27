@@ -1,4 +1,4 @@
-module Puzzle exposing (Cell(..), Clue, Grid, Index, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle, parse)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
@@ -130,8 +130,13 @@ character =
 
 clues : Parser (List Clue)
 clues =
-    loopUntil "\n\n"
-        (\x -> x |. spaces |= clueLine)
+    let
+        helper x =
+            x
+                |. spaces
+                |= clueLine
+    in
+    loopUntil "\n\n\n" helper
 
 
 clueLine : Parser Clue
