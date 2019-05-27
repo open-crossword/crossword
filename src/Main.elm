@@ -47,9 +47,6 @@ viewPuzzle puzzle =
   display: flex;
   margin: 0;
 }
-.grid {
-  border: 1px solid black;
-}
 
 .cell {
 display: flex;
