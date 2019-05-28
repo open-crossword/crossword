@@ -6,7 +6,7 @@ import Data
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
-import Html.Styled.Events exposing (preventDefaultOn)
+import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import Parser
 import Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle)
@@ -36,6 +36,7 @@ type alias Selection =
 type Msg
     = OnDropFile File (List File)
     | OnFileRead String
+    | OnCellClick Int Int
     | NoOp
 
 
@@ -98,7 +99,7 @@ viewCrossword puzzle board =
         [ viewMetadata puzzle.metadata
         , hr [] []
         , div [ css [ displayFlex ] ]
-            [ div [ css [ marginTop (px 71) ] ] [ viewGrid board.grid ]
+            [ div [ css [ marginTop (px 71) ] ] [ viewBoard board ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle.clues ]
             ]
         ]
@@ -114,26 +115,41 @@ viewMetadata metadata =
         ]
 
 
-viewGrid : Grid -> Html Msg
-viewGrid grid =
+viewBoard : Board -> Html Msg
+viewBoard board =
     div
         []
-        (List.map viewRow grid)
+        (List.indexedMap (viewRow board.selection) board.grid)
 
 
-viewRow : List Cell -> Html Msg
-viewRow row =
+viewRow : Selection -> Int -> List Cell -> Html Msg
+viewRow selection rowIndex row =
     pre
         [ css [ rowStyle ]
         ]
-        (List.map viewCell row)
+        (List.indexedMap (viewCell selection rowIndex) row)
 
 
-viewCell : Cell -> Html Msg
-viewCell cell =
+viewCell : Selection -> Int -> Int -> Cell -> Html Msg
+viewCell selection rowIndex colIndex cell =
+    let
+        isSelected =
+            selection.x == colIndex && selection.y == rowIndex
+    in
     case cell of
         Letter x ->
-            div [ css [ cellStyle ] ] [ text "" ]
+            div
+                [ css
+                    [ cellStyle
+                    , if isSelected then
+                        selectedCellStyle
+
+                      else
+                        cellStyle
+                    ]
+                , onClick (OnCellClick rowIndex colIndex)
+                ]
+                [ text "" ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
@@ -190,14 +206,37 @@ viewIndex index =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        OnDropFile file _ ->
+    case ( msg, model ) of
+        ( OnDropFile file _, _ ) ->
             ( model, File.toString file |> Task.perform OnFileRead )
 
-        OnFileRead content ->
+        ( OnFileRead content, _ ) ->
             ( loadPuzzle (Puzzle.parse content), Cmd.none )
 
-        NoOp ->
+        ( OnCellClick row col, Loaded record ) ->
+            let
+                oldBoard =
+                    record.board
+
+                newBoard =
+                    { oldBoard
+                        | selection =
+                            { x = col
+                            , y = row
+                            }
+                    }
+            in
+            ( Loaded
+                { record
+                    | board = newBoard
+                }
+            , Cmd.none
+            )
+
+        ( OnCellClick row col, _ ) ->
+            ( model, Cmd.none )
+
+        ( NoOp, _ ) ->
             ( model, Cmd.none )
 
 
@@ -211,6 +250,10 @@ justifyContentCenter =
 
 black =
     rgb 0 0 0
+
+
+red =
+    rgb 255 0 0
 
 
 rowStyle =
@@ -231,6 +274,10 @@ cellStyle =
 
 shadedCellStyle =
     backgroundColor black
+
+
+selectedCellStyle =
+    backgroundColor red
 
 
 
