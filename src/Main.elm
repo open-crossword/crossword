@@ -4,7 +4,6 @@ import Browser
 import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
 import Data
 import File exposing (File)
-import Html
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (preventDefaultOn)
@@ -14,8 +13,24 @@ import Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle)
 import Task
 
 
-type alias Model =
-    { puzzle : Result (List Parser.DeadEnd) Puzzle }
+type Model
+    = Loaded
+        { puzzle : Puzzle
+        , board : Board
+        }
+    | Failed (List Parser.DeadEnd)
+
+
+type alias Board =
+    { grid : Grid
+    , selection : Selection
+    }
+
+
+type alias Selection =
+    { x : Int
+    , y : Int
+    }
 
 
 type Msg
@@ -26,10 +41,26 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( { puzzle = Puzzle.parse Data.sampleData
-      }
+    ( loadPuzzle (Puzzle.parse Data.sampleData)
     , Cmd.none
     )
+
+
+loadPuzzle : Result (List Parser.DeadEnd) Puzzle -> Model
+loadPuzzle parsedPuzzle =
+    case parsedPuzzle of
+        Ok puzzle ->
+            Loaded
+                { puzzle = puzzle
+                , board =
+                    { -- Temporarily copy the puzzle solution into our game grid
+                      grid = puzzle.grid
+                    , selection = { x = 0, y = 0 }
+                    }
+                }
+
+        Err err ->
+            Failed err
 
 
 main : Program () Model Msg
@@ -52,22 +83,22 @@ view model =
         [ hijackOn "drop" dropDecoder
         , hijackOn "dragover" (Decode.succeed NoOp)
         ]
-        [ case model.puzzle of
-            Ok puzzle ->
-                viewPuzzle puzzle
+        [ case model of
+            Loaded { puzzle, board } ->
+                viewCrossword puzzle board
 
-            Err err ->
+            Failed err ->
                 pre [] [ text (Debug.toString err) ]
         ]
 
 
-viewPuzzle : Puzzle -> Html Msg
-viewPuzzle puzzle =
+viewCrossword : Puzzle -> Board -> Html Msg
+viewCrossword puzzle board =
     div []
         [ viewMetadata puzzle.metadata
         , hr [] []
         , div [ css [ displayFlex ] ]
-            [ div [ css [ marginTop (px 71) ] ] [ viewGrid puzzle.grid ]
+            [ div [ css [ marginTop (px 71) ] ] [ viewGrid board.grid ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle.clues ]
             ]
         ]
@@ -164,7 +195,7 @@ update msg model =
             ( model, File.toString file |> Task.perform OnFileRead )
 
         OnFileRead content ->
-            ( { model | puzzle = Puzzle.parse content }, Cmd.none )
+            ( loadPuzzle (Puzzle.parse content), Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
