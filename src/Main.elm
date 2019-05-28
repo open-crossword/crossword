@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
 import Data
-import Data.Direction exposing (Direction(..))
+import Data.Direction exposing (Direction(..), swap)
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -31,6 +31,7 @@ type alias Board =
 type alias Selection =
     { x : Int
     , y : Int
+    , direction : Direction
     }
 
 
@@ -57,7 +58,11 @@ loadPuzzle parsedPuzzle =
                 , board =
                     { -- Temporarily copy the puzzle solution into our game grid
                       grid = puzzle.grid
-                    , selection = { x = 0, y = 0 }
+                    , selection =
+                        { x = 0
+                        , y = 0
+                        , direction = Across
+                        }
                     }
                 }
 
@@ -136,6 +141,10 @@ viewCell selection rowIndex colIndex cell =
     let
         isSelected =
             selection.x == colIndex && selection.y == rowIndex
+
+        isSelectedWord =
+            (selection.direction == Down && selection.x == colIndex)
+                || (selection.direction == Across && selection.y == rowIndex)
     in
     case cell of
         Letter x ->
@@ -144,6 +153,9 @@ viewCell selection rowIndex colIndex cell =
                     [ cellStyle
                     , if isSelected then
                         selectedCellStyle
+
+                      else if isSelectedWord then
+                        selectedWordCellStyle
 
                       else
                         cellStyle
@@ -213,11 +225,23 @@ update msg model =
                 oldBoard =
                     record.board
 
+                oldSelection =
+                    oldBoard.selection
+
+                swapDirection =
+                    col == oldSelection.x && row == oldSelection.y
+
                 newBoard =
                     { oldBoard
                         | selection =
                             { x = col
                             , y = row
+                            , direction =
+                                if swapDirection then
+                                    swap oldSelection.direction
+
+                                else
+                                    oldSelection.direction
                             }
                     }
             in
@@ -228,7 +252,7 @@ update msg model =
             , Cmd.none
             )
 
-        ( OnCellClick row col, _ ) ->
+        ( OnCellClick _ _, _ ) ->
             ( model, Cmd.none )
 
         ( NoOp, _ ) ->
@@ -247,8 +271,12 @@ black =
     rgb 0 0 0
 
 
-red =
-    rgb 255 0 0
+selectedCursorColor =
+    rgb 123 184 235
+
+
+selectedWordColor =
+    rgb 186 202 203
 
 
 rowStyle =
@@ -272,7 +300,11 @@ shadedCellStyle =
 
 
 selectedCellStyle =
-    backgroundColor red
+    backgroundColor selectedCursorColor
+
+
+selectedWordCellStyle =
+    backgroundColor selectedWordColor
 
 
 
