@@ -3,13 +3,14 @@ module Main exposing (main)
 import Browser
 import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
 import Data
+import Data.Direction exposing (Direction(..))
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import Parser
-import Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle)
+import Puzzle exposing (Cell(..), Clue, ClueId, Grid, Metadata, Puzzle)
 import Task
 
 
@@ -159,8 +160,8 @@ viewClues : List Clue -> Html Msg
 viewClues clues =
     let
         isAcross clue =
-            case clue.index of
-                Across _ ->
+            case clue.id.direction of
+                Across ->
                     True
 
                 _ ->
@@ -183,20 +184,14 @@ viewClues clues =
 
 viewClue : Clue -> Html Msg
 viewClue clue =
-    div [] [ viewIndex clue.index, span [] [ text (" " ++ clue.clue) ] ]
+    div [] [ viewClueId clue.id, span [] [ text (" " ++ clue.clue) ] ]
 
 
-viewIndex : Index -> Html Msg
-viewIndex index =
+viewClueId : ClueId -> Html Msg
+viewClueId clueId =
     b []
         [ text
-            (case index of
-                Across i ->
-                    String.fromInt i
-
-                Down i ->
-                    String.fromInt i
-            )
+            (String.fromInt clueId.number)
         ]
 
 

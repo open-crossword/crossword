@@ -1,6 +1,6 @@
-module Puzzle exposing (Cell(..), Clue, Grid, Index(..), Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Clue, ClueId, Grid, Metadata, Puzzle, parse)
 
-import Array exposing (Array)
+import Data.Direction exposing (Direction(..))
 import Dict exposing (Dict)
 import Parser exposing (..)
 
@@ -18,9 +18,15 @@ type alias Puzzle =
 
 
 type alias Clue =
-    { index : Index
+    { id : ClueId
     , clue : String
     , answer : String
+    }
+
+
+type alias ClueId =
+    { direction : Direction
+    , number : Int
     }
 
 
@@ -30,11 +36,6 @@ type alias Metadata =
     , editor : Maybe String
     , date : Maybe String
     }
-
-
-type Index
-    = Across Int
-    | Down Int
 
 
 type Cell
@@ -148,7 +149,7 @@ clueLine =
         |= clueAnswer
 
 
-clueIndex : Parser Index
+clueIndex : Parser ClueId
 clueIndex =
     let
         -- couldn't get the built-in `int` to tolerate trailing non-digits for some reason
@@ -159,17 +160,17 @@ clueIndex =
             )
                 |> andThen (maybeToParser "Expected int")
 
-        helper : String -> (Int -> Index) -> Parser Index
-        helper prefix toIndex =
-            succeed toIndex
+        helper : String -> (Int -> ClueId) -> Parser ClueId
+        helper prefix toClueId =
+            succeed toClueId
                 |. symbol prefix
                 |= relaxedInt
                 |. symbol "."
                 |. spaces
     in
     oneOf
-        [ helper "A" Across
-        , helper "D" Down
+        [ helper "A" (ClueId Across)
+        , helper "D" (ClueId Down)
         ]
 
 
