@@ -1,4 +1,4 @@
-module Data.Grid exposing (Grid, empty, from2DList, fromList, get, height, map, mapNonEmpty, set, to2DList, width)
+module Data.Grid exposing (Grid, empty, from2DList, fromList, get, height, map, mapNonEmpty, set, to2DList, width, indexedMap)
 
 import Array exposing (Array)
 import List.Extra
@@ -13,7 +13,7 @@ type Grid a
 
 
 {-| an empty Grid with the given width and height
-unless you later set the values in the grid, attempts to get them will return Nothing
+unless you later set the values in the Grid, attempts to get them will return Nothing
 negative dimensions will be treated as zero
 -}
 empty : Int -> Int -> Grid a
@@ -53,6 +53,8 @@ fromList w h list =
 returns Nothing in the following cases:
 
   - the rows are of uneven lengths
+
+if either dimension is 0 then the Grid is of dimensions 0, 0
 
 -}
 from2DList : List (List a) -> Maybe (Grid a)
@@ -94,7 +96,7 @@ from2DList rows =
 {-| gets the cell at the given x, y coordinates
 Returns Nothing in the following cases
 
-  - either x or y is less than zero or greater than the width or height of the grid respectively
+  - either x or y is less than zero or greater than the width or height of the Grid respectively
   - the cell you attempted to get was never set or initialized
 
 -}
@@ -144,6 +146,15 @@ mapNonEmpty fn grid =
     map (Maybe.map fn) grid
 
 
+indexedMap : (( Int, Int ) -> Maybe a -> Maybe b) -> Grid a -> Grid b
+indexedMap fn (Grid grid) =
+    Grid
+        { width = grid.width
+        , height = grid.height
+        , cells = Array.indexedMap (\ix c -> fn (ix // grid.width, modBy grid.width ix) c) grid.cells
+        }
+
+
 {-| Inverse of from2DList
 the (Maybe a) is because cells can be uninitialized
 -}
@@ -151,6 +162,8 @@ to2DList : Grid a -> List (List (Maybe a))
 to2DList (Grid grid) =
     List.Extra.groupsOf grid.width (Array.toList grid.cells)
 
+        -- loc = x + y * width
+        -- loc - (y * width) = x
 
 
 -- TODO

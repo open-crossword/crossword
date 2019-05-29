@@ -8,6 +8,7 @@ import Test exposing (..)
 
 sampleTwoByTwoGrid =
     Grid.fromList 2 2 [ 1, 2, 3, 4 ]
+        |> Maybe.withDefault (Grid.empty 0 0)
 
 
 suite : Test
@@ -48,32 +49,32 @@ suite =
             , test "returns Nothing if given a too-big index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get 3 1)
+                        |> Grid.get 3 1
                         |> Expect.equal Nothing
             , test "returns Nothing if given a negative index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get -1 1)
+                        |> Grid.get -1 1
                         |> Expect.equal Nothing
             , test "can get a thing from the grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get 0 0)
+                        |> Grid.get 0 0
                         |> Expect.equal (Just 1)
             , test "understands x index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get 1 0)
+                        |> Grid.get 1 0
                         |> Expect.equal (Just 2)
             , test "understands y index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get 0 1)
+                        |> Grid.get 0 1
                         |> Expect.equal (Just 3)
             , test "understands x and y indices" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.andThen (Grid.get 1 1)
+                        |> Grid.get 1 1
                         |> Expect.equal (Just 4)
             ]
         , describe "Grid.set"
@@ -86,42 +87,41 @@ suite =
             , test "can set a value in a sample grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.map (Grid.set 1 0 -5)
-                        |> Maybe.andThen (Grid.get 1 0)
+                        |> Grid.set 1 0 -5
+                        |> Grid.get 1 0
                         |> Expect.equal (Just -5)
             ]
         , describe "Grid.map"
             [ test "can map a sample grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.map (Grid.map (Maybe.map String.fromInt))
-                        |> Maybe.andThen (Grid.get 1 1)
+                        |> Grid.map (Maybe.map String.fromInt)
+                        |> Grid.get 1 1
                         |> Expect.equal (Just "4")
             ]
         , describe "Grid.mapNonEmpty"
             [ test "can map a sample grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Maybe.map (Grid.mapNonEmpty String.fromInt)
-                        |> Maybe.andThen (Grid.get 1 1)
+                        |> Grid.mapNonEmpty String.fromInt
+                        |> Grid.get 1 1
                         |> Expect.equal (Just "4")
             ]
         , describe "Grid.from2DList"
             [ test "can create a Grid from nested lists" <|
                 \_ ->
                     Grid.from2DList [ [ 1, 2 ], [ 3, 4 ] ]
-                        |> Expect.equal sampleTwoByTwoGrid
+                        |> Expect.equal (Just sampleTwoByTwoGrid)
             , test "makes an empty list of dimensions 0 ✕ 0" <|
                 \_ ->
                     Grid.from2DList []
                         |> Expect.equal (Just (Grid.empty 0 0))
-            , test "makes an empty list of dimensions 0 ✕ 2" <|
+            , test "collapses empty grids" <|
                 \_ ->
                     Grid.from2DList
                         [ []
-                        , []
                         ]
-                        |> Expect.equal (Just (Grid.empty 0 2))
+                        |> Expect.equal (Just (Grid.empty 0 1))
             , test "fails when given a ragged list" <|
                 \_ ->
                     Grid.from2DList
@@ -130,10 +130,58 @@ suite =
                         ]
                         |> Expect.equal Nothing
             ]
-        , describe "Grid.to2DList"
-            [ test "is the inverse of Grid.from2DList" <|
+        , describe "Grid.indexedMap"
+            [ test "can indexedMap a simple grid" <|
                 \_ ->
-                    Grid.from2DList [ [ 1, 2 ], [ 3, 4 ] ]
-                        |> Expect.equal sampleTwoByTwoGrid
+                    sampleTwoByTwoGrid
+                        |> Grid.indexedMap (\( x, y ) z -> Just ( x, y ))
+                        |> Just
+                        |> Expect.equal
+                            (Grid.from2DList
+                                [ [ ( 0, 0 ), ( 0, 1 ) ]
+                                , [ ( 1, 0 ), ( 1, 1 ) ]
+                                ]
+                            )
+            , test "can indexedMap a different grid" <|
+                \_ ->
+                    Grid.from2DList
+                        [ [ 1, 1, 1 ]
+                        , [ 1, 1, 1]
+                        ]
+                        |> Maybe.map (Grid.indexedMap (\( x, y ) z -> Just ( x, y )))
+                        |> Expect.equal
+                            (Grid.from2DList
+                                [ [ ( 0, 0 ), ( 0, 1 ), (0, 2) ]
+                                , [ ( 1, 0 ), ( 1, 1 ), (1, 2) ]
+                                ]
+                            )
             ]
+
+        -- , describe "Grid.to2DList"
+        --     [ test "can roundtrip [[]]" <|
+        --         \_ ->
+        --             [ []
+        --             ]
+        --                 |> Grid.from2DList
+        --                 |> Maybe.map Grid.to2DList
+        --                 |> (\maybe ->
+        --                         case maybe of
+        --                             Just value ->
+        --                                 Expect.equal value [ [] ]
+        --                             Nothing ->
+        --                                 Expect.pass
+        --                    )
+        -- , fuzz (list (list int)) "is the inverse of Grid.from2DList" <|
+        --     \random2DList ->
+        --         random2DList
+        --             |> Grid.from2DList
+        --             |> Maybe.map (Grid.to2DList >> List.map (List.filterMap identity))
+        --             |> (\maybe ->
+        --                     case maybe of
+        --                         Just value ->
+        --                             Expect.equal value random2DList
+        --                         Nothing ->
+        --                             Expect.pass
+        --                )
+        -- ]
         ]

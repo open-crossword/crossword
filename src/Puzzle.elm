@@ -129,14 +129,36 @@ annotate rawGrid =
     --        ix ++
     --        cell.number = ix
     rawGrid
-        |> Grid.mapNonEmpty
-            (\cell_ ->
-                case cell_ of
-                    Letter_ char ->
-                        Letter char Nothing
+        |> Grid.indexedMap
+            (\( y, x ) cell_ ->
+                let
+                    up =
+                        Grid.get x (y - 1) rawGrid
 
-                    Shaded_ ->
-                        Shaded
+                    left =
+                        Grid.get (x-1) y rawGrid
+
+                    isShaded =
+                        Maybe.map (\it -> it == Shaded_) >> Maybe.withDefault True
+                in
+                case ( isShaded up, isShaded left, cell_ ) of
+                    ( False, True, Just (Letter_ char) ) ->
+                        Just (Letter char (Just { direction = Down, number = x }))
+
+                    ( True, False, Just (Letter_ char) ) ->
+                        Just (Letter char (Just { direction = Across, number = x }))
+
+                    ( True, True, Just (Letter_ char) ) ->
+                        Just (Letter char (Just { direction = Down, number = x }))
+
+                    ( _, _, Just (Letter_ char) ) ->
+                        Just (Letter char Nothing)
+
+                    ( _, _, Just Shaded_ ) ->
+                        Just Shaded
+
+                    ( _, _, Nothing ) ->
+                        Nothing
             )
 
 

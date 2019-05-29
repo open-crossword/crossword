@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser
-import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
+import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import File exposing (File)
@@ -153,7 +153,7 @@ viewCell selection rowIndex colIndex cell =
                 || (selection.direction == Across && selection.y == rowIndex)
     in
     case cell of
-        Letter x _ ->
+        Letter x clueId ->
             div
                 [ css
                     [ cellStyle
@@ -168,7 +168,10 @@ viewCell selection rowIndex colIndex cell =
                     ]
                 , onClick (OnCellClick rowIndex colIndex)
                 ]
-                [ text "" ]
+                [ text (String.fromChar x)
+                , div [ css [ cellIdStyle ] ]
+                    [ text (Maybe.map (.number >> String.fromInt) clueId |> Maybe.withDefault "") ]
+                ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
@@ -294,10 +297,20 @@ cellStyle =
         [ displayFlex
         , justifyContentCenter
         , border3 (px 1) solid black
-        , Css.height (px 20)
-        , Css.width (px 20)
+        , Css.height (px 30)
+        , Css.width (px 30)
         , alignItems center
-        , fontSize (px 20)
+        , fontSize (px 13)
+        , position relative
+        ]
+
+
+cellIdStyle =
+    Css.batch
+        [ position absolute
+        , top (px 1)
+        , left (px 1)
+        , fontSize (px 10)
         ]
 
 
