@@ -1,8 +1,8 @@
-module Data exposing (sampleData)
+module SamplePuzzle exposing (puzzle)
 
 
-sampleData : String
-sampleData =
+puzzle : String
+puzzle =
     """Title: New York Times, Thursday, January 12, 1961
 Author: Unknown
 Editor: Margaret Farrar

@@ -106,4 +106,34 @@ suite =
                         |> Maybe.andThen (Grid.get 1 1)
                         |> Expect.equal (Just "4")
             ]
+        , describe "Grid.from2DList"
+            [ test "can create a Grid from nested lists" <|
+                \_ ->
+                    Grid.from2DList [ [ 1, 2 ], [ 3, 4 ] ]
+                        |> Expect.equal sampleTwoByTwoGrid
+            , test "makes an empty list of dimensions 0 ✕ 0" <|
+                \_ ->
+                    Grid.from2DList []
+                        |> Expect.equal (Just (Grid.empty 0 0))
+            , test "makes an empty list of dimensions 0 ✕ 2" <|
+                \_ ->
+                    Grid.from2DList
+                        [ []
+                        , []
+                        ]
+                        |> Expect.equal (Just (Grid.empty 0 2))
+            , test "fails when given a ragged list" <|
+                \_ ->
+                    Grid.from2DList
+                        [ [ 1, 2 ]
+                        , [ 4 ]
+                        ]
+                        |> Expect.equal Nothing
+            ]
+        , describe "Grid.to2DList"
+            [ test "is the inverse of Grid.from2DList" <|
+                \_ ->
+                    Grid.from2DList [ [ 1, 2 ], [ 3, 4 ] ]
+                        |> Expect.equal sampleTwoByTwoGrid
+            ]
         ]

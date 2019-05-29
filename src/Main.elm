@@ -2,15 +2,16 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (alignItems, backgroundColor, border3, center, displayFlex, fontSize, margin, marginLeft, marginTop, property, px, rgb, solid)
-import Data
 import Data.Direction exposing (Direction(..), swap)
+import Data.Grid as Grid exposing (Grid)
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import Parser
-import Puzzle exposing (Cell(..), Clue, ClueId, Grid, Metadata, Puzzle)
+import Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import SamplePuzzle
 import Task
 
 
@@ -23,7 +24,7 @@ type Model
 
 
 type alias Board =
-    { grid : Grid
+    { grid : Grid Cell
     , selection : Selection
     }
 
@@ -44,7 +45,7 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( loadPuzzle (Puzzle.parse Data.sampleData)
+    ( loadPuzzle (Puzzle.parse SamplePuzzle.puzzle)
     , Cmd.none
     )
 
@@ -125,7 +126,12 @@ viewBoard : Board -> Html Msg
 viewBoard board =
     div
         []
-        (List.indexedMap (viewRow board.selection) board.grid)
+        (board.grid
+            |> Grid.to2DList
+            -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
+            |> List.map (List.filterMap identity)
+            |> List.indexedMap (viewRow board.selection)
+        )
 
 
 viewRow : Selection -> Int -> List Cell -> Html Msg
@@ -147,7 +153,7 @@ viewCell selection rowIndex colIndex cell =
                 || (selection.direction == Across && selection.y == rowIndex)
     in
     case cell of
-        Letter x ->
+        Letter x _ ->
             div
                 [ css
                     [ cellStyle

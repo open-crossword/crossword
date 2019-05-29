@@ -1,18 +1,15 @@
-module Puzzle exposing (Cell(..), Clue, ClueId, Grid, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
 
 import Data.Direction exposing (Direction(..))
+import Data.Grid as Grid exposing (Grid)
 import Dict exposing (Dict)
 import Parser exposing (..)
-
-
-type alias Grid =
-    List (List Cell)
 
 
 type alias Puzzle =
     { notes : Maybe String
     , metadata : Metadata
-    , grid : Grid
+    , grid : Grid Cell
     , clues : List Clue
     }
 
@@ -40,7 +37,16 @@ type alias Metadata =
 
 type Cell
     = Shaded
-    | Letter Char
+    | Letter Char (Maybe ClueId)
+
+
+type UnannotatedCell
+    = Shaded_
+    | Letter_ Char
+
+
+type alias UnannotatedGrid =
+    Grid UnannotatedCell
 
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
@@ -97,23 +103,54 @@ metadataLine =
 --- GRID ---
 
 
-grid : Parser Grid
+grid : Parser (Grid Cell)
 grid =
-    loopUntil "\n\n"
-        (\x -> x |= line)
+    let
+        rawGrid : Parser UnannotatedGrid
+        rawGrid =
+            loopUntil "\n\n" (\x -> x |= line)
+                |> map Grid.from2DList
+                |> andThen
+                    (maybeToParserOrError
+                        "ran into a problem trying to parse the grid"
+                    )
+    in
+    map annotate rawGrid
 
 
-line : Parser (List Cell)
+annotate : UnannotatedGrid -> Grid Cell
+annotate rawGrid =
+    -- TODO psudocode for the annotation algorithm
+    -- ix = 0
+    -- for cell in cells
+    --     left = cellLeftOf cell
+    --     up = cellAbove cell
+    --     if (left is Shaded) or (up is Shaded):
+    --        ix ++
+    --        cell.number = ix
+    rawGrid
+        |> Grid.mapNonEmpty
+            (\cell_ ->
+                case cell_ of
+                    Letter_ char ->
+                        Letter char Nothing
+
+                    Shaded_ ->
+                        Shaded
+            )
+
+
+line : Parser (List UnannotatedCell)
 line =
     loopUntil "\n"
         (\x -> x |= cell)
 
 
-cell : Parser Cell
+cell : Parser UnannotatedCell
 cell =
     oneOf
-        [ character |> map (\x -> Letter x)
-        , symbol "#" |> map (always Shaded)
+        [ character |> map (\x -> Letter_ x)
+        , symbol "#" |> map (always Shaded_)
         ]
 
 
@@ -122,7 +159,10 @@ character =
     (succeed String.uncons
         |= (getChompedString <| chompIf Char.isAlphaNum)
     )
-        |> andThen (maybeToParser "No character found!")
+        |> andThen
+            (maybeToParserOrError
+                "No character found!"
+            )
         |> map Tuple.first
 
 
@@ -158,7 +198,7 @@ clueIndex =
             (succeed String.toInt
                 |= (getChompedString <| chompWhile Char.isDigit)
             )
-                |> andThen (maybeToParser "Expected int")
+                |> andThen (maybeToParserOrError "Expected int")
 
         helper : String -> (Int -> ClueId) -> Parser ClueId
         helper prefix toClueId =
@@ -192,8 +232,8 @@ clueAnswer =
 --- UTILS ---
 
 
-maybeToParser : String -> Maybe a -> Parser a
-maybeToParser label maybe =
+maybeToParserOrError : String -> Maybe a -> Parser a
+maybeToParserOrError label maybe =
     case maybe of
         Just x ->
             succeed x
