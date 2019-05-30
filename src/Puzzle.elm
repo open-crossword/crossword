@@ -1,4 +1,4 @@
-module Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
+module Puzzle exposing (AnnotatedGrid, Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
 
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
