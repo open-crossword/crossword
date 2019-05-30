@@ -9,7 +9,7 @@ import Parser exposing (..)
 type alias Puzzle =
     { notes : Maybe String
     , metadata : Metadata
-    , grid : Grid Cell
+    , grid : AnnotatedGrid
     , clues : List Clue
     }
 
@@ -47,6 +47,10 @@ type UnannotatedCell
 
 type alias UnannotatedGrid =
     Grid UnannotatedCell
+
+
+type alias AnnotatedGrid =
+    Grid Cell
 
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
@@ -103,7 +107,7 @@ metadataLine =
 --- GRID ---
 
 
-grid : Parser (Grid Cell)
+grid : Parser AnnotatedGrid
 grid =
     let
         rawGrid : Parser UnannotatedGrid
@@ -118,7 +122,7 @@ grid =
     map annotate rawGrid
 
 
-annotate : UnannotatedGrid -> Grid Cell
+annotate : UnannotatedGrid -> AnnotatedGrid
 annotate rawGrid =
     -- TODO psudocode for the annotation algorithm
     -- ix = 0
@@ -136,7 +140,7 @@ annotate rawGrid =
                         Grid.get x (y - 1) rawGrid
 
                     left =
-                        Grid.get (x-1) y rawGrid
+                        Grid.get (x - 1) y rawGrid
 
                     isShaded =
                         Maybe.map (\it -> it == Shaded_) >> Maybe.withDefault True

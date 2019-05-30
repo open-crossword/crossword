@@ -24,7 +24,7 @@ type Model
 
 
 type alias Board =
-    { grid : Grid Cell
+    { grid : AnnotatedGrid
     , selection : Selection
     }
 
