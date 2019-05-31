@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
+import Data.Board exposing (Board, Selection)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import File exposing (File)
@@ -21,19 +22,6 @@ type Model
         , board : Board
         }
     | Failed (List Parser.DeadEnd)
-
-
-type alias Board =
-    { grid : Grid Cell
-    , selection : Selection
-    }
-
-
-type alias Selection =
-    { x : Int
-    , y : Int
-    , direction : Direction
-    }
 
 
 type Msg
