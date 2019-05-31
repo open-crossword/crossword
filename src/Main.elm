@@ -6,6 +6,7 @@ import Data.Board exposing (Board, Selection)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo)
+import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
@@ -13,8 +14,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import Parser
-import Puzzle 
-import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Puzzle
 import SamplePuzzle
 import Task
 

@@ -1,8 +1,10 @@
 module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
 import Dict exposing (Dict)
+
 
 type alias Puzzle =
     { notes : Maybe String

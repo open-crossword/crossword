@@ -1,9 +1,9 @@
 module Puzzle.Format.Xd exposing (parse)
 
-import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
+import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import Parser exposing (..)
 

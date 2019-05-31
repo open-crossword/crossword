@@ -1,4 +1,4 @@
-module Data.OneOrTwo exposing (OneOrTwo(..), map, firstValue)
+module Data.OneOrTwo exposing (OneOrTwo(..), firstValue, map)
 
 
 firstValue : OneOrTwo a -> a
