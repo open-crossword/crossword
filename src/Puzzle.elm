@@ -44,7 +44,6 @@ type Cell
 
 getClueById : Puzzle -> ClueId -> Maybe Clue
 getClueById puzzle_ targetClueId =
-    -- TODO: we should maintain a (Dict ClueId Clue)
     puzzle_.clues
         |> Dict.get targetClueId
 
