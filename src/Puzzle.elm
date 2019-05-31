@@ -137,10 +137,10 @@ annotate rawGrid =
             (\( ( y, x ), cell_ ) ( clueNumber, currentGrid ) ->
                 let
                     up =
-                        Grid.get x (y - 1) rawGrid
+                        Grid.get ( x, y - 1 ) rawGrid
 
                     left =
-                        Grid.get (x - 1) y rawGrid
+                        Grid.get ( x - 1, y ) rawGrid
 
                     isShaded =
                         Maybe.map (\it -> it == Shaded) >> Maybe.withDefault True
@@ -163,7 +163,7 @@ annotate rawGrid =
                                 Shaded
                 in
                 if isAnnotated newCell then
-                    ( clueNumber + 1, Grid.set x y newCell currentGrid )
+                    ( clueNumber + 1, Grid.set ( x, y ) newCell currentGrid )
 
                 else
                     ( clueNumber, currentGrid )

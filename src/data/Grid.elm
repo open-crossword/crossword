@@ -12,12 +12,16 @@ type Grid a
         }
 
 
+type alias Point =
+    ( Int, Int )
+
+
 {-| an empty Grid with the given width and height
 unless you later set the values in the Grid, attempts to get them will return Nothing
 negative dimensions will be treated as zero
 -}
-empty : Int -> Int -> Grid a
-empty w h =
+empty : Point -> Grid a
+empty ( w, h ) =
     Grid
         { width = max 0 w
         , height = max 0 h
@@ -33,8 +37,8 @@ returns `Nothing` in the following cases
   - either the width or the height is less than zero
 
 -}
-fromList : Int -> Int -> List a -> Maybe (Grid a)
-fromList w h list =
+fromList : Point -> List a -> Maybe (Grid a)
+fromList ( w, h ) list =
     if w >= 0 && h >= 0 && List.length list == w * h then
         Just
             (Grid
@@ -87,7 +91,7 @@ from2DList rows =
         ( Just w, Just h ) ->
             rows
                 |> List.concat
-                |> fromList w h
+                |> fromList ( w, h )
 
         ( _, _ ) ->
             Nothing
@@ -100,8 +104,8 @@ Returns Nothing in the following cases
   - the cell you attempted to get was never set or initialized
 
 -}
-get : Int -> Int -> Grid a -> Maybe a
-get x y (Grid grid) =
+get : Point -> Grid a -> Maybe a
+get ( x, y ) (Grid grid) =
     if x >= 0 && y >= 0 then
         Array.get (x + y * grid.width) grid.cells
             |> Maybe.andThen identity
@@ -113,8 +117,8 @@ get x y (Grid grid) =
 {-| sets the cell at the given x, y coordinates
 attempts to set out-of-bound cells will have no effect
 -}
-set : Int -> Int -> a -> Grid a -> Grid a
-set x y value (Grid grid) =
+set : Point -> a -> Grid a -> Grid a
+set ( x, y ) value (Grid grid) =
     Grid
         { width = grid.width
         , height = grid.height
@@ -146,7 +150,7 @@ mapNonEmpty fn grid =
     map (Maybe.map fn) grid
 
 
-indexedMap : (( Int, Int ) -> Maybe a -> Maybe b) -> Grid a -> Grid b
+indexedMap : (Point -> Maybe a -> Maybe b) -> Grid a -> Grid b
 indexedMap fn (Grid grid) =
     Grid
         { width = grid.width
@@ -155,7 +159,7 @@ indexedMap fn (Grid grid) =
         }
 
 
-foldlIndexed : (( ( Int, Int ), Maybe a ) -> acc -> acc) -> acc -> Grid a -> acc
+foldlIndexed : (( Point, Maybe a ) -> acc -> acc) -> acc -> Grid a -> acc
 foldlIndexed fn acc (Grid grid) =
     grid.cells
         |> Array.toIndexedList
