@@ -1,6 +1,6 @@
 module Puzzle.Format.Xd exposing (parse)
 
-import Data.Direction exposing (Direction(..))
+import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
 import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
@@ -213,17 +213,7 @@ clueLine =
 
 clueIdFromDirectionNumber : Direction -> Int -> ClueId
 clueIdFromDirectionNumber direction number =
-    directionToString direction ++ String.fromInt number
-
-
-directionToString : Direction -> String
-directionToString direction =
-    case direction of
-        Across ->
-            "A"
-
-        Down ->
-            "D"
+    Direction.toString direction ++ String.fromInt number
 
 
 clueIndex : Parser ( Direction, Int )
