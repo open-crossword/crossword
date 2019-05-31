@@ -1,6 +1,7 @@
 module Data.Grid exposing (Grid, empty, foldlIndexed, from2DList, fromList, get, height, indexedMap, map, mapNonEmpty, set, to2DList, width)
 
 import Array exposing (Array)
+import Data.Point exposing (Point)
 import List.Extra
 
 
@@ -10,10 +11,6 @@ type Grid a
         , height : Int
         , cells : Array (Maybe a)
         }
-
-
-type alias Point =
-    ( Int, Int )
 
 
 {-| an empty Grid with the given width and height
