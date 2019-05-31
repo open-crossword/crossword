@@ -2,7 +2,7 @@ module Data.Board exposing (Board, Selection)
 
 import Data.Direction exposing (Direction)
 import Data.Grid exposing (Grid)
-import Puzzle exposing (Cell)
+import Data.Puzzle exposing (Cell)
 
 
 type alias Board =

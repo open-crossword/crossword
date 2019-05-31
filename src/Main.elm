@@ -13,7 +13,8 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import Parser
-import Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Puzzle 
+import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import SamplePuzzle
 import Task
 
