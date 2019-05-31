@@ -1,4 +1,4 @@
-module Puzzle exposing (AnnotatedGrid, Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
 
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
@@ -9,7 +9,7 @@ import Parser exposing (..)
 type alias Puzzle =
     { notes : Maybe String
     , metadata : Metadata
-    , grid : AnnotatedGrid
+    , grid : Grid Cell
     , clues : List Clue
     }
 
@@ -40,17 +40,17 @@ type Cell
     | Letter Char (Maybe ClueId)
 
 
-type UnannotatedCell
-    = Shaded_
-    | Letter_ Char
+isAnnotated : Cell -> Bool
+isAnnotated cell_ =
+    case cell_ of
+        Shaded ->
+            False
 
+        Letter _ Nothing ->
+            False
 
-type alias UnannotatedGrid =
-    Grid UnannotatedCell
-
-
-type alias AnnotatedGrid =
-    Grid Cell
+        Letter _ (Just _) ->
+            True
 
 
 parse : String -> Result (List Parser.DeadEnd) Puzzle
@@ -107,10 +107,10 @@ metadataLine =
 --- GRID ---
 
 
-grid : Parser AnnotatedGrid
+grid : Parser (Grid Cell)
 grid =
     let
-        rawGrid : Parser UnannotatedGrid
+        rawGrid : Parser (Grid Cell)
         rawGrid =
             loopUntil "\n\n" (\x -> x |= line)
                 |> map Grid.from2DList
@@ -122,7 +122,7 @@ grid =
     map annotate rawGrid
 
 
-annotate : UnannotatedGrid -> AnnotatedGrid
+annotate : Grid Cell -> Grid Cell
 annotate rawGrid =
     -- TODO psudocode for the annotation algorithm
     -- ix = 0
@@ -133,8 +133,8 @@ annotate rawGrid =
     --        ix ++
     --        cell.number = ix
     rawGrid
-        |> Grid.indexedMap
-            (\( y, x ) cell_ ->
+        |> Grid.foldlIndexed
+            (\( ( y, x ), cell_ ) ( clueNumber, currentGrid ) ->
                 let
                     up =
                         Grid.get x (y - 1) rawGrid
@@ -143,40 +143,47 @@ annotate rawGrid =
                         Grid.get (x - 1) y rawGrid
 
                     isShaded =
-                        Maybe.map (\it -> it == Shaded_) >> Maybe.withDefault True
+                        Maybe.map (\it -> it == Shaded) >> Maybe.withDefault True
+
+                    newCell =
+                        case ( isShaded up, isShaded left, cell_ ) of
+                            ( False, True, Just (Letter char _) ) ->
+                                Letter char (Just { direction = Down, number = clueNumber })
+
+                            ( True, False, Just (Letter char _) ) ->
+                                Letter char (Just { direction = Across, number = clueNumber })
+
+                            ( True, True, Just (Letter char _) ) ->
+                                Letter char (Just { direction = Down, number = clueNumber })
+
+                            ( _, _, Just (Letter char _) ) ->
+                                Letter char Nothing
+
+                            ( _, _, _ ) ->
+                                Shaded
                 in
-                case ( isShaded up, isShaded left, cell_ ) of
-                    ( False, True, Just (Letter_ char) ) ->
-                        Just (Letter char (Just { direction = Down, number = x }))
+                if isAnnotated newCell then
+                    ( clueNumber + 1, Grid.set x y newCell currentGrid )
 
-                    ( True, False, Just (Letter_ char) ) ->
-                        Just (Letter char (Just { direction = Across, number = x }))
-
-                    ( True, True, Just (Letter_ char) ) ->
-                        Just (Letter char (Just { direction = Down, number = x }))
-
-                    ( _, _, Just (Letter_ char) ) ->
-                        Just (Letter char Nothing)
-
-                    ( _, _, Just Shaded_ ) ->
-                        Just Shaded
-
-                    ( _, _, Nothing ) ->
-                        Nothing
+                else
+                    ( clueNumber, currentGrid )
             )
+            -- Acc = (Clue Number, Current Grid)
+            ( 1, rawGrid )
+        |> Tuple.second
 
 
-line : Parser (List UnannotatedCell)
+line : Parser (List Cell)
 line =
     loopUntil "\n"
         (\x -> x |= cell)
 
 
-cell : Parser UnannotatedCell
+cell : Parser Cell
 cell =
     oneOf
-        [ character |> map (\x -> Letter_ x)
-        , symbol "#" |> map (always Shaded_)
+        [ character |> map (\x -> Letter x Nothing)
+        , symbol "#" |> map (always Shaded)
         ]
 
 

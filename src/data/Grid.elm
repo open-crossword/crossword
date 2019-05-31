@@ -1,4 +1,4 @@
-module Data.Grid exposing (Grid, empty, from2DList, fromList, get, height, map, mapNonEmpty, set, to2DList, width, indexedMap)
+module Data.Grid exposing (Grid, empty, foldlIndexed, from2DList, fromList, get, height, indexedMap, map, mapNonEmpty, set, to2DList, width)
 
 import Array exposing (Array)
 import List.Extra
@@ -151,8 +151,15 @@ indexedMap fn (Grid grid) =
     Grid
         { width = grid.width
         , height = grid.height
-        , cells = Array.indexedMap (\ix c -> fn (ix // grid.width, modBy grid.width ix) c) grid.cells
+        , cells = Array.indexedMap (\ix c -> fn ( ix // grid.width, modBy grid.width ix ) c) grid.cells
         }
+
+
+foldlIndexed : (( ( Int, Int ), Maybe a ) -> acc -> acc) -> acc -> Grid a -> acc
+foldlIndexed fn acc (Grid grid) =
+    grid.cells
+        |> Array.toIndexedList
+        |> List.foldl (\( index, cell ) acc2 -> fn ( ( index // grid.width, modBy grid.width index ), cell ) acc2) acc
 
 
 {-| Inverse of from2DList
@@ -162,11 +169,10 @@ to2DList : Grid a -> List (List (Maybe a))
 to2DList (Grid grid) =
     List.Extra.groupsOf grid.width (Array.toList grid.cells)
 
-        -- loc = x + y * width
-        -- loc - (y * width) = x
 
 
+-- loc = x + y * width
+-- loc - (y * width) = x
 -- TODO
 -- mapIndexed : (((Int, Int), Maybe a) -> Maybe b) -> Grid a -> Grid b
 -- foldl: (Maybe a -> acc -> acc) -> acc -> Grid a -> acc
--- foldlIndexed : (((Int, Int), Maybe a) -> acc -> acc) -> acc -> Grid a -> acc
