@@ -1,8 +1,10 @@
-module Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, parse)
+module Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, getClueById, parse)
 
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
+import Data.OneOrTwo exposing (OneOrTwo(..))
 import Dict exposing (Dict)
+import List.Extra
 import Parser exposing (..)
 
 
@@ -10,7 +12,7 @@ type alias Puzzle =
     { notes : Maybe String
     , metadata : Metadata
     , grid : Grid Cell
-    , clues : List Clue
+    , clues : Dict ClueId Clue
     }
 
 
@@ -18,13 +20,13 @@ type alias Clue =
     { id : ClueId
     , clue : String
     , answer : String
+    , direction : Direction
+    , number : Int
     }
 
 
 type alias ClueId =
-    { direction : Direction
-    , number : Int
-    }
+    String
 
 
 type alias Metadata =
@@ -37,7 +39,14 @@ type alias Metadata =
 
 type Cell
     = Shaded
-    | Letter Char (Maybe ClueId)
+    | Letter Char (Maybe (OneOrTwo ClueId))
+
+
+getClueById : Puzzle -> ClueId -> Maybe Clue
+getClueById puzzle_ targetClueId =
+    -- TODO: we should maintain a (Dict ClueId Clue)
+    puzzle_.clues
+        |> Dict.get targetClueId
 
 
 isAnnotated : Cell -> Bool
@@ -64,7 +73,7 @@ puzzle =
     succeed (Puzzle Nothing)
         |= metadata
         |= grid
-        |= clues
+        |= cluesDict
 
 
 
@@ -147,14 +156,15 @@ annotate rawGrid =
 
                     newCell =
                         case ( isShaded up, isShaded left, cell_ ) of
+                            -- TODO: most cells have Two clueIds
                             ( False, True, Just (Letter char _) ) ->
-                                Letter char (Just { direction = Down, number = clueNumber })
+                                Letter char (Just (One (clueIdFromDirectionNumber Across clueNumber)))
 
                             ( True, False, Just (Letter char _) ) ->
-                                Letter char (Just { direction = Across, number = clueNumber })
+                                Letter char (Just (One (clueIdFromDirectionNumber Down clueNumber)))
 
                             ( True, True, Just (Letter char _) ) ->
-                                Letter char (Just { direction = Down, number = clueNumber })
+                                Letter char (Just (One (clueIdFromDirectionNumber Down clueNumber)))
 
                             ( _, _, Just (Letter char _) ) ->
                                 Letter char Nothing
@@ -203,8 +213,19 @@ character =
 --- CLUES ---
 
 
-clues : Parser (List Clue)
-clues =
+cluesDict : Parser (Dict ClueId Clue)
+cluesDict =
+    cluesList
+        |> Parser.map
+            (\clues ->
+                clues
+                    |> List.map (\clue -> ( clue.id, clue ))
+                    |> Dict.fromList
+            )
+
+
+cluesList : Parser (List Clue)
+cluesList =
     let
         helper x =
             x
@@ -216,13 +237,37 @@ clues =
 
 clueLine : Parser Clue
 clueLine =
-    succeed Clue
+    let
+        buildClue ( direction, number ) txt answer =
+            { id = clueIdFromDirectionNumber direction number
+            , clue = txt
+            , answer = answer
+            , direction = direction
+            , number = number
+            }
+    in
+    succeed buildClue
         |= clueIndex
         |= clueText
         |= clueAnswer
 
 
-clueIndex : Parser ClueId
+clueIdFromDirectionNumber : Direction -> Int -> ClueId
+clueIdFromDirectionNumber direction number =
+    directionToString direction ++ String.fromInt number
+
+
+directionToString : Direction -> String
+directionToString direction =
+    case direction of
+        Across ->
+            "A"
+
+        Down ->
+            "D"
+
+
+clueIndex : Parser ( Direction, Int )
 clueIndex =
     let
         -- couldn't get the built-in `int` to tolerate trailing non-digits for some reason
@@ -233,17 +278,17 @@ clueIndex =
             )
                 |> andThen (maybeToParserOrError "Expected int")
 
-        helper : String -> (Int -> ClueId) -> Parser ClueId
-        helper prefix toClueId =
-            succeed toClueId
+        helper : String -> (Int -> ( Direction, Int )) -> Parser ( Direction, Int )
+        helper prefix buildClueId =
+            succeed buildClueId
                 |. symbol prefix
                 |= relaxedInt
                 |. symbol "."
                 |. spaces
     in
     oneOf
-        [ helper "A" (ClueId Across)
-        , helper "D" (ClueId Down)
+        [ helper "A" (Tuple.pair Across)
+        , helper "D" (Tuple.pair Down)
         ]
 
 

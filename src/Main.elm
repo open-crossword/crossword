@@ -5,6 +5,8 @@ import Css exposing (absolute, alignItems, backgroundColor, border3, center, dis
 import Data.Board exposing (Board, Selection)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
+import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo)
+import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -94,7 +96,7 @@ viewCrossword puzzle board =
         [ viewMetadata puzzle.metadata
         , hr [] []
         , div [ css [ displayFlex ] ]
-            [ div [ css [ marginTop (px 71) ] ] [ viewBoard board ]
+            [ div [ css [ marginTop (px 71) ] ] [ viewBoard puzzle board ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle.clues ]
             ]
         ]
@@ -110,28 +112,28 @@ viewMetadata metadata =
         ]
 
 
-viewBoard : Board -> Html Msg
-viewBoard board =
+viewBoard : Puzzle -> Board -> Html Msg
+viewBoard puzzle board =
     div
         []
         (board.grid
             |> Grid.to2DList
             -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
             |> List.map (List.filterMap identity)
-            |> List.indexedMap (viewRow board.selection)
+            |> List.indexedMap (viewRow puzzle board.selection)
         )
 
 
-viewRow : Selection -> Int -> List Cell -> Html Msg
-viewRow selection rowIndex row =
+viewRow : Puzzle -> Selection -> Int -> List Cell -> Html Msg
+viewRow puzzle selection rowIndex row =
     pre
         [ css [ rowStyle ]
         ]
-        (List.indexedMap (viewCell selection rowIndex) row)
+        (List.indexedMap (viewCell puzzle selection rowIndex) row)
 
 
-viewCell : Selection -> Int -> Int -> Cell -> Html Msg
-viewCell selection rowIndex colIndex cell =
+viewCell : Puzzle -> Selection -> Int -> Int -> Cell -> Html Msg
+viewCell puzzle selection rowIndex colIndex cell =
     let
         isSelected =
             selection.x == colIndex && selection.y == rowIndex
@@ -158,18 +160,31 @@ viewCell selection rowIndex colIndex cell =
                 ]
                 [ text (String.fromChar x)
                 , div [ css [ cellIdStyle ] ]
-                    [ text (Maybe.map (.number >> String.fromInt) clueId |> Maybe.withDefault "") ]
+                    [ viewCellClueIndex puzzle clueId ]
                 ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
 
 
-viewClues : List Clue -> Html Msg
+viewCellClueIndex : Puzzle -> Maybe (OneOrTwo ClueId) -> Html Msg
+viewCellClueIndex puzzle maybeClueId =
+    let
+        htmlify int =
+            span [] [ text (String.fromInt int) ]
+    in
+    maybeClueId
+        |> Maybe.map (OneOrTwo.map (Puzzle.getClueById puzzle))
+        |> Maybe.andThen OneOrTwo.firstValue
+        |> Maybe.map (.number >> htmlify)
+        |> Maybe.withDefault (span [] [])
+
+
+viewClues : Dict ClueId Clue -> Html Msg
 viewClues clues =
     let
-        isAcross clue =
-            case clue.id.direction of
+        isAcross _ clue =
+            case clue.direction of
                 Across ->
                     True
 
@@ -177,31 +192,30 @@ viewClues clues =
                     False
 
         ( acrossClues, downClues ) =
-            List.partition isAcross clues
+            Dict.partition isAcross clues
+
+        helper =
+            Dict.values >> List.sortBy .number >> List.map viewClue
     in
     div [ css [ displayFlex ] ]
         [ div []
             [ h2 [] [ text "Across" ]
-            , div [] (List.map viewClue acrossClues)
+            , div [] (helper acrossClues)
             ]
         , div [ css [ marginLeft (px 20) ] ]
             [ h2 [] [ text "Down" ]
-            , div [] (List.map viewClue downClues)
+            , div [] (helper downClues)
             ]
         ]
 
 
 viewClue : Clue -> Html Msg
 viewClue clue =
-    div [] [ viewClueId clue.id, span [] [ text (" " ++ clue.clue) ] ]
-
-
-viewClueId : ClueId -> Html Msg
-viewClueId clueId =
-    b []
-        [ text
-            (String.fromInt clueId.number)
-        ]
+    let
+        viewIndex =
+            b [] [ text (String.fromInt clue.number) ]
+    in
+    div [] [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
 
 
 

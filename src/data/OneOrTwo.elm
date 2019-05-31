@@ -1,8 +1,18 @@
-module Data.OneOrTwo exposing (OneOrTwo(..), mapOneOrTwo)
+module Data.OneOrTwo exposing (OneOrTwo(..), map, firstValue)
 
 
-mapOneOrTwo : (a -> b) -> OneOrTwo a -> OneOrTwo b
-mapOneOrTwo fn oneOrTwo =
+firstValue : OneOrTwo a -> a
+firstValue oneOrTwo =
+    case oneOrTwo of
+        One x ->
+            x
+
+        Two x _ ->
+            x
+
+
+map : (a -> b) -> OneOrTwo a -> OneOrTwo b
+map fn oneOrTwo =
     case oneOrTwo of
         One x ->
             One (fn x)
