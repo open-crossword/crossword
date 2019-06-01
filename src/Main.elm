@@ -5,7 +5,7 @@ import Css exposing (absolute, alignItems, backgroundColor, border3, center, dis
 import Data.Board exposing (Board, Selection)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
-import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo)
+import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
@@ -121,27 +121,41 @@ viewBoard puzzle board =
             |> Grid.to2DList
             -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
             |> List.map (List.filterMap identity)
-            |> List.indexedMap (viewRow puzzle board.selection)
+            |> List.indexedMap (viewRow puzzle board)
         )
 
 
-viewRow : Puzzle -> Selection -> Int -> List Cell -> Html Msg
-viewRow puzzle selection rowIndex row =
+viewRow : Puzzle -> Board -> Int -> List Cell -> Html Msg
+viewRow puzzle board rowIndex row =
     pre
         [ css [ rowStyle ]
         ]
-        (List.indexedMap (viewCell puzzle selection rowIndex) row)
+        (List.indexedMap (viewCell puzzle board rowIndex) row)
 
 
-viewCell : Puzzle -> Selection -> Int -> Int -> Cell -> Html Msg
-viewCell puzzle selection rowIndex colIndex cell =
+viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Html Msg
+viewCell puzzle board rowIndex colIndex cell =
     let
         isSelected =
-            selection.x == colIndex && selection.y == rowIndex
+            board.selection.x == colIndex && board.selection.y == rowIndex
 
-        isSelectedWord =
-            (selection.direction == Down && selection.x == colIndex)
-                || (selection.direction == Across && selection.y == rowIndex)
+        selectedClue =
+            Puzzle.getSelectedClueId puzzle board.selection
+
+        isSelectedWord : Maybe CellMetadata -> Maybe ClueId -> Bool
+        isSelectedWord metadata selectedClueId =
+            metadata
+                |> Maybe.map .clue
+                |> Maybe.andThen
+                    (\clueId ->
+                        case clueId of
+                            One id ->
+                                Maybe.map (\clue -> clue == id) selectedClueId
+
+                            Two id1 id2 ->
+                                Maybe.map (\clue -> clue == id1 || clue == id2) selectedClueId
+                    )
+                |> Maybe.withDefault False
     in
     case cell of
         Letter x cellMetadata ->
@@ -151,7 +165,7 @@ viewCell puzzle selection rowIndex colIndex cell =
                     , if isSelected then
                         selectedCellStyle
 
-                      else if isSelectedWord then
+                      else if isSelectedWord cellMetadata selectedClue then
                         selectedWordCellStyle
 
                       else
