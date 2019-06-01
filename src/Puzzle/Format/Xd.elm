@@ -2,8 +2,9 @@ module Puzzle.Format.Xd exposing (parse)
 
 import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
-import Data.OneOrTwo exposing (OneOrTwo(..))
-import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
+import Data.Point exposing (Point)
+import Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import Parser exposing (..)
 
@@ -14,17 +15,17 @@ parse input =
     run puzzle (input ++ "\n")
 
 
-isAnnotated : Cell -> Bool
-isAnnotated cell_ =
+isWordStart : Cell -> Bool
+isWordStart cell_ =
     case cell_ of
         Shaded ->
             False
 
-        Letter _ Nothing ->
-            False
+        Letter _ (Just cellMetadata) ->
+            cellMetadata.isWordStart
 
-        Letter _ (Just _) ->
-            True
+        Letter _ _ ->
+            False
 
 
 puzzle : Parser Puzzle
@@ -141,21 +142,72 @@ annotate rawGrid =
                                     )
 
                             ( _, _, Just (Letter char _) ) ->
-                                -- TODO Associate these cells with clues
-                                Letter char Nothing
+                                let
+                                    downClue =
+                                        findDownClueNumber ( x, y ) currentGrid
+                                in
+                                case downClue of
+                                    Nothing ->
+                                        Letter char Nothing
+
+                                    Just downClueNumber ->
+                                        Letter
+                                            char
+                                            (Just
+                                                { isWordStart = False
+                                                , clue = One (clueIdFromDirectionNumber Down downClueNumber)
+                                                }
+                                            )
 
                             ( _, _, _ ) ->
                                 Shaded
                 in
-                if isAnnotated newCell then
+                if isWordStart newCell then
                     ( clueNumber + 1, Grid.set ( x, y ) newCell currentGrid )
 
                 else
-                    ( clueNumber, currentGrid )
+                    ( clueNumber, Grid.set ( x, y ) newCell currentGrid )
             )
             -- Acc = (Clue Number, Current Grid)
             ( 1, rawGrid )
         |> Tuple.second
+
+
+findDownClueNumber : Point -> Grid Cell -> Maybe Int
+findDownClueNumber ( x, y ) grid_ =
+    let
+        abovePoint =
+            ( x, y - 1 )
+
+        aboveCell =
+            Grid.get abovePoint grid_
+    in
+    case aboveCell of
+        -- The cell above us is a non-shaded letter cell:
+        -- Recurse upwards in the column of our puzzle to find the end of our word
+        Just (Letter _ _) ->
+            findDownClueNumber abovePoint grid_
+
+        -- The cell above us is a shaded cell or the edge of the grid:
+        -- Pull the clue number out of our current cell
+        _ ->
+            case Grid.get ( x, y ) grid_ of
+                Nothing ->
+                    Nothing
+
+                Just (Letter char cellMeta) ->
+                    Maybe.map (\meta -> OneOrTwo.firstValue meta.clue) cellMeta
+                        |> Maybe.andThen clueIdToNumber
+
+                Just Shaded ->
+                    Nothing
+
+
+clueIdToNumber : ClueId -> Maybe Int
+clueIdToNumber clueId =
+    String.uncons clueId
+        |> Maybe.map Tuple.second
+        |> Maybe.andThen String.toInt
 
 
 line : Parser (List Cell)

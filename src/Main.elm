@@ -183,7 +183,8 @@ viewCellClueIndex puzzle maybeClueMeta =
                 Nothing
     in
     maybeClueMeta
-        |> Maybe.andThen shouldShowClueNumber
+        -- Temporarily removed for debugging so I can see down clue ids
+        -- |> Maybe.andThen shouldShowClueNumber
         |> Maybe.map (\meta -> meta.clue)
         |> Maybe.map (OneOrTwo.map (Puzzle.getClueById puzzle))
         |> Maybe.andThen OneOrTwo.firstValue
