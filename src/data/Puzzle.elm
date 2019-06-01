@@ -1,4 +1,4 @@
-module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+module Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
 
 import Data.Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
@@ -37,4 +37,10 @@ type alias Metadata =
 
 type Cell
     = Shaded
-    | Letter Char (Maybe (OneOrTwo ClueId))
+    | Letter Char (Maybe CellMetadata)
+
+
+type alias CellMetadata =
+    { isWordStart : Bool
+    , clue : OneOrTwo ClueId
+    }

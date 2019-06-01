@@ -6,7 +6,7 @@ import Data.Board exposing (Board, Selection)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo)
-import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
@@ -144,7 +144,7 @@ viewCell puzzle selection rowIndex colIndex cell =
                 || (selection.direction == Across && selection.y == rowIndex)
     in
     case cell of
-        Letter x clueId ->
+        Letter x cellMetadata ->
             div
                 [ css
                     [ cellStyle
@@ -161,20 +161,30 @@ viewCell puzzle selection rowIndex colIndex cell =
                 ]
                 [ text (String.fromChar x)
                 , div [ css [ cellIdStyle ] ]
-                    [ viewCellClueIndex puzzle clueId ]
+                    [ viewCellClueIndex puzzle cellMetadata ]
                 ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
 
 
-viewCellClueIndex : Puzzle -> Maybe (OneOrTwo ClueId) -> Html Msg
-viewCellClueIndex puzzle maybeClueId =
+viewCellClueIndex : Puzzle -> Maybe CellMetadata -> Html Msg
+viewCellClueIndex puzzle maybeClueMeta =
     let
         htmlify int =
             span [] [ text (String.fromInt int) ]
+
+        shouldShowClueNumber : CellMetadata -> Maybe CellMetadata
+        shouldShowClueNumber meta =
+            if meta.isWordStart then
+                Just meta
+
+            else
+                Nothing
     in
-    maybeClueId
+    maybeClueMeta
+        |> Maybe.andThen shouldShowClueNumber
+        |> Maybe.map (\meta -> meta.clue)
         |> Maybe.map (OneOrTwo.map (Puzzle.getClueById puzzle))
         |> Maybe.andThen OneOrTwo.firstValue
         |> Maybe.map (.number >> htmlify)

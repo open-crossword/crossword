@@ -117,15 +117,31 @@ annotate rawGrid =
                         case ( isShaded up, isShaded left, cell_ ) of
                             -- TODO: most cells have Two clueIds
                             ( False, True, Just (Letter char _) ) ->
-                                Letter char (Just (One (clueIdFromDirectionNumber Across clueNumber)))
+                                Letter char
+                                    (Just
+                                        { isWordStart = True
+                                        , clue = One (clueIdFromDirectionNumber Across clueNumber)
+                                        }
+                                    )
 
                             ( True, False, Just (Letter char _) ) ->
-                                Letter char (Just (One (clueIdFromDirectionNumber Down clueNumber)))
+                                Letter char
+                                    (Just
+                                        { isWordStart = True
+                                        , clue = One (clueIdFromDirectionNumber Down clueNumber)
+                                        }
+                                    )
 
                             ( True, True, Just (Letter char _) ) ->
-                                Letter char (Just (One (clueIdFromDirectionNumber Down clueNumber)))
+                                Letter char
+                                    (Just
+                                        { isWordStart = True
+                                        , clue = Two (clueIdFromDirectionNumber Down clueNumber) (clueIdFromDirectionNumber Across clueNumber)
+                                        }
+                                    )
 
                             ( _, _, Just (Letter char _) ) ->
+                                -- TODO Associate these cells with clues
                                 Letter char Nothing
 
                             ( _, _, _ ) ->
