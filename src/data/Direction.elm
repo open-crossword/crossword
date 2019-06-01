@@ -1,4 +1,4 @@
-module Data.Direction exposing (Direction(..), swap, toString)
+module Data.Direction exposing (Direction(..), fromChar, swap, toString)
 
 
 type Direction
@@ -24,3 +24,16 @@ toString direction =
 
         Down ->
             "D"
+
+
+fromChar : Char -> Maybe Direction
+fromChar char =
+    case char of
+        'A' ->
+            Just Across
+
+        'D' ->
+            Just Down
+
+        _ ->
+            Nothing

@@ -98,7 +98,7 @@ viewCrossword puzzle board =
         , hr [] []
         , div [ css [ displayFlex ] ]
             [ div [ css [ marginTop (px 71) ] ] [ viewBoard puzzle board ]
-            , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle.clues ]
+            , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
             ]
         ]
 
@@ -192,8 +192,8 @@ viewCellClueIndex puzzle maybeClueMeta =
         |> Maybe.withDefault (span [] [])
 
 
-viewClues : Dict ClueId Clue -> Html Msg
-viewClues clues =
+viewClues : Puzzle -> Board -> Html Msg
+viewClues puzzle board =
     let
         isAcross _ clue =
             case clue.direction of
@@ -204,10 +204,13 @@ viewClues clues =
                     False
 
         ( acrossClues, downClues ) =
-            Dict.partition isAcross clues
+            Dict.partition isAcross puzzle.clues
+
+        selectedClue =
+            Puzzle.getSelectedClueId puzzle board.selection
 
         helper =
-            Dict.values >> List.sortBy .number >> List.map viewClue
+            Dict.values >> List.sortBy .number >> List.map (viewClue selectedClue)
     in
     div [ css [ displayFlex ] ]
         [ div []
@@ -221,13 +224,30 @@ viewClues clues =
         ]
 
 
-viewClue : Clue -> Html Msg
-viewClue clue =
+viewClue : Maybe ClueId -> Clue -> Html Msg
+viewClue selectedClue clue =
     let
         viewIndex =
             b [] [ text (String.fromInt clue.number) ]
+
+        isSelected =
+            case selectedClue of
+                Nothing ->
+                    False
+
+                Just clueId ->
+                    clue.id == clueId
     in
-    div [] [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
+    div
+        [ css
+            [ if isSelected then
+                backgroundColor selectedWordColor
+
+              else
+                backgroundColor (rgb 255 255 255)
+            ]
+        ]
+        [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
 
 
 
