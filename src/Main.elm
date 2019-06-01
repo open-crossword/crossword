@@ -185,7 +185,7 @@ viewCellClueIndex puzzle maybeClueMeta =
     maybeClueMeta
         -- Temporarily removed for debugging so I can see down clue ids
         -- |> Maybe.andThen shouldShowClueNumber
-        |> Maybe.map (\meta -> meta.clue)
+        |> Maybe.map .clue
         |> Maybe.map (OneOrTwo.map (Puzzle.getClueById puzzle))
         |> Maybe.andThen OneOrTwo.firstValue
         |> Maybe.map (.number >> htmlify)

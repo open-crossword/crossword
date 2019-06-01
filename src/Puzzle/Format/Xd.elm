@@ -141,7 +141,7 @@ annotate rawGrid =
                                         }
                                     )
 
-                            ( _, _, Just (Letter char _) ) ->
+                            ( False, False, Just (Letter char _) ) ->
                                 let
                                     downClue =
                                         findDownClueNumber ( x, y ) currentGrid
@@ -155,7 +155,7 @@ annotate rawGrid =
                                             char
                                             (Just
                                                 { isWordStart = False
-                                                , clue = One (clueIdFromDirectionNumber Down downClueNumber)
+                                                , clue = Two (clueIdFromDirectionNumber Down downClueNumber) (clueIdFromDirectionNumber Across clueNumber)
                                                 }
                                             )
 
