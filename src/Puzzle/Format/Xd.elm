@@ -4,7 +4,7 @@ import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
-import Data.Puzzle as Puzzle exposing (Cell(..),  Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..))
 import Dict exposing (Dict)
 import Parser exposing (..)
 
@@ -15,17 +15,28 @@ parse input =
     run puzzle (input ++ "\n")
 
 
-
 puzzle : Parser Puzzle
 puzzle =
-    succeed (Puzzle Nothing)
+    let
+        buildPuzzle =
+            \metadata_ grid_ clues_ cluesForCell_ ->
+                { notes = Just ""
+                , metadata = metadata_
+                , grid = grid_
+                , clues = clues_
+                , cluesForCell = cluesForCell_
+                , wordStarts = wordStarts grid_
+                }
+    in
+    succeed buildPuzzle
         |= metadata
         |= grid
         |= cluesDict
-        |= succeed Dict.empty -- TODO
+        |= succeed Dict.empty
 
 
 
+-- TODO
 --- METADATA ---
 
 
@@ -82,10 +93,6 @@ grid =
 
 annotate : Grid Cell -> Grid Cell
 annotate rawGrid =
-    let
-        foo =
-            Debug.log "" (rawGrid |> wordStarts)
-    in
     rawGrid
 
 
@@ -95,16 +102,6 @@ annotate rawGrid =
 -- |> associateCellsByClueId
 -- labelByIndex : Grid Cell ->  List WordStart -> Grid Cell
 -- associateCellsByClueId : Grid Cell -> ??? -> Grid Cell
-
-
-type WordStartDirection
-    = Across
-    | Down
-    | Both
-
-
-type alias WordStart =
-    { point : Point, direction : WordStartDirection }
 
 
 wordStarts : Grid Cell -> List WordStart
@@ -147,9 +144,6 @@ wordStarts grid_ =
     in
     Grid.foldlIndexed helper [] grid_
         |> List.reverse
-
-
-
 
 
 line : Parser (List Cell)
@@ -217,8 +211,6 @@ clueLine =
         |= clueIndex
         |= clueText
         |= clueAnswer
-
-
 
 
 clueIndex : Parser ( Direction, Int )

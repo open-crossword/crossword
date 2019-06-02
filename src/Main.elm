@@ -6,13 +6,14 @@ import Data.Board as Board exposing (Board)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
-import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
+import List.Extra
 import Parser
 import Puzzle
 import SamplePuzzle
@@ -147,6 +148,9 @@ viewCell puzzle board y x cell =
                 Nothing ->
                     False
 
+        isWordStart =
+            List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
+                |> Maybe.map .direction
     in
     case cell of
         Letter char ->
@@ -161,6 +165,18 @@ viewCell puzzle board y x cell =
 
                       else
                         cellStyle
+                    , case isWordStart of
+                        Just Puzzle.Across ->
+                            backgroundColor (rgb 255 0 0)
+
+                        Just Puzzle.Down ->
+                            backgroundColor (rgb 255 255 0)
+
+                        Just Puzzle.Both ->
+                            backgroundColor (rgb 255 0 255)
+
+                        Nothing ->
+                            Css.batch []
                     ]
                 , onClick (OnCellClick y x)
                 ]
