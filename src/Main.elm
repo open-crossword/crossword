@@ -6,7 +6,7 @@ import Data.Board as Board exposing (Board)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
-import Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
@@ -118,91 +118,83 @@ viewBoard puzzle board =
 
 
 viewRow : Puzzle -> Board -> Int -> List Cell -> Html Msg
-viewRow puzzle board rowIndex row =
+viewRow puzzle board y row =
     pre
         [ css [ rowStyle ]
         ]
-        (List.indexedMap (viewCell puzzle board rowIndex) row)
+        (List.indexedMap (viewCell puzzle board y) row)
 
 
 viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Html Msg
-viewCell puzzle board rowIndex colIndex cell =
+viewCell puzzle board y x cell =
     let
         isSelected =
-            board.selection.x == colIndex && board.selection.y == rowIndex
+            board.selection.x == x && board.selection.y == y
 
+        selectedClue : Maybe ClueId
         selectedClue =
             Puzzle.getSelectedClueId puzzle board.selection
 
-        isSelectedWord : Maybe CellMetadata -> Maybe ClueId -> Bool
-        isSelectedWord metadata selectedClueId =
-            metadata
-                |> Maybe.map .clue
-                |> Maybe.andThen
-                    (\clueId ->
-                        case clueId of
-                            One id ->
-                                Maybe.map (\clue -> clue == id) selectedClueId
+        isSelectedWord : Maybe ClueId -> Bool
+        isSelectedWord selectedClueId =
+            case Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell of
+                Just (One id) ->
+                    Maybe.map (\clue -> clue == id) selectedClueId |> Maybe.withDefault False
 
-                            Two id1 id2 ->
-                                Maybe.map (\clue -> clue == id1 || clue == id2) selectedClueId
-                    )
-                |> Maybe.withDefault False
+                Just (Two id1 id2) ->
+                    Maybe.map (\clue -> clue == id1 || clue == id2) selectedClueId |> Maybe.withDefault False
+
+                Nothing ->
+                    False
+
     in
     case cell of
-        Letter x cellMetadata ->
+        Letter char ->
             div
                 [ css
                     [ cellStyle
                     , if isSelected then
                         selectedCellStyle
 
-                      else if isSelectedWord cellMetadata selectedClue then
+                      else if isSelectedWord selectedClue then
                         selectedWordCellStyle
 
                       else
                         cellStyle
                     ]
-                , onClick (OnCellClick rowIndex colIndex)
+                , onClick (OnCellClick y x)
                 ]
-                [ text (String.fromChar x)
+                [ text (String.fromChar char)
                 , div [ css [ cellIdStyle ] ]
-                    [ viewCellClueIndex puzzle cellMetadata ]
+                    [ case Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell of
+                        Just oneOrTwo ->
+                            viewCellClueIndex oneOrTwo
+
+                        Nothing ->
+                            div [] []
+                    ]
                 ]
 
         Shaded ->
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
 
 
-viewCellClueIndex : Puzzle -> Maybe CellMetadata -> Html Msg
-viewCellClueIndex puzzle maybeClueMeta =
+viewCellClueIndex : OneOrTwo ClueId -> Html Msg
+viewCellClueIndex clueIds =
     let
         htmlify int =
             span [] [ text (String.fromInt int) ]
-
-        shouldShowClueNumber : CellMetadata -> Maybe CellMetadata
-        shouldShowClueNumber meta =
-            if meta.isWordStart then
-                Just meta
-
-            else
-                Nothing
     in
-    maybeClueMeta
-        -- Temporarily removed for debugging so I can see down clue ids
-        -- |> Maybe.andThen shouldShowClueNumber
-        |> Maybe.map .clue
-        |> Maybe.map (OneOrTwo.map (Puzzle.getClueById puzzle))
-        |> Maybe.andThen OneOrTwo.firstValue
-        |> Maybe.map (.number >> htmlify)
-        |> Maybe.withDefault (span [] [])
+    clueIds
+        |> OneOrTwo.firstValue
+        |> (.number >> htmlify)
 
 
 viewClues : Puzzle -> Board -> Html Msg
 viewClues puzzle board =
     let
         isAcross _ clue =
-            case clue.direction of
+            case clue.id.direction of
                 Across ->
                     True
 
@@ -216,7 +208,7 @@ viewClues puzzle board =
             Puzzle.getSelectedClueId puzzle board.selection
 
         helper =
-            Dict.values >> List.sortBy .number >> List.map (viewClue selectedClue)
+            Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)
     in
     div [ css [ displayFlex ] ]
         [ div []
@@ -234,7 +226,7 @@ viewClue : Maybe ClueId -> Clue -> Html Msg
 viewClue selectedClue clue =
     let
         viewIndex =
-            b [] [ text (String.fromInt clue.number) ]
+            b [] [ text (String.fromInt clue.id.number) ]
 
         isSelected =
             case selectedClue of

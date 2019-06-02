@@ -1,16 +1,21 @@
-module Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
+module Data.Puzzle exposing (Cell(..),  Clue, ClueId, Metadata, Puzzle, clueIdToString)
 
-import Data.Direction exposing (Direction(..))
+import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
 import Dict exposing (Dict)
+
+
+type alias CellIndex =
+    Int
 
 
 type alias Puzzle =
     { notes : Maybe String
     , metadata : Metadata
     , grid : Grid Cell
-    , clues : Dict ClueId Clue
+    , clues : Dict String Clue
+    , cluesForCell : Dict CellIndex (OneOrTwo ClueId)
     }
 
 
@@ -18,13 +23,13 @@ type alias Clue =
     { id : ClueId
     , clue : String
     , answer : String
-    , direction : Direction
-    , number : Int
     }
 
 
 type alias ClueId =
-    String
+    { direction : Direction
+    , number : Int
+    }
 
 
 type alias Metadata =
@@ -37,10 +42,9 @@ type alias Metadata =
 
 type Cell
     = Shaded
-    | Letter Char (Maybe CellMetadata)
+    | Letter Char
 
 
-type alias CellMetadata =
-    { isWordStart : Bool
-    , clue : OneOrTwo ClueId
-    }
+clueIdToString : ClueId -> String
+clueIdToString { direction, number } =
+    Direction.toString direction ++ String.fromInt number

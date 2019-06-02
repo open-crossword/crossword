@@ -44,51 +44,53 @@ suite =
             [ test "returns Nothing on an empty grid" <|
                 \_ ->
                     Grid.empty 2 2
-                        |> Grid.get 0 0
+                        |> Grid.get ( 0, 0 )
                         |> Expect.equal Nothing
             , test "returns Nothing if given a too-big index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get 3 1
+                        |> Grid.get ( 3, 1 )
                         |> Expect.equal Nothing
             , test "returns Nothing if given a negative index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get -1 1
+                        |> Grid.get ( -1, 1 )
                         |> Expect.equal Nothing
             , test "can get a thing from the grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get 0 0
+                        |> Grid.get ( 0, 0 )
                         |> Expect.equal (Just 1)
             , test "understands x index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get 1 0
+                        |> Grid.get ( 1, 0 )
                         |> Expect.equal (Just 2)
             , test "understands y index" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get 0 1
+                        |> Grid.get ( 0, 1 )
                         |> Expect.equal (Just 3)
             , test "understands x and y indices" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.get 1 1
+                        |> Grid.get ( 1, 1 )
                         |> Expect.equal (Just 4)
             ]
+
+        -- TODO test above, etc
         , describe "Grid.set"
             [ test "can set a value in an empty grid" <|
                 \_ ->
                     Grid.empty 2 2
-                        |> Grid.set 0 0 10
-                        |> Grid.get 0 0
+                        |> Grid.set ( 0, 0 ) 10
+                        |> Grid.get ( 0, 0 )
                         |> Expect.equal (Just 10)
             , test "can set a value in a sample grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.set 1 0 -5
-                        |> Grid.get 1 0
+                        |> Grid.set ( 1, 0 ) -5
+                        |> Grid.get ( 1, 0 )
                         |> Expect.equal (Just -5)
             ]
         , describe "Grid.map"
@@ -96,7 +98,7 @@ suite =
                 \_ ->
                     sampleTwoByTwoGrid
                         |> Grid.map (Maybe.map String.fromInt)
-                        |> Grid.get 1 1
+                        |> Grid.get ( 1, 1 )
                         |> Expect.equal (Just "4")
             ]
         , describe "Grid.mapNonEmpty"
@@ -104,7 +106,7 @@ suite =
                 \_ ->
                     sampleTwoByTwoGrid
                         |> Grid.mapNonEmpty String.fromInt
-                        |> Grid.get 1 1
+                        |> Grid.get ( 1, 1 )
                         |> Expect.equal (Just "4")
             ]
         , describe "Grid.from2DList"
@@ -134,25 +136,25 @@ suite =
             [ test "can indexedMap a simple grid" <|
                 \_ ->
                     sampleTwoByTwoGrid
-                        |> Grid.indexedMap (\( x, y ) z -> Just ( x, y ))
+                        |> Grid.indexedMap (\( x, y ) _ -> Just ( x, y ))
                         |> Just
                         |> Expect.equal
                             (Grid.from2DList
-                                [ [ ( 0, 0 ), ( 0, 1 ) ]
-                                , [ ( 1, 0 ), ( 1, 1 ) ]
+                                [ [ ( 0, 0 ), ( 1, 0 ) ]
+                                , [ ( 0, 1 ), ( 1, 1 ) ]
                                 ]
                             )
             , test "can indexedMap a different grid" <|
                 \_ ->
                     Grid.from2DList
                         [ [ 1, 1, 1 ]
-                        , [ 1, 1, 1]
+                        , [ 1, 1, 1 ]
                         ]
                         |> Maybe.map (Grid.indexedMap (\( x, y ) z -> Just ( x, y )))
                         |> Expect.equal
                             (Grid.from2DList
-                                [ [ ( 0, 0 ), ( 0, 1 ), (0, 2) ]
-                                , [ ( 1, 0 ), ( 1, 1 ), (1, 2) ]
+                                [ [ ( 0, 0 ), ( 1, 0 ), ( 2, 0 ) ]
+                                , [ ( 0, 1 ), ( 1, 1 ), ( 2, 1 ) ]
                                 ]
                             )
             ]

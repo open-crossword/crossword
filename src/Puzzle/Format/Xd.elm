@@ -1,10 +1,10 @@
 module Puzzle.Format.Xd exposing (parse)
 
-import Data.Direction as Direction exposing (Direction(..))
+import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
-import Data.Puzzle exposing (Cell(..), CellMetadata, Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle as Puzzle exposing (Cell(..),  Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import Parser exposing (..)
 
@@ -15,18 +15,6 @@ parse input =
     run puzzle (input ++ "\n")
 
 
-isWordStart : Cell -> Bool
-isWordStart cell_ =
-    case cell_ of
-        Shaded ->
-            False
-
-        Letter _ (Just cellMetadata) ->
-            cellMetadata.isWordStart
-
-        Letter _ _ ->
-            False
-
 
 puzzle : Parser Puzzle
 puzzle =
@@ -34,6 +22,7 @@ puzzle =
         |= metadata
         |= grid
         |= cluesDict
+        |= succeed Dict.empty -- TODO
 
 
 
@@ -88,126 +77,79 @@ grid =
                         "ran into a problem trying to parse the grid"
                     )
     in
-    map annotate rawGrid
+    Parser.map annotate rawGrid
 
 
 annotate : Grid Cell -> Grid Cell
 annotate rawGrid =
-    -- TODO psudocode for the annotation algorithm
-    -- ix = 0
-    -- for cell in cells
-    --     left = cellLeftOf cell
-    --     up = cellAbove cell
-    --     if (left is Shaded) or (up is Shaded):
-    --        ix ++
-    --        cell.number = ix
-    rawGrid
-        |> Grid.foldlIndexed
-            (\( ( y, x ), cell_ ) ( clueNumber, currentGrid ) ->
-                let
-                    up =
-                        Grid.get ( x, y - 1 ) rawGrid
-
-                    left =
-                        Grid.get ( x - 1, y ) rawGrid
-
-                    isShaded =
-                        Maybe.map (\it -> it == Shaded) >> Maybe.withDefault True
-
-                    newCell =
-                        case ( isShaded up, isShaded left, cell_ ) of
-                            -- TODO: most cells have Two clueIds
-                            ( False, True, Just (Letter char _) ) ->
-                                Letter char
-                                    (Just
-                                        { isWordStart = True
-                                        , clue = One (clueIdFromDirectionNumber Across clueNumber)
-                                        }
-                                    )
-
-                            ( True, False, Just (Letter char _) ) ->
-                                Letter char
-                                    (Just
-                                        { isWordStart = True
-                                        , clue = One (clueIdFromDirectionNumber Down clueNumber)
-                                        }
-                                    )
-
-                            ( True, True, Just (Letter char _) ) ->
-                                Letter char
-                                    (Just
-                                        { isWordStart = True
-                                        , clue = Two (clueIdFromDirectionNumber Down clueNumber) (clueIdFromDirectionNumber Across clueNumber)
-                                        }
-                                    )
-
-                            ( False, False, Just (Letter char _) ) ->
-                                let
-                                    downClue =
-                                        findDownClueNumber ( x, y ) currentGrid
-                                in
-                                case downClue of
-                                    Nothing ->
-                                        Letter char Nothing
-
-                                    Just downClueNumber ->
-                                        Letter
-                                            char
-                                            (Just
-                                                { isWordStart = False
-                                                , clue = Two (clueIdFromDirectionNumber Down downClueNumber) (clueIdFromDirectionNumber Across clueNumber)
-                                                }
-                                            )
-
-                            ( _, _, _ ) ->
-                                Shaded
-                in
-                if isWordStart newCell then
-                    ( clueNumber + 1, Grid.set ( x, y ) newCell currentGrid )
-
-                else
-                    ( clueNumber, Grid.set ( x, y ) newCell currentGrid )
-            )
-            -- Acc = (Clue Number, Current Grid)
-            ( 1, rawGrid )
-        |> Tuple.second
-
-
-findDownClueNumber : Point -> Grid Cell -> Maybe Int
-findDownClueNumber ( x, y ) grid_ =
     let
-        abovePoint =
-            ( x, y - 1 )
-
-        aboveCell =
-            Grid.get abovePoint grid_
+        foo =
+            Debug.log "" (rawGrid |> wordStarts)
     in
-    case aboveCell of
-        -- The cell above us is a non-shaded letter cell:
-        -- Recurse upwards in the column of our puzzle to find the end of our word
-        Just (Letter _ _) ->
-            findDownClueNumber abovePoint grid_
-
-        -- The cell above us is a shaded cell or the edge of the grid:
-        -- Pull the clue number out of our current cell
-        _ ->
-            case Grid.get ( x, y ) grid_ of
-                Nothing ->
-                    Nothing
-
-                Just (Letter char cellMeta) ->
-                    Maybe.map (\meta -> OneOrTwo.firstValue meta.clue) cellMeta
-                        |> Maybe.andThen clueIdToNumber
-
-                Just Shaded ->
-                    Nothing
+    rawGrid
 
 
-clueIdToNumber : ClueId -> Maybe Int
-clueIdToNumber clueId =
-    String.uncons clueId
-        |> Maybe.map Tuple.second
-        |> Maybe.andThen String.toInt
+
+-- wordStarts rawGrid
+-- |> labelByIndex rawGrid
+-- |> associateCellsByClueId
+-- labelByIndex : Grid Cell ->  List WordStart -> Grid Cell
+-- associateCellsByClueId : Grid Cell -> ??? -> Grid Cell
+
+
+type WordStartDirection
+    = Across
+    | Down
+    | Both
+
+
+type alias WordStart =
+    { point : Point, direction : WordStartDirection }
+
+
+wordStarts : Grid Cell -> List WordStart
+wordStarts grid_ =
+    let
+        isShaded =
+            Maybe.map (\c -> c == Shaded)
+                >> Maybe.withDefault True
+
+        isAcrossStart : Point -> Bool
+        isAcrossStart point =
+            (grid_ |> Grid.leftOf point |> isShaded)
+                && (grid_ |> Grid.rightOf point |> (not << isShaded))
+
+        isDownStart : Point -> Bool
+        isDownStart point =
+            let
+                above =
+                    grid_ |> Grid.above point |> isShaded
+
+                below =
+                    grid_ |> Grid.below point |> (not << isShaded)
+            in
+            above && below
+
+        helper : ( Point, Maybe Cell ) -> List WordStart -> List WordStart
+        helper ( point, theCell ) acc =
+            case ( isShaded theCell, isAcrossStart point, isDownStart point ) of
+                ( False, True, True ) ->
+                    WordStart point Both :: acc
+
+                ( False, False, True ) ->
+                    WordStart point Down :: acc
+
+                ( False, True, False ) ->
+                    WordStart point Across :: acc
+
+                ( _, _, _ ) ->
+                    acc
+    in
+    Grid.foldlIndexed helper [] grid_
+        |> List.reverse
+
+
+
 
 
 line : Parser (List Cell)
@@ -219,7 +161,7 @@ line =
 cell : Parser Cell
 cell =
     oneOf
-        [ character |> map (\x -> Letter x Nothing)
+        [ character |> map (\x -> Letter x)
         , symbol "#" |> map (always Shaded)
         ]
 
@@ -240,13 +182,13 @@ character =
 --- CLUES ---
 
 
-cluesDict : Parser (Dict ClueId Clue)
+cluesDict : Parser (Dict String Clue)
 cluesDict =
     cluesList
         |> Parser.map
             (\clues ->
                 clues
-                    |> List.map (\clue -> ( clue.id, clue ))
+                    |> List.map (\clue -> ( Puzzle.clueIdToString clue.id, clue ))
                     |> Dict.fromList
             )
 
@@ -266,11 +208,9 @@ clueLine : Parser Clue
 clueLine =
     let
         buildClue ( direction, number ) txt answer =
-            { id = clueIdFromDirectionNumber direction number
+            { id = ClueId direction number
             , clue = txt
             , answer = answer
-            , direction = direction
-            , number = number
             }
     in
     succeed buildClue
@@ -279,9 +219,6 @@ clueLine =
         |= clueAnswer
 
 
-clueIdFromDirectionNumber : Direction -> Int -> ClueId
-clueIdFromDirectionNumber direction number =
-    Direction.toString direction ++ String.fromInt number
 
 
 clueIndex : Parser ( Direction, Int )
@@ -304,8 +241,8 @@ clueIndex =
                 |. spaces
     in
     oneOf
-        [ helper "A" (Tuple.pair Across)
-        , helper "D" (Tuple.pair Down)
+        [ helper "A" (Tuple.pair Direction.Across)
+        , helper "D" (Tuple.pair Direction.Down)
         ]
 
 

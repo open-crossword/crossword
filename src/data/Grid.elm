@@ -1,4 +1,4 @@
-module Data.Grid exposing (Grid, empty, foldlIndexed, from2DList, fromList, get, height, indexedMap, map, mapNonEmpty, set, to2DList, width)
+module Data.Grid exposing (Grid, empty, foldlIndexed, from2DList, fromList, get, height, indexedMap, map, mapNonEmpty, set, to2DList, width, leftOf, rightOf, above, below, pointToIndex)
 
 import Array exposing (Array)
 import Data.Point exposing (Point)
@@ -17,8 +17,8 @@ type Grid a
 unless you later set the values in the Grid, attempts to get them will return Nothing
 negative dimensions will be treated as zero
 -}
-empty : Point -> Grid a
-empty ( w, h ) =
+empty : Int -> Int -> Grid a
+empty w h =
     Grid
         { width = max 0 w
         , height = max 0 h
@@ -34,8 +34,8 @@ returns `Nothing` in the following cases
   - either the width or the height is less than zero
 
 -}
-fromList : Point -> List a -> Maybe (Grid a)
-fromList ( w, h ) list =
+fromList : Int -> Int -> List a -> Maybe (Grid a)
+fromList w h list =
     if w >= 0 && h >= 0 && List.length list == w * h then
         Just
             (Grid
@@ -88,7 +88,7 @@ from2DList rows =
         ( Just w, Just h ) ->
             rows
                 |> List.concat
-                |> fromList ( w, h )
+                |> fromList w h
 
         ( _, _ ) ->
             Nothing
@@ -115,11 +115,11 @@ get ( x, y ) (Grid grid) =
 attempts to set out-of-bound cells will have no effect
 -}
 set : Point -> a -> Grid a -> Grid a
-set ( x, y ) value (Grid grid) =
+set point value ((Grid grid) as g) =
     Grid
         { width = grid.width
         , height = grid.height
-        , cells = Array.set (x + y * grid.width) (Just value) grid.cells
+        , cells = Array.set (pointToIndex point g) (Just value) grid.cells
         }
 
 
@@ -148,27 +148,56 @@ mapNonEmpty fn grid =
 
 
 indexedMap : (Point -> Maybe a -> Maybe b) -> Grid a -> Grid b
-indexedMap fn (Grid grid) =
+indexedMap fn ((Grid grid) as g) =
     Grid
         { width = grid.width
         , height = grid.height
-        , cells = Array.indexedMap (\ix c -> fn ( ix // grid.width, modBy grid.width ix ) c) grid.cells
+        , cells = Array.indexedMap (\index c -> fn (indexToPoint index g) c) grid.cells
         }
+
+indexToPoint : Int -> Grid a -> Point
+indexToPoint index (Grid grid) =
+    (  modBy grid.width index, index // grid.width )
+
+pointToIndex : Point -> Grid a -> Int
+pointToIndex (x, y) (Grid grid) =
+    x + y * grid.width
+
 
 
 foldlIndexed : (( Point, Maybe a ) -> acc -> acc) -> acc -> Grid a -> acc
-foldlIndexed fn acc (Grid grid) =
+foldlIndexed fn acc ((Grid grid) as g) =
     grid.cells
         |> Array.toIndexedList
-        |> List.foldl (\( index, cell ) acc2 -> fn ( ( index // grid.width, modBy grid.width index ), cell ) acc2) acc
+        |> List.foldl (\( index, cell ) acc2 -> fn ( indexToPoint index g, cell ) acc2) acc
 
 
-{-| Inverse of from2DList
+{-| (sort of, some edge cases around [[]]) Inverse of from2DList
 the (Maybe a) is because cells can be uninitialized
 -}
 to2DList : Grid a -> List (List (Maybe a))
 to2DList (Grid grid) =
     List.Extra.groupsOf grid.width (Array.toList grid.cells)
+
+
+above : Point -> Grid a -> Maybe a
+above ( x, y )  =
+    get ( x, y - 1 ) 
+
+
+below : Point -> Grid a -> Maybe a
+below ( x, y ) =
+    get ( x, y + 1 )
+
+
+rightOf : Point -> Grid a -> Maybe a
+rightOf ( x, y ) =
+    get ( x + 1, y )
+
+
+leftOf : Point -> Grid a -> Maybe a
+leftOf ( x, y ) =
+    get ( x - 1, y )
 
 
 
