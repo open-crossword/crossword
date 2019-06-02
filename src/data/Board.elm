@@ -1,7 +1,8 @@
-module Data.Board exposing (Board, Selection, fromPuzzle)
+module Data.Board exposing (Board, Selection, fromPuzzle, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid exposing (Grid)
+import Data.Point exposing (Point)
 import Data.Puzzle exposing (Cell, Puzzle)
 
 
@@ -32,4 +33,15 @@ fromPuzzle puzzle =
         , y = 0
         , direction = Direction.Across
         }
+    }
+
+
+updateSelection : Point -> Direction -> Board -> Board
+updateSelection ( x, y ) direction board =
+    { board
+        | selection =
+            { x = x
+            , y = y
+            , direction = direction
+            }
     }

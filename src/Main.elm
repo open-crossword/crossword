@@ -271,28 +271,18 @@ update msg model =
 
         ( OnCellClick row col, Loaded record ) ->
             let
-                oldBoard =
-                    record.board
-
                 oldSelection =
-                    oldBoard.selection
+                    record.board.selection
 
-                swapDirection =
-                    col == oldSelection.x && row == oldSelection.y
+                direction =
+                    if col == oldSelection.x && row == oldSelection.y then
+                        swap oldSelection.direction
+
+                    else
+                        oldSelection.direction
 
                 newBoard =
-                    { oldBoard
-                        | selection =
-                            { x = col
-                            , y = row
-                            , direction =
-                                if swapDirection then
-                                    swap oldSelection.direction
-
-                                else
-                                    oldSelection.direction
-                            }
-                    }
+                    Board.updateSelection ( col, row ) direction record.board
             in
             ( Loaded
                 { record
