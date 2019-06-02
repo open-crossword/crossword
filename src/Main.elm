@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
-import Data.Board exposing (Board, Selection)
+import Data.Board as Board exposing (Board)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
@@ -47,15 +47,7 @@ loadPuzzle parsedPuzzle =
         Ok puzzle ->
             Loaded
                 { puzzle = puzzle
-                , board =
-                    { -- Temporarily copy the puzzle solution into our game grid
-                      grid = puzzle.grid
-                    , selection =
-                        { x = 0
-                        , y = 0
-                        , direction = Across
-                        }
-                    }
+                , board = Board.fromPuzzle puzzle
                 }
 
         Err err ->
