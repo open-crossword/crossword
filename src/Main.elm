@@ -353,11 +353,11 @@ black =
 
 
 selectedCursorColor =
-    rgb 123 184 235
+    rgb 255 218 0
 
 
 selectedWordColor =
-    rgb 186 202 203
+    rgb 167 216 255
 
 
 rowStyle =
