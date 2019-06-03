@@ -19,24 +19,98 @@ puzzle : Parser Puzzle
 puzzle =
     let
         buildPuzzle =
-            \metadata_ grid_ clues_ cluesForCell_ ->
-                { notes = Just ""
+            \metadata_ grid_ clues_ ->
+                let
+                    wordStarts_ =
+                        wordStarts grid_
+                in
+                { notes = Nothing
                 , metadata = metadata_
                 , grid = grid_
                 , clues = clues_
-                , cluesForCell = cluesForCell_
-                , wordStarts = wordStarts grid_
+                , cluesForCell = annotate grid_ wordStarts_ clues_
+                , wordStarts = wordStarts_
                 }
     in
     succeed buildPuzzle
         |= metadata
         |= grid
         |= cluesDict
-        |= succeed Dict.empty
+
+
+oneOrTwoMerge : Dict Int (OneOrTwo ClueId) -> Dict Int (OneOrTwo ClueId) -> Dict Int (OneOrTwo ClueId)
+oneOrTwoMerge left right =
+    let
+        onlyInOne key value acc =
+            Dict.insert key value acc
+
+        inBoth :
+            Int
+            -> OneOrTwo ClueId
+            -> OneOrTwo ClueId
+            -> Dict Int (OneOrTwo ClueId)
+            -> Dict Int (OneOrTwo ClueId)
+        inBoth key value1 value2 acc =
+            case ( value1, value2 ) of
+                ( One clueId1, One clueId2 ) ->
+                    Dict.insert key (Two clueId1 clueId2) acc
+
+                ( a, b ) ->
+                    -- TODO!!! NOT SUPPOSED TO HAPPEN!!! FIX MEEEEEEEEEEEEEE
+                    Debug.todo ("YA BOY FUCKED UP: " ++ Debug.toString ( a, b ))
+    in
+    Dict.merge onlyInOne inBoth onlyInOne left right Dict.empty
+
+
+annotateWord : Grid Cell -> WordStart -> Dict Int (OneOrTwo ClueId)
+annotateWord grid_ wordStart =
+    let
+        oneOrTwoUpdate : ClueId -> Maybe (OneOrTwo ClueId) -> Maybe (OneOrTwo ClueId)
+        oneOrTwoUpdate newClueId maybeOneOrTwo =
+            case maybeOneOrTwo of
+                Just (One clueId) ->
+                    Just (Two clueId newClueId)
+
+                Just (Two clueId _) ->
+                    -- famous last words: this isn't supposed to ever happen
+                    Just (Two clueId newClueId)
+
+                Nothing ->
+                    Just (One newClueId)
+
+        recurse : WordStartDirection -> Point -> Dict Int (OneOrTwo ClueId)
+        recurse direction (( x, y ) as point) =
+            case ( direction, isShaded (Grid.get point grid_) ) of
+                ( _, True ) ->
+                    Dict.empty
+
+                ( Across, False ) ->
+                    Dict.update
+                        (Grid.pointToIndex point grid_)
+                        (oneOrTwoUpdate (ClueId Direction.Across wordStart.clueNumber))
+                        (recurse Across ( x + 1, y ))
+
+                ( Down, False ) ->
+                    Dict.update
+                        (Grid.pointToIndex point grid_)
+                        (oneOrTwoUpdate (ClueId Direction.Down wordStart.clueNumber))
+                        (recurse Down ( x, y + 1 ))
+
+                ( Both, False ) ->
+                    oneOrTwoMerge (recurse Down ( x, y )) (recurse Across ( x, y ))
+    in
+    recurse wordStart.direction wordStart.point
+
+
+{-| AKA: figureOutWhatCluesAreAssociatedWithEachCell
+-}
+annotate : Grid Cell -> List WordStart -> Dict String Clue -> Dict Int (OneOrTwo ClueId)
+annotate grid_ wordStarts_ clues_ =
+    wordStarts_
+        |> List.foldl (annotateWord grid_ >> oneOrTwoMerge) Dict.empty
 
 
 
--- TODO
 --- METADATA ---
 
 
@@ -88,11 +162,6 @@ grid =
                         "ran into a problem trying to parse the grid"
                     )
     in
-    Parser.map annotate rawGrid
-
-
-annotate : Grid Cell -> Grid Cell
-annotate rawGrid =
     rawGrid
 
 
@@ -104,13 +173,14 @@ annotate rawGrid =
 -- associateCellsByClueId : Grid Cell -> ??? -> Grid Cell
 
 
+isShaded =
+    Maybe.map (\cell_ -> cell_ == Shaded)
+        >> Maybe.withDefault True
+
+
 wordStarts : Grid Cell -> List WordStart
 wordStarts grid_ =
     let
-        isShaded =
-            Maybe.map (\c -> c == Shaded)
-                >> Maybe.withDefault True
-
         isAcrossStart : Point -> Bool
         isAcrossStart point =
             (grid_ |> Grid.leftOf point |> isShaded)
@@ -127,22 +197,22 @@ wordStarts grid_ =
             in
             above && below
 
-        helper : ( Point, Maybe Cell ) -> (List WordStart, Int) -> (List WordStart, Int)
-        helper ( point, theCell ) (acc, num) =
+        helper : ( Point, Maybe Cell ) -> ( List WordStart, Int ) -> ( List WordStart, Int )
+        helper ( point, theCell ) ( acc, num ) =
             case ( isShaded theCell, isAcrossStart point, isDownStart point ) of
                 ( False, True, True ) ->
-                    (WordStart point Both (num) :: acc, num + 1)
+                    ( WordStart point Both num :: acc, num + 1 )
 
                 ( False, False, True ) ->
-                    (WordStart point Down (num) :: acc, num + 1)
+                    ( WordStart point Down num :: acc, num + 1 )
 
                 ( False, True, False ) ->
-                    (WordStart point Across (num) :: acc, num + 1)
+                    ( WordStart point Across num :: acc, num + 1 )
 
                 ( _, _, _ ) ->
-                    (acc, num)
+                    ( acc, num )
     in
-    Grid.foldlIndexed helper ([], 1) grid_
+    Grid.foldlIndexed helper ( [], 1 ) grid_
         |> Tuple.first
         |> List.reverse
 

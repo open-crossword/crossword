@@ -169,18 +169,6 @@ viewCell puzzle board y x cell =
 
                       else
                         cellStyle
-                    , case isWordStart of
-                        Just Puzzle.Across ->
-                            backgroundColor (rgb 255 0 0)
-
-                        Just Puzzle.Down ->
-                            backgroundColor (rgb 255 255 0)
-
-                        Just Puzzle.Both ->
-                            backgroundColor (rgb 255 0 255)
-
-                        Nothing ->
-                            Css.batch []
                     ]
                 , onClick (OnCellClick y x)
                 ]
@@ -202,12 +190,7 @@ viewCell puzzle board y x cell =
 
 viewCellClueIndex : Int -> Html Msg
 viewCellClueIndex number =
-    let
-        htmlify int =
-            span [] [ text (String.fromInt int) ]
-    in
-    number
-        |> ( htmlify)
+    span [] [ text (String.fromInt number) ]
 
 
 viewClues : Puzzle -> Board -> Html Msg
