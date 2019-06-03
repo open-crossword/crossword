@@ -1,9 +1,9 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, revealPuzzle, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
-import Data.Grid exposing (Grid)
+import Data.Grid as Grid exposing (Grid)
 import Data.Point exposing (Point)
-import Data.Puzzle exposing (Cell, Puzzle)
+import Data.Puzzle exposing (Cell(..), Puzzle)
 
 
 type alias Board =
@@ -22,9 +22,21 @@ type alias Selection =
 {-| Creates a default board state for a given puzzle.
 -}
 fromPuzzle : Puzzle -> Board
-fromPuzzle puzzle =
-    { -- TODO Temporarily filling in grid to as puzzle answer
-      grid = puzzle.grid
+fromPuzzle { grid } =
+    { grid =
+        Grid.map
+            (\cell ->
+                case cell of
+                    Just Shaded ->
+                        Just Shaded
+
+                    Just (Letter _) ->
+                        Just (Letter ' ')
+
+                    Nothing ->
+                        Nothing
+            )
+            grid
 
     -- TODO Temporarily set our default selection to 0,0
     -- This may not be a valid word start
@@ -34,6 +46,11 @@ fromPuzzle puzzle =
         , direction = Direction.Across
         }
     }
+
+
+revealPuzzle : Puzzle -> Board -> Board
+revealPuzzle { grid } board =
+    { board | grid = grid }
 
 
 updateSelection : Point -> Direction -> Board -> Board

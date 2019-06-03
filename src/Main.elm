@@ -32,6 +32,7 @@ type Msg
     = OnDropFile File (List File)
     | OnFileRead String
     | OnCellClick Int Int
+    | RevealPuzzle
     | NoOp
 
 
@@ -89,6 +90,7 @@ viewCrossword puzzle board =
     div []
         [ viewMetadata puzzle.metadata
         , hr [] []
+        , viewToolbar
         , div [ css [ displayFlex ] ]
             [ div [ css [ marginTop (px 71) ] ] [ viewBoard puzzle board ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
@@ -103,6 +105,13 @@ viewMetadata metadata =
         , div [] [ text ("Author: " ++ Maybe.withDefault "" metadata.author) ]
         , div [] [ text ("Editor: " ++ Maybe.withDefault "" metadata.editor) ]
         , div [] [ text ("Date: " ++ Maybe.withDefault "" metadata.date) ]
+        ]
+
+
+viewToolbar : Html Msg
+viewToolbar =
+    div []
+        [ button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
 
 
@@ -289,7 +298,15 @@ update msg model =
         ( OnCellClick _ _, _ ) ->
             ( model, Cmd.none )
 
-        ( NoOp, _ ) ->
+        ( RevealPuzzle, Loaded record ) ->
+            ( Loaded
+                { record
+                    | board = Board.revealPuzzle record.puzzle record.board
+                }
+            , Cmd.none
+            )
+
+        ( _, _ ) ->
             ( model, Cmd.none )
 
 
