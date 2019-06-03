@@ -1,4 +1,4 @@
-module Data.Grid exposing (Grid, empty, foldlIndexed, from2DList, fromList, get, height, indexedMap, map, mapNonEmpty, set, to2DList, width, leftOf, rightOf, above, below, pointToIndex)
+module Data.Grid exposing (Grid, above, below, empty, findIndex, foldlIndexed, from2DList, fromList, get, height, indexToPoint, indexedMap, leftOf, map, mapNonEmpty, pointToIndex, rightOf, set, to2DList, width)
 
 import Array exposing (Array)
 import Data.Point exposing (Point)
@@ -142,6 +142,13 @@ map fn (Grid grid) =
         }
 
 
+findIndex : (Maybe a -> Bool) -> Grid a -> Maybe Int
+findIndex fn (Grid grid) =
+    grid.cells
+        |> Array.toList
+        |> List.Extra.findIndex fn
+
+
 mapNonEmpty : (a -> b) -> Grid a -> Grid b
 mapNonEmpty fn grid =
     map (Maybe.map fn) grid
@@ -155,14 +162,15 @@ indexedMap fn ((Grid grid) as g) =
         , cells = Array.indexedMap (\index c -> fn (indexToPoint index g) c) grid.cells
         }
 
+
 indexToPoint : Int -> Grid a -> Point
 indexToPoint index (Grid grid) =
-    (  modBy grid.width index, index // grid.width )
+    ( modBy grid.width index, index // grid.width )
+
 
 pointToIndex : Point -> Grid a -> Int
-pointToIndex (x, y) (Grid grid) =
+pointToIndex ( x, y ) (Grid grid) =
     x + y * grid.width
-
 
 
 foldlIndexed : (( Point, Maybe a ) -> acc -> acc) -> acc -> Grid a -> acc
@@ -181,8 +189,8 @@ to2DList (Grid grid) =
 
 
 above : Point -> Grid a -> Maybe a
-above ( x, y )  =
-    get ( x, y - 1 ) 
+above ( x, y ) =
+    get ( x, y - 1 )
 
 
 below : Point -> Grid a -> Maybe a

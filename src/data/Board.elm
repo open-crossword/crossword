@@ -23,6 +23,18 @@ type alias Selection =
 -}
 fromPuzzle : Puzzle -> Board
 fromPuzzle { grid } =
+    let
+        notShaded =
+            Maybe.map (\cell_ -> cell_ /= Shaded)
+                >> Maybe.withDefault True
+
+        firstNonShaded =
+            Grid.findIndex notShaded grid
+                |> Maybe.withDefault 0
+
+        startSelection =
+            Grid.indexToPoint firstNonShaded grid
+    in
     { grid =
         Grid.map
             (\cell ->
@@ -37,12 +49,9 @@ fromPuzzle { grid } =
                         Nothing
             )
             grid
-
-    -- TODO Temporarily set our default selection to 0,0
-    -- This may not be a valid word start
     , selection =
-        { x = 0
-        , y = 0
+        { x = Tuple.first startSelection
+        , y = Tuple.second startSelection
         , direction = Direction.Across
         }
     }
