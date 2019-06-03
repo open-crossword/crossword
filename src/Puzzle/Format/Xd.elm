@@ -127,22 +127,23 @@ wordStarts grid_ =
             in
             above && below
 
-        helper : ( Point, Maybe Cell ) -> List WordStart -> List WordStart
-        helper ( point, theCell ) acc =
+        helper : ( Point, Maybe Cell ) -> (List WordStart, Int) -> (List WordStart, Int)
+        helper ( point, theCell ) (acc, num) =
             case ( isShaded theCell, isAcrossStart point, isDownStart point ) of
                 ( False, True, True ) ->
-                    WordStart point Both :: acc
+                    (WordStart point Both (num) :: acc, num + 1)
 
                 ( False, False, True ) ->
-                    WordStart point Down :: acc
+                    (WordStart point Down (num) :: acc, num + 1)
 
                 ( False, True, False ) ->
-                    WordStart point Across :: acc
+                    (WordStart point Across (num) :: acc, num + 1)
 
                 ( _, _, _ ) ->
-                    acc
+                    (acc, num)
     in
-    Grid.foldlIndexed helper [] grid_
+    Grid.foldlIndexed helper ([], 1) grid_
+        |> Tuple.first
         |> List.reverse
 
 

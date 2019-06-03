@@ -58,4 +58,4 @@ type WordStartDirection
 
 
 type alias WordStart =
-    { point : Point, direction : WordStartDirection }
+    { point : Point, direction : WordStartDirection, clueNumber: Int }

@@ -151,6 +151,10 @@ viewCell puzzle board y x cell =
         isWordStart =
             List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
                 |> Maybe.map .direction
+
+        wordStartNumber =
+            List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
+                |> Maybe.map .clueNumber
     in
     case cell of
         Letter char ->
@@ -182,9 +186,10 @@ viewCell puzzle board y x cell =
                 ]
                 [ text (String.fromChar char)
                 , div [ css [ cellIdStyle ] ]
-                    [ case Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell of
-                        Just oneOrTwo ->
-                            viewCellClueIndex oneOrTwo
+                    -- TODO Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell
+                    [ case wordStartNumber of
+                        Just n ->
+                            viewCellClueIndex n
 
                         Nothing ->
                             div [] []
@@ -195,15 +200,14 @@ viewCell puzzle board y x cell =
             b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
 
 
-viewCellClueIndex : OneOrTwo ClueId -> Html Msg
-viewCellClueIndex clueIds =
+viewCellClueIndex : Int -> Html Msg
+viewCellClueIndex number =
     let
         htmlify int =
             span [] [ text (String.fromInt int) ]
     in
-    clueIds
-        |> OneOrTwo.firstValue
-        |> (.number >> htmlify)
+    number
+        |> ( htmlify)
 
 
 viewClues : Puzzle -> Board -> Html Msg
