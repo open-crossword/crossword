@@ -46,7 +46,12 @@ suite =
                     Grid.empty 2 2
                         |> Grid.get ( 0, 0 )
                         |> Expect.equal Nothing
-            , test "returns Nothing if given a too-big index" <|
+            , test "returns Nothing if given a too-big index (1)" <|
+                \_ ->
+                    sampleTwoByTwoGrid
+                        |> Grid.get ( 2, 0 )
+                        |> Expect.equal Nothing
+            , test "returns Nothing if given a too-big index (2)" <|
                 \_ ->
                     sampleTwoByTwoGrid
                         |> Grid.get ( 3, 1 )

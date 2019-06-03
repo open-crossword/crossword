@@ -103,7 +103,7 @@ Returns Nothing in the following cases
 -}
 get : Point -> Grid a -> Maybe a
 get ( x, y ) (Grid grid) =
-    if x >= 0 && y >= 0 then
+    if x >= 0 && y >= 0 && x < grid.width && y < grid.height then
         Array.get (x + y * grid.width) grid.cells
             |> Maybe.andThen identity
 
