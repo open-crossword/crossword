@@ -32,7 +32,9 @@ type Msg
     = OnDropFile File (List File)
     | OnFileRead String
     | OnCellClick Int Int
+    | ResetPuzzle
     | RevealPuzzle
+    | RevealCell
     | NoOp
 
 
@@ -111,7 +113,9 @@ viewMetadata metadata =
 viewToolbar : Html Msg
 viewToolbar =
     div []
-        [ button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
+        [ button [ onClick ResetPuzzle ] [ text "Resete Puzzle" ]
+        , button [ onClick RevealCell ] [ text "Reveal Square" ]
+        , button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
 
 
@@ -297,6 +301,22 @@ update msg model =
 
         ( OnCellClick _ _, _ ) ->
             ( model, Cmd.none )
+
+        ( ResetPuzzle, Loaded record ) ->
+            ( Loaded
+                { record
+                    | board = Board.fromPuzzle record.puzzle
+                }
+            , Cmd.none
+            )
+
+        ( RevealCell, Loaded record ) ->
+            ( Loaded
+                { record
+                    | board = Board.revealCell record.puzzle record.board
+                }
+            , Cmd.none
+            )
 
         ( RevealPuzzle, Loaded record ) ->
             ( Loaded
