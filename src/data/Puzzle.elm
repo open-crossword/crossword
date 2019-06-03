@@ -1,4 +1,4 @@
-module Data.Puzzle exposing (Cell(..),  Clue, ClueId, Metadata, Puzzle, clueIdToString, WordStartDirection(..), WordStart)
+module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString)
 
 import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
@@ -17,7 +17,7 @@ type alias Puzzle =
     , grid : Grid Cell
     , clues : Dict String Clue
     , cluesForCell : Dict CellIndex (OneOrTwo ClueId)
-    , wordStarts : List (WordStart)
+    , wordStarts : List WordStart
     }
 
 
@@ -51,6 +51,7 @@ clueIdToString : ClueId -> String
 clueIdToString { direction, number } =
     Direction.toString direction ++ String.fromInt number
 
+
 type WordStartDirection
     = Across
     | Down
@@ -58,4 +59,4 @@ type WordStartDirection
 
 
 type alias WordStart =
-    { point : Point, direction : WordStartDirection, clueNumber: Int }
+    { point : Point, direction : WordStartDirection, clueNumber : Int }
