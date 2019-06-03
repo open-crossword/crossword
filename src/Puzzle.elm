@@ -16,7 +16,6 @@ parse input =
     Puzzle.Format.Xd.parse input
 
 
-
 getMatchingClueId : Direction -> OneOrTwo ClueId -> Maybe ClueId
 getMatchingClueId direction clues =
     case clues of

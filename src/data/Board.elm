@@ -1,9 +1,11 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, revealCell, revealPuzzle, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, moveSelectionToClue, revealCell, revealPuzzle, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
+import Data.OneOrTwo as OneOrTwo
 import Data.Point exposing (Point)
-import Data.Puzzle exposing (Cell(..), Puzzle)
+import Data.Puzzle exposing (Cell(..), Clue, Puzzle)
+import Dict
 
 
 type alias Board =
@@ -91,3 +93,34 @@ updateSelection ( x, y ) direction board =
             , direction = direction
             }
     }
+
+
+moveSelectionToClue : Clue -> Puzzle -> Board -> Board
+moveSelectionToClue clue puzzle board =
+    let
+        fn : ( Point, Maybe Cell ) -> List Point -> List Point
+        fn ( point, cell ) acc =
+            let
+                -- TODO This is duplicated code
+                isSelectedCell =
+                    case Dict.get (Grid.pointToIndex point puzzle.grid) puzzle.cluesForCell of
+                        Just (OneOrTwo.One clueId) ->
+                            clue.id == clueId
+
+                        Just (OneOrTwo.Two id1 id2) ->
+                            clue.id == id1 || clue.id == id2
+
+                        Nothing ->
+                            False
+            in
+            if isSelectedCell then
+                point :: acc
+
+            else
+                acc
+    in
+    Grid.foldlIndexed fn [] puzzle.grid
+        |> List.reverse
+        |> List.head
+        |> Maybe.map (\point -> updateSelection point clue.id.direction board)
+        |> Maybe.withDefault board

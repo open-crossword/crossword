@@ -32,6 +32,7 @@ type Msg
     = OnDropFile File (List File)
     | OnFileRead String
     | OnCellClick Int Int
+    | OnClueClick Clue
     | ResetPuzzle
     | RevealPuzzle
     | RevealCell
@@ -260,6 +261,7 @@ viewClue selectedClue clue =
               else
                 backgroundColor (rgb 255 255 255)
             ]
+        , onClick (OnClueClick clue)
         ]
         [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
 
@@ -301,6 +303,14 @@ update msg model =
 
         ( OnCellClick _ _, _ ) ->
             ( model, Cmd.none )
+
+        ( OnClueClick clue, Loaded record ) ->
+            ( Loaded
+                { record
+                    | board = Board.moveSelectionToClue clue record.puzzle record.board
+                }
+            , Cmd.none
+            )
 
         ( ResetPuzzle, Loaded record ) ->
             ( Loaded
