@@ -146,22 +146,6 @@ viewCell puzzle board y x cell =
         isSelected =
             board.selection.x == x && board.selection.y == y
 
-        selectedClue : Maybe ClueId
-        selectedClue =
-            Puzzle.getSelectedClueId puzzle board.selection
-
-        isSelectedWord : Maybe ClueId -> Bool
-        isSelectedWord selectedClueId =
-            case Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell of
-                Just (One id) ->
-                    Maybe.map (\clue -> clue == id) selectedClueId |> Maybe.withDefault False
-
-                Just (Two id1 id2) ->
-                    Maybe.map (\clue -> clue == id1 || clue == id2) selectedClueId |> Maybe.withDefault False
-
-                Nothing ->
-                    False
-
         isWordStart =
             List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
                 |> Maybe.map .direction
@@ -178,7 +162,7 @@ viewCell puzzle board y x cell =
                     , if isSelected then
                         selectedCellStyle
 
-                      else if isSelectedWord selectedClue then
+                      else if Board.isSelectedWord ( x, y ) puzzle board then
                         selectedWordCellStyle
 
                       else
@@ -222,7 +206,7 @@ viewClues puzzle board =
             Dict.partition isAcross puzzle.clues
 
         selectedClue =
-            Puzzle.getSelectedClueId puzzle board.selection
+            Board.selectedClue puzzle board
 
         helper =
             Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)

@@ -24,5 +24,3 @@ toString direction =
 
         Down ->
             "D"
-
-

@@ -1,4 +1,4 @@
-module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString)
+module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString, getMatchingClueId)
 
 import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
@@ -47,11 +47,6 @@ type Cell
     | Letter Char
 
 
-clueIdToString : ClueId -> String
-clueIdToString { direction, number } =
-    Direction.toString direction ++ String.fromInt number
-
-
 type WordStartDirection
     = Across
     | Down
@@ -60,3 +55,29 @@ type WordStartDirection
 
 type alias WordStart =
     { point : Point, direction : WordStartDirection, clueNumber : Int }
+
+
+clueIdToString : ClueId -> String
+clueIdToString { direction, number } =
+    Direction.toString direction ++ String.fromInt number
+
+
+getMatchingClueId : Direction -> OneOrTwo ClueId -> Maybe ClueId
+getMatchingClueId direction clues =
+    case clues of
+        One clueId ->
+            if direction == clueId.direction then
+                Just clueId
+
+            else
+                Nothing
+
+        Two clueIdOne clueIdTwo ->
+            if direction == clueIdOne.direction then
+                Just clueIdOne
+
+            else if direction == clueIdTwo.direction then
+                Just clueIdTwo
+
+            else
+                Nothing
