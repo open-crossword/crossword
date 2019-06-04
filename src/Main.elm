@@ -125,7 +125,7 @@ viewToolbar =
 viewBoard : Puzzle -> Board -> Html Msg
 viewBoard puzzle board =
     div
-        []
+        [ css [ boardStyle ] ]
         (board.grid
             |> Grid.to2DList
             -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
@@ -161,6 +161,7 @@ viewCell puzzle board y x cell =
             div
                 [ css
                     [ cellStyle
+                    , letterCellStyle
                     , if isSelected then
                         selectedCellStyle
 
@@ -241,7 +242,8 @@ viewClue selectedClue clue =
     in
     div
         [ css
-            [ if isSelected then
+            [ clueStyle
+            , if isSelected then
                 backgroundColor selectedWordColor
 
               else
@@ -341,6 +343,9 @@ update msg model =
 justifyContentCenter =
     Css.property "justify-content" "center"
 
+justifyContentSpaceBetween =
+    Css.property "justify-content" "space-between"
+
 
 black =
     rgb 0 0 0
@@ -371,6 +376,12 @@ cellStyle =
         ]
 
 
+letterCellStyle =
+    Css.batch
+        [ Css.cursor Css.pointer
+        ]
+
+
 cellIdStyle =
     Css.batch
         [ position absolute
@@ -391,6 +402,20 @@ selectedCellStyle =
 selectedWordCellStyle =
     backgroundColor selectedWordColor
 
+
+boardStyle =
+    Css.batch
+        [ Css.property "user-select" "none"
+        , Css.property "-moz-user-select" "none"
+        , Css.property "-webkit-user-select" "none"
+        , Css.property "-webkit-touch-callout" "none"
+        ]
+
+clueStyle =
+    Css.batch
+        [ Css.cursor Css.pointer
+          , Css.padding (px 2)
+        ]
 
 
 --- UTILS ---
