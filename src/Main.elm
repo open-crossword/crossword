@@ -35,7 +35,8 @@ type Msg
     | OnClueClick Clue
     | ResetPuzzle
     | RevealPuzzle
-    | RevealCell
+    | RevealSelectedWord
+    | RevealSelectedCell
     | NoOp
 
 
@@ -114,8 +115,9 @@ viewMetadata metadata =
 viewToolbar : Html Msg
 viewToolbar =
     div []
-        [ button [ onClick ResetPuzzle ] [ text "Resete Puzzle" ]
-        , button [ onClick RevealCell ] [ text "Reveal Square" ]
+        [ button [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
+        , button [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
+        , button [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
         , button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
 
@@ -304,7 +306,15 @@ update msg model =
             , Cmd.none
             )
 
-        ( RevealCell, Loaded record ) ->
+        ( RevealSelectedWord, Loaded record ) ->
+            ( Loaded
+                { record
+                    | board = Board.revealSelectedWord record.puzzle record.board
+                }
+            , Cmd.none
+            )
+
+        ( RevealSelectedCell, Loaded record ) ->
             ( Loaded
                 { record
                     | board = Board.revealSelectedCell record.puzzle record.board

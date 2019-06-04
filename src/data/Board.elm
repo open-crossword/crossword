@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToClue, revealPuzzle, revealSelectedCell, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToClue, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -62,6 +62,25 @@ fromPuzzle { grid } =
 revealPuzzle : Puzzle -> Board -> Board
 revealPuzzle { grid } board =
     { board | grid = grid }
+
+
+revealSelectedWord : Puzzle -> Board -> Board
+revealSelectedWord puzzle board =
+    let
+        reveal : Point -> Maybe Cell -> Maybe Cell
+        reveal point cell =
+            if isSelectedWord point puzzle board then
+                case cell of
+                    Just (Letter _) ->
+                        Grid.get point puzzle.grid
+
+                    _ ->
+                        cell
+
+            else
+                cell
+    in
+    { board | grid = Grid.indexedMap reveal board.grid }
 
 
 revealSelectedCell : Puzzle -> Board -> Board
