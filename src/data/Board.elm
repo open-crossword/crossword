@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToClue, revealCell, revealPuzzle, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToClue, revealPuzzle, revealSelectedCell, selectedClue, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -64,8 +64,8 @@ revealPuzzle { grid } board =
     { board | grid = grid }
 
 
-revealCell : Puzzle -> Board -> Board
-revealCell puzzle board =
+revealSelectedCell : Puzzle -> Board -> Board
+revealSelectedCell puzzle board =
     let
         selection =
             ( board.selection.x, board.selection.y )

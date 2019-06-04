@@ -307,7 +307,7 @@ update msg model =
         ( RevealCell, Loaded record ) ->
             ( Loaded
                 { record
-                    | board = Board.revealCell record.puzzle record.board
+                    | board = Board.revealSelectedCell record.puzzle record.board
                 }
             , Cmd.none
             )
