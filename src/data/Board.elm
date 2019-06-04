@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToClue, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -103,7 +103,7 @@ revealSelectedCell puzzle board =
             board
 
 
-{-| Returns whether the specified point is part of the selected word
+{-| Returns whether the specified point is part of the currently selected word
 -}
 isSelectedWord : Point -> Puzzle -> Board -> Bool
 isSelectedWord point puzzle board =
@@ -117,6 +117,21 @@ isSelectedWord point puzzle board =
 
         Just (OneOrTwo.Two id1 id2) ->
             Maybe.map (\c -> c == id1 || c == id2) clueId |> Maybe.withDefault False
+
+        Nothing ->
+            False
+
+
+{-| Returns whether the specified point is part of the specified clue
+-}
+isPartOfWord : Clue -> Point -> Puzzle -> Bool
+isPartOfWord clue point puzzle =
+    case Dict.get (Grid.pointToIndex point puzzle.grid) puzzle.cluesForCell of
+        Just (OneOrTwo.One clueId) ->
+            clue.id == clueId
+
+        Just (OneOrTwo.Two id1 id2) ->
+            clue.id == id1 || clue.id == id2
 
         Nothing ->
             False
@@ -140,12 +155,12 @@ updateSelection ( x, y ) direction board =
     }
 
 
-moveSelectionToClue : Clue -> Puzzle -> Board -> Board
-moveSelectionToClue clue puzzle board =
+moveSelectionToWord : Clue -> Puzzle -> Board -> Board
+moveSelectionToWord clue puzzle board =
     let
         fn : ( Point, Maybe Cell ) -> List Point -> List Point
-        fn ( point, cell ) acc =
-            if isSelectedWord point puzzle board then
+        fn ( point, _ ) acc =
+            if isPartOfWord clue point puzzle then
                 point :: acc
 
             else

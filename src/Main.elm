@@ -170,7 +170,7 @@ viewCell puzzle board y x cell =
                       else
                         cellStyle
                     ]
-                , onClick (OnCellClick y x)
+                , onClick (OnCellClick x y)
                 ]
                 [ text (String.fromChar char)
                 , div [ css [ cellIdStyle ] ]
@@ -265,20 +265,20 @@ update msg model =
         ( OnFileRead content, _ ) ->
             ( loadPuzzle (Puzzle.parse content), Cmd.none )
 
-        ( OnCellClick row col, Loaded record ) ->
+        ( OnCellClick x y, Loaded record ) ->
             let
                 oldSelection =
                     record.board.selection
 
                 direction =
-                    if col == oldSelection.x && row == oldSelection.y then
+                    if x == oldSelection.x && y == oldSelection.y then
                         swap oldSelection.direction
 
                     else
                         oldSelection.direction
 
                 newBoard =
-                    Board.updateSelection ( col, row ) direction record.board
+                    Board.updateSelection ( x, y ) direction record.board
             in
             ( Loaded
                 { record
@@ -293,7 +293,7 @@ update msg model =
         ( OnClueClick clue, Loaded record ) ->
             ( Loaded
                 { record
-                    | board = Board.moveSelectionToClue clue record.puzzle record.board
+                    | board = Board.moveSelectionToWord clue record.puzzle record.board
                 }
             , Cmd.none
             )
