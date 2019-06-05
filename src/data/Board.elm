@@ -3,7 +3,7 @@ module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSe
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo
-import Data.Point exposing (Point)
+import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Puzzle)
 import Dict
 
@@ -146,7 +146,7 @@ updateSelection : Point -> Direction -> Board -> Board
 updateSelection point direction board =
     { board
         | selection =
-            { cursor = point
+            { cursor = Point.clamp ( 0, 0 ) ( Grid.width board.grid - 1, Grid.height board.grid - 1 ) point
             , direction = direction
             }
     }

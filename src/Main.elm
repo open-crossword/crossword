@@ -1,9 +1,10 @@
 module Main exposing (main)
 
 import Browser
+import Browser.Events
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Board as Board exposing (Board)
-import Data.Direction exposing (Direction(..), swap)
+import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point as Point exposing (Point)
@@ -33,6 +34,7 @@ type Msg
     = OnDropFile File (List File)
     | OnFileRead String
     | OnCellClick Point
+    | OnKeyPress KeyType
     | OnClueClick Clue
     | ResetPuzzle
     | RevealPuzzle
@@ -67,8 +69,13 @@ main =
         { init = always init
         , view = view >> toUnstyled
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
 
 
 
@@ -258,6 +265,42 @@ viewClue selectedClue clue =
         [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
 
 
+type KeyType
+    = LeftArrow
+    | RightArrow
+    | UpArrow
+    | DownArrow
+    | Other
+
+
+keyDecoder : Decode.Decoder KeyType
+keyDecoder =
+    Decode.map stringToKeyEvent (Decode.field "key" Decode.string)
+
+
+stringToKeyEvent : String -> KeyType
+stringToKeyEvent string =
+    let
+        text =
+            Debug.log "key" string
+    in
+    case string of
+        "ArrowLeft" ->
+            LeftArrow
+
+        "ArrowRight" ->
+            RightArrow
+
+        "ArrowUp" ->
+            UpArrow
+
+        "ArrowDown" ->
+            DownArrow
+
+        _ ->
+            Other
+
+
 
 --- UPDATE ---
 
@@ -278,7 +321,7 @@ update msg model =
 
                 direction =
                     if Point.equals oldSelection.cursor point then
-                        swap oldSelection.direction
+                        Direction.swap oldSelection.direction
 
                     else
                         oldSelection.direction
@@ -332,6 +375,56 @@ update msg model =
             ( Loaded
                 { record
                     | board = Board.revealPuzzle record.puzzle record.board
+                }
+            , Cmd.none
+            )
+
+        ( OnKeyPress keyType, Loaded record ) ->
+            let
+                board =
+                    record.board
+
+                selection =
+                    board.selection
+
+                ( x, y ) =
+                    selection.cursor
+
+                isChangingDirection =
+                    (selection.direction == Across && (keyType == UpArrow || keyType == DownArrow))
+                        || (selection.direction == Down && (keyType == LeftArrow || keyType == RightArrow))
+
+                newPosition =
+                    if isChangingDirection then
+                        ( x, y )
+
+                    else
+                        case keyType of
+                            LeftArrow ->
+                                ( x - 1, y )
+
+                            RightArrow ->
+                                ( x + 1, y )
+
+                            UpArrow ->
+                                ( x, y - 1 )
+
+                            DownArrow ->
+                                ( x, y + 1 )
+
+                            Other ->
+                                ( x, y )
+
+                newDirection =
+                    if isChangingDirection then
+                        Direction.swap selection.direction
+
+                    else
+                        selection.direction
+            in
+            ( Loaded
+                { record
+                    | board = Board.updateSelection newPosition newDirection board
                 }
             , Cmd.none
             )
