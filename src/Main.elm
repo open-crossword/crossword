@@ -6,7 +6,7 @@ import Data.Board as Board exposing (Board)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
-import Data.Point as Point
+import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
@@ -32,7 +32,7 @@ type Model
 type Msg
     = OnDropFile File (List File)
     | OnFileRead String
-    | OnCellClick Int Int
+    | OnCellClick Point
     | OnClueClick Clue
     | ResetPuzzle
     | RevealPuzzle
@@ -146,15 +146,18 @@ viewRow puzzle board y row =
 viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Html Msg
 viewCell puzzle board y x cell =
     let
+        point =
+            ( x, y )
+
         isSelected =
-            Point.equals board.selection.cursor ( x, y )
+            Point.equals board.selection.cursor point
 
         isWordStart =
-            List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
+            List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
                 |> Maybe.map .direction
 
         wordStartNumber =
-            List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
+            List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
                 |> Maybe.map .clueNumber
     in
     case cell of
@@ -166,13 +169,13 @@ viewCell puzzle board y x cell =
                     , if isSelected then
                         selectedCellStyle
 
-                      else if Board.isSelectedWord ( x, y ) puzzle board then
+                      else if Board.isSelectedWord point puzzle board then
                         selectedWordCellStyle
 
                       else
                         cellStyle
                     ]
-                , onClick (OnCellClick x y)
+                , onClick (OnCellClick point)
                 ]
                 [ text (String.fromChar char)
                 , div [ css [ cellIdStyle ] ]
@@ -268,20 +271,20 @@ update msg model =
         ( OnFileRead content, _ ) ->
             ( loadPuzzle (Puzzle.parse content), Cmd.none )
 
-        ( OnCellClick x y, Loaded record ) ->
+        ( OnCellClick point, Loaded record ) ->
             let
                 oldSelection =
                     record.board.selection
 
                 direction =
-                    if Point.equals oldSelection.cursor ( x, y ) then
+                    if Point.equals oldSelection.cursor point then
                         swap oldSelection.direction
 
                     else
                         oldSelection.direction
 
                 newBoard =
-                    Board.updateSelection ( x, y ) direction record.board
+                    Board.updateSelection point direction record.board
             in
             ( Loaded
                 { record
@@ -290,7 +293,7 @@ update msg model =
             , Cmd.none
             )
 
-        ( OnCellClick _ _, _ ) ->
+        ( OnCellClick _, _ ) ->
             ( model, Cmd.none )
 
         ( OnClueClick clue, Loaded record ) ->
