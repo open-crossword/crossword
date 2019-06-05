@@ -1,4 +1,4 @@
-module Grid exposing (suite)
+module GridTest exposing (suite)
 
 import Data.Grid as Grid
 import Expect exposing (Expectation)
