@@ -1,4 +1,4 @@
-module Data.Point exposing (Point, equals)
+module Data.Point exposing (Point, equals, x, y)
 
 
 type alias Point =
@@ -7,4 +7,14 @@ type alias Point =
 
 equals : Point -> Point -> Bool
 equals one two =
-    (Tuple.first one == Tuple.first two) && (Tuple.second one == Tuple.second two)
+    (x one == x two) && (y one == y two)
+
+
+x : Point -> Int
+x point =
+    Tuple.first point
+
+
+y : Point -> Int
+y point =
+    Tuple.second point
