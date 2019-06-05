@@ -6,6 +6,7 @@ import Data.Board as Board exposing (Board)
 import Data.Direction exposing (Direction(..), swap)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
+import Data.Point as Point
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Dict exposing (Dict)
 import File exposing (File)
@@ -146,7 +147,7 @@ viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Html Msg
 viewCell puzzle board y x cell =
     let
         isSelected =
-            board.selection.x == x && board.selection.y == y
+            Point.equals board.selection.cursor ( x, y )
 
         isWordStart =
             List.Extra.find (\ws -> ws.point == ( x, y )) puzzle.wordStarts
@@ -273,7 +274,7 @@ update msg model =
                     record.board.selection
 
                 direction =
-                    if x == oldSelection.x && y == oldSelection.y then
+                    if Point.equals oldSelection.cursor ( x, y ) then
                         swap oldSelection.direction
 
                     else
@@ -343,6 +344,7 @@ update msg model =
 justifyContentCenter =
     Css.property "justify-content" "center"
 
+
 justifyContentSpaceBetween =
     Css.property "justify-content" "space-between"
 
@@ -411,11 +413,13 @@ boardStyle =
         , Css.property "-webkit-touch-callout" "none"
         ]
 
+
 clueStyle =
     Css.batch
         [ Css.cursor Css.pointer
-          , Css.padding (px 2)
+        , Css.padding (px 2)
         ]
+
 
 
 --- UTILS ---

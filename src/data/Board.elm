@@ -15,8 +15,7 @@ type alias Board =
 
 
 type alias Selection =
-    { x : Int
-    , y : Int
+    { cursor : Point
     , direction : Direction
     }
 
@@ -52,8 +51,7 @@ fromPuzzle { grid } =
             )
             grid
     , selection =
-        { x = Tuple.first startSelection
-        , y = Tuple.second startSelection
+        { cursor = startSelection
         , direction = Direction.Across
         }
     }
@@ -86,17 +84,17 @@ revealSelectedWord puzzle board =
 revealSelectedCell : Puzzle -> Board -> Board
 revealSelectedCell puzzle board =
     let
-        selection =
-            ( board.selection.x, board.selection.y )
+        cursor =
+            board.selection.cursor
 
         selectedCell =
-            Grid.get selection puzzle.grid
+            Grid.get cursor puzzle.grid
     in
     case selectedCell of
         Just letter ->
             { board
                 | grid =
-                    Grid.set selection letter board.grid
+                    Grid.set cursor letter board.grid
             }
 
         _ ->
@@ -140,16 +138,15 @@ isPartOfWord clue point puzzle =
 selectedClue : Puzzle -> Board -> Maybe ClueId
 selectedClue puzzle board =
     puzzle.cluesForCell
-        |> Dict.get (Grid.pointToIndex ( board.selection.x, board.selection.y ) puzzle.grid)
+        |> Dict.get (Grid.pointToIndex board.selection.cursor puzzle.grid)
         |> Maybe.andThen (Puzzle.getMatchingClueId board.selection.direction)
 
 
 updateSelection : Point -> Direction -> Board -> Board
-updateSelection ( x, y ) direction board =
+updateSelection point direction board =
     { board
         | selection =
-            { x = x
-            , y = y
+            { cursor = point
             , direction = direction
             }
     }
