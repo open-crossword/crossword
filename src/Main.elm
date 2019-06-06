@@ -301,6 +301,26 @@ stringToKeyEvent string =
             Other
 
 
+keyToDirection : KeyType -> Grid.Direction
+keyToDirection key =
+    case key of
+        LeftArrow ->
+            Grid.Left
+
+        RightArrow ->
+            Grid.Right
+
+        UpArrow ->
+            Grid.Up
+
+        DownArrow ->
+            Grid.Down
+
+        -- TODO This default is not good
+        _ ->
+            Grid.Up
+
+
 
 --- UPDATE ---
 
@@ -381,39 +401,12 @@ update msg model =
 
         ( OnKeyPress keyType, Loaded record ) ->
             let
-                board =
-                    record.board
-
                 selection =
-                    board.selection
-
-                ( x, y ) =
-                    selection.cursor
+                    record.board.selection
 
                 isChangingDirection =
                     (selection.direction == Across && (keyType == UpArrow || keyType == DownArrow))
                         || (selection.direction == Down && (keyType == LeftArrow || keyType == RightArrow))
-
-                newPosition =
-                    if isChangingDirection then
-                        ( x, y )
-
-                    else
-                        case keyType of
-                            LeftArrow ->
-                                ( x - 1, y )
-
-                            RightArrow ->
-                                ( x + 1, y )
-
-                            UpArrow ->
-                                ( x, y - 1 )
-
-                            DownArrow ->
-                                ( x, y + 1 )
-
-                            Other ->
-                                ( x, y )
 
                 newDirection =
                     if isChangingDirection then
@@ -421,10 +414,17 @@ update msg model =
 
                     else
                         selection.direction
+
+                newBoard =
+                    if isChangingDirection then
+                        Board.updateSelection selection.cursor newDirection record.board
+
+                    else
+                        Board.moveSelection (keyToDirection keyType) record.board
             in
             ( Loaded
                 { record
-                    | board = Board.updateSelection newPosition newDirection board
+                    | board = newBoard
                 }
             , Cmd.none
             )

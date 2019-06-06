@@ -1,4 +1,4 @@
-module Data.Grid exposing (Grid, above, below, empty, findIndex, foldlIndexed, from2DList, fromList, get, height, indexToPoint, indexedMap, leftOf, map, mapNonEmpty, pointToIndex, rightOf, set, to2DList, width)
+module Data.Grid exposing (Direction(..), Grid, above, below, empty, findIndex, foldlIndexed, from2DList, fromList, get, height, indexToPoint, indexedMap, leftOf, map, mapNonEmpty, pointToIndex, rightOf, set, to2DList, width)
 
 import Array exposing (Array)
 import Data.Point exposing (Point)
@@ -11,6 +11,13 @@ type Grid a
         , height : Int
         , cells : Array (Maybe a)
         }
+
+
+type Direction
+    = Up
+    | Down
+    | Left
+    | Right
 
 
 {-| an empty Grid with the given width and height

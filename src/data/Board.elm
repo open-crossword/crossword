@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -168,3 +168,48 @@ moveSelectionToWord clue puzzle board =
         |> List.head
         |> Maybe.map (\point -> updateSelection point clue.id.direction board)
         |> Maybe.withDefault board
+
+
+{-| Moves the cursor of the specified board a unit in the specified direction skipping shaded cells.
+-}
+moveSelection : Grid.Direction -> Board -> Board
+moveSelection direction board =
+    let
+        selection =
+            board.selection
+
+        helper : Grid.Direction -> Point -> Point -> Point
+        helper dir original ( x, y ) =
+            let
+                nextPoint =
+                    case dir of
+                        Grid.Up ->
+                            ( x, y - 1 )
+
+                        Grid.Down ->
+                            ( x, y + 1 )
+
+                        Grid.Left ->
+                            ( x - 1, y )
+
+                        Grid.Right ->
+                            ( x + 1, y )
+
+                nextCell =
+                    Grid.get nextPoint board.grid
+            in
+            case Maybe.map (\cell_ -> cell_ /= Shaded) nextCell of
+                -- Next cell is not shaded, so advance to that position
+                Just True ->
+                    nextPoint
+
+                -- Next cell is shaded, recurse to find the next unshaded position
+                Just False ->
+                    helper direction original nextPoint
+
+                -- We hit the edge of the grid while recursing past shaded cells,
+                -- return to our original unshaded position
+                Nothing ->
+                    original
+    in
+    updateSelection (helper direction selection.cursor selection.cursor) selection.direction board
