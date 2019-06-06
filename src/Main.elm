@@ -270,35 +270,44 @@ type KeyType
     | RightArrow
     | UpArrow
     | DownArrow
+    | LetterKey Char
+    | Delete
     | Other
 
 
 keyDecoder : Decode.Decoder KeyType
 keyDecoder =
-    Decode.map stringToKeyEvent (Decode.field "key" Decode.string)
+    Decode.map keyCodeToKeyEvent (Decode.field "keyCode" Decode.int)
 
 
-stringToKeyEvent : String -> KeyType
-stringToKeyEvent string =
+keyCodeToKeyEvent : Int -> KeyType
+keyCodeToKeyEvent code =
     let
         text =
-            Debug.log "key" string
+            Debug.log "key" code
     in
-    case string of
-        "ArrowLeft" ->
+    case code of
+        37 ->
             LeftArrow
 
-        "ArrowRight" ->
+        39 ->
             RightArrow
 
-        "ArrowUp" ->
+        38 ->
             UpArrow
 
-        "ArrowDown" ->
+        40 ->
             DownArrow
 
+        8 ->
+            Delete
+
         _ ->
-            Other
+            if (64 <= code && code <= 90) || (code == 32) then
+                LetterKey (Char.fromCode code)
+
+            else
+                Other
 
 
 keyToDirection : KeyType -> Grid.Direction
@@ -316,9 +325,8 @@ keyToDirection key =
         DownArrow ->
             Grid.Down
 
-        -- TODO This default is not good
         _ ->
-            Grid.Up
+            Grid.None
 
 
 
@@ -399,6 +407,61 @@ update msg model =
             , Cmd.none
             )
 
+        ( OnKeyPress Delete, Loaded record ) ->
+            let
+                board =
+                    record.board
+
+                cursor =
+                    board.selection.cursor
+
+                direction =
+                    case board.selection.direction of
+                        Across ->
+                            Grid.Left
+
+                        Down ->
+                            Grid.Up
+
+                newBoard =
+                    { board | grid = Grid.set cursor (Letter ' ') board.grid }
+                        |> Board.moveSelection direction
+            in
+            ( Loaded
+                { record
+                    | board = newBoard
+                }
+            , Cmd.none
+            )
+
+        ( OnKeyPress (LetterKey char), Loaded record ) ->
+            let
+                board =
+                    record.board
+
+                cursor =
+                    board.selection.cursor
+
+                direction =
+                    case board.selection.direction of
+                        Across ->
+                            Grid.Right
+
+                        Down ->
+                            Grid.Down
+
+                newBoard =
+                    { board | grid = Grid.set cursor (Letter char) board.grid }
+                        |> Board.moveSelection direction
+            in
+            ( Loaded
+                { record
+                    | board = newBoard
+                }
+            , Cmd.none
+            )
+
+        -- TODO We just want this case to pattern match on arrow keys
         ( OnKeyPress keyType, Loaded record ) ->
             let
                 selection =
@@ -420,7 +483,7 @@ update msg model =
                         Board.updateSelection selection.cursor newDirection record.board
 
                     else
-                        Board.moveSelection (keyToDirection keyType) record.board
+                        Board.moveSelectionSkip (keyToDirection keyType) record.board
             in
             ( Loaded
                 { record

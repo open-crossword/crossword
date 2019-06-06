@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -172,8 +172,8 @@ moveSelectionToWord clue puzzle board =
 
 {-| Moves the cursor of the specified board a unit in the specified direction skipping shaded cells.
 -}
-moveSelection : Grid.Direction -> Board -> Board
-moveSelection direction board =
+moveSelectionSkip : Grid.Direction -> Board -> Board
+moveSelectionSkip direction board =
     let
         selection =
             board.selection
@@ -195,6 +195,9 @@ moveSelection direction board =
                         Grid.Right ->
                             ( x + 1, y )
 
+                        Grid.None ->
+                            ( x, y )
+
                 nextCell =
                     Grid.get nextPoint board.grid
             in
@@ -213,3 +216,47 @@ moveSelection direction board =
                     original
     in
     updateSelection (helper direction selection.cursor selection.cursor) selection.direction board
+
+
+{-| Moves the cursor of the specified board a unit in the specified direction 
+stopping when the cursor hits a shaded cell.
+-}
+moveSelection : Grid.Direction -> Board -> Board
+moveSelection direction board =
+    let
+        selection =
+            board.selection
+
+        ( x, y ) =
+            selection.cursor
+
+        nextPoint =
+            case direction of
+                Grid.Up ->
+                    ( x, y - 1 )
+
+                Grid.Down ->
+                    ( x, y + 1 )
+
+                Grid.Left ->
+                    ( x - 1, y )
+
+                Grid.Right ->
+                    ( x + 1, y )
+
+                Grid.None ->
+                    ( x, y )
+
+        isShaded =
+            Grid.get nextPoint board.grid
+                |> Maybe.map (\cell_ -> cell_ == Shaded)
+                |> Maybe.withDefault True
+
+        newPoint =
+            if isShaded then
+                ( x, y )
+
+            else
+                nextPoint
+    in
+    updateSelection newPoint selection.direction board
