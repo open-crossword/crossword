@@ -8,24 +8,56 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "The Point Module"
-        [ test "Point.x returns first part of tuple" <|
-            \_ ->
-                Point.x ( 1, 0 )
-                    |> Expect.equal 1
-        , test "Point.Y returns first part of tuple" <|
-            \_ ->
-                Point.y ( 1, 0 )
-                    |> Expect.equal 0
-        , test "Point.equal returns true for same x and y" <|
-            \_ ->
-                Point.equals ( 1, 0 ) ( 1, 0 )
-                    |> Expect.true "Expected points to be equal!"
-        , test "Point.equal returns false for differing xs" <|
-            \_ ->
-                Point.equals ( 1, 0 ) ( 2, 0 )
-                    |> Expect.true "Expected points to be not equal!"
-        , test "Point.equal returns false for differing ys" <|
-            \_ ->
-                Point.equals ( 1, 0 ) ( 1, 1 )
-                    |> Expect.true "Expected points to be not equal!"
+        [ describe "Point.x"
+            [ test "returns first part of tuple" <|
+                \_ ->
+                    Point.x ( 1, 0 )
+                        |> Expect.equal 1
+            ]
+        , describe "Point.y"
+            [ test "returns first part of tuple" <|
+                \_ ->
+                    Point.y ( 1, 0 )
+                        |> Expect.equal 0
+            ]
+        , describe "Point.equal"
+            [ test "returns true for same x and y" <|
+                \_ ->
+                    Point.equals ( 1, 0 ) ( 1, 0 )
+                        |> Expect.true "Expected points to be equal!"
+            , test "returns false for differing xs" <|
+                \_ ->
+                    Point.equals ( 1, 0 ) ( 2, 0 )
+                        |> Expect.true "Expected points to be not equal!"
+            , test "returns false for differing ys" <|
+                \_ ->
+                    Point.equals ( 1, 0 ) ( 1, 1 )
+                        |> Expect.true "Expected points to be not equal!"
+            ]
+        , describe "Point.clamp"
+            [ test "sets to min if point is below min" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 1, 1 ) ( -1, -1 )
+                        |> Expect.equal ( 0, 0 )
+            , test "sets to max if point is above max" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 1, 1 ) ( 2, 2 )
+                        |> Expect.equal ( 1, 1 )
+            , test "sets x to max if only x is above max" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 2, 2 ) ( 3, 1 )
+                        |> Expect.equal ( 2, 1 )
+            , test "sets y to max if only y is above max" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 2, 2 ) ( 1, 3 )
+                        |> Expect.equal ( 1, 2 )
+            , test "sets x to min if only x is below min" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 2, 2 ) ( -1, 1 )
+                        |> Expect.equal ( 0, 1 )
+            , test "sets y to min if only y is below min" <|
+                \_ ->
+                    Point.clamp ( 0, 0 ) ( 2, 2 ) ( 1, -1 )
+                        |> Expect.equal ( 1, 0 )
+            ]
         ]
