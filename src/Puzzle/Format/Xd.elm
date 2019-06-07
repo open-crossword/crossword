@@ -84,20 +84,20 @@ annotateWord grid_ wordStart =
                 ( _, True ) ->
                     Dict.empty
 
-                ( Across, False ) ->
+                ( AcrossStart, False ) ->
                     Dict.update
                         (Grid.pointToIndex point grid_)
                         (oneOrTwoUpdate (ClueId Direction.Across wordStart.clueNumber))
-                        (recurse Across ( x + 1, y ))
+                        (recurse AcrossStart ( x + 1, y ))
 
-                ( Down, False ) ->
+                ( DownStart, False ) ->
                     Dict.update
                         (Grid.pointToIndex point grid_)
                         (oneOrTwoUpdate (ClueId Direction.Down wordStart.clueNumber))
-                        (recurse Down ( x, y + 1 ))
+                        (recurse DownStart ( x, y + 1 ))
 
-                ( Both, False ) ->
-                    oneOrTwoMerge (recurse Down ( x, y )) (recurse Across ( x, y ))
+                ( AcrossAndDownStart, False ) ->
+                    oneOrTwoMerge (recurse DownStart ( x, y )) (recurse AcrossStart ( x, y ))
     in
     recurse wordStart.direction wordStart.point
 
@@ -201,13 +201,13 @@ wordStarts grid_ =
         helper ( point, theCell ) ( acc, num ) =
             case ( isShaded theCell, isAcrossStart point, isDownStart point ) of
                 ( False, True, True ) ->
-                    ( WordStart point Both num :: acc, num + 1 )
+                    ( WordStart point AcrossAndDownStart num :: acc, num + 1 )
 
                 ( False, False, True ) ->
-                    ( WordStart point Down num :: acc, num + 1 )
+                    ( WordStart point DownStart num :: acc, num + 1 )
 
                 ( False, True, False ) ->
-                    ( WordStart point Across num :: acc, num + 1 )
+                    ( WordStart point AcrossStart num :: acc, num + 1 )
 
                 ( _, _, _ ) ->
                     ( acc, num )

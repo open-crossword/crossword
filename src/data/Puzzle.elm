@@ -1,4 +1,4 @@
-module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString, getMatchingClueId)
+module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString, getMatchingClueId, wordStartMatchesDirection)
 
 import Data.Direction as Direction exposing (Direction(..))
 import Data.Grid as Grid exposing (Grid)
@@ -48,9 +48,9 @@ type Cell
 
 
 type WordStartDirection
-    = Across
-    | Down
-    | Both
+    = AcrossStart
+    | DownStart
+    | AcrossAndDownStart
 
 
 type alias WordStart =
@@ -81,3 +81,22 @@ getMatchingClueId direction clues =
 
             else
                 Nothing
+
+
+wordStartMatchesDirection : WordStartDirection -> Direction -> Bool
+wordStartMatchesDirection word dir =
+    case ( word, dir ) of
+        ( AcrossStart, Across ) ->
+            True
+
+        ( DownStart, Down ) ->
+            True
+
+        ( AcrossAndDownStart, Across ) ->
+            True
+
+        ( AcrossAndDownStart, Down ) ->
+            True
+
+        ( _, _ ) ->
+            False

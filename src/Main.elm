@@ -272,6 +272,7 @@ type KeyType
     | DownArrow
     | LetterKey Char
     | Delete
+    | CycleSelectedClue
     | Other
 
 
@@ -305,6 +306,9 @@ keyCodeToKeyEvent code =
         _ ->
             if (64 <= code && code <= 90) || (code == 32) then
                 LetterKey (Char.fromCode code)
+
+            else if code == 9 || code == 13 then
+                CycleSelectedClue
 
             else
                 Other
@@ -453,6 +457,48 @@ update msg model =
                 newBoard =
                     { board | grid = Grid.set cursor (Letter char) board.grid }
                         |> Board.moveSelection direction
+            in
+            ( Loaded
+                { record
+                    | board = newBoard
+                }
+            , Cmd.none
+            )
+
+        ( OnKeyPress CycleSelectedClue, Loaded record ) ->
+            let
+                board =
+                    record.board
+
+                selection =
+                    board.selection
+
+                words =
+                    record.puzzle.wordStarts
+                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex selection.cursor board.grid)
+
+                newBoard =
+                    case List.head words of
+                        Just word ->
+                            Board.updateSelection word.point selection.direction board
+
+                        -- No other across/down clue to cycle to next:
+                        -- Flip our direction and find the first matching word start
+                        Nothing ->
+                            let
+                                flippedDir =
+                                    Direction.swap selection.direction
+
+                                flippedWords =
+                                    record.puzzle.wordStarts
+                                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
+                            in
+                            case List.head flippedWords of
+                                Just word ->
+                                    Board.updateSelection word.point flippedDir board
+
+                                Nothing ->
+                                    board
             in
             ( Loaded
                 { record
