@@ -219,9 +219,6 @@ neighboringPoint direction ( x, y ) =
         Grid.Right ->
             ( x + 1, y )
 
-        Grid.None ->
-            ( x, y )
-
 
 {-| Moves the cursor of the specified board a unit in the specified direction
 stopping when the cursor hits a shaded cell.

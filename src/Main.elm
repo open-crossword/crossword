@@ -266,10 +266,7 @@ viewClue selectedClue clue =
 
 
 type KeyType
-    = LeftArrow
-    | RightArrow
-    | UpArrow
-    | DownArrow
+    = ArrowKey Grid.Direction
     | LetterKey Char
     | Delete
     | CycleSelectedClue
@@ -289,16 +286,16 @@ keyCodeToKeyEvent code =
     in
     case code of
         37 ->
-            LeftArrow
+            ArrowKey Grid.Left
 
         39 ->
-            RightArrow
+            ArrowKey Grid.Right
 
         38 ->
-            UpArrow
+            ArrowKey Grid.Up
 
         40 ->
-            DownArrow
+            ArrowKey Grid.Down
 
         8 ->
             Delete
@@ -312,25 +309,6 @@ keyCodeToKeyEvent code =
 
             else
                 Other
-
-
-keyToDirection : KeyType -> Grid.Direction
-keyToDirection key =
-    case key of
-        LeftArrow ->
-            Grid.Left
-
-        RightArrow ->
-            Grid.Right
-
-        UpArrow ->
-            Grid.Up
-
-        DownArrow ->
-            Grid.Down
-
-        _ ->
-            Grid.None
 
 
 
@@ -508,14 +486,14 @@ update msg model =
             )
 
         -- TODO We just want this case to pattern match on arrow keys
-        ( OnKeyPress keyType, Loaded record ) ->
+        ( OnKeyPress (ArrowKey direction), Loaded record ) ->
             let
                 selection =
                     record.board.selection
 
                 isChangingDirection =
-                    (selection.direction == Across && (keyType == UpArrow || keyType == DownArrow))
-                        || (selection.direction == Down && (keyType == LeftArrow || keyType == RightArrow))
+                    (selection.direction == Across && (direction == Grid.Up || direction == Grid.Down))
+                        || (selection.direction == Down && (direction == Grid.Left || direction == Grid.Right))
 
                 newDirection =
                     if isChangingDirection then
@@ -529,7 +507,7 @@ update msg model =
                         Board.updateSelection selection.cursor newDirection record.board
 
                     else
-                        Board.moveSelectionSkip (keyToDirection keyType) record.board
+                        Board.moveSelectionSkip direction record.board
             in
             ( Loaded
                 { record

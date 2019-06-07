@@ -18,7 +18,6 @@ type Direction
     | Down
     | Left
     | Right
-    | None
 
 
 {-| an empty Grid with the given width and height
