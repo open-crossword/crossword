@@ -179,24 +179,10 @@ moveSelectionSkip direction board =
             board.selection
 
         helper : Grid.Direction -> Point -> Point -> Point
-        helper dir original ( x, y ) =
+        helper dir original point =
             let
                 nextPoint =
-                    case dir of
-                        Grid.Up ->
-                            ( x, y - 1 )
-
-                        Grid.Down ->
-                            ( x, y + 1 )
-
-                        Grid.Left ->
-                            ( x - 1, y )
-
-                        Grid.Right ->
-                            ( x + 1, y )
-
-                        Grid.None ->
-                            ( x, y )
+                    neighboringPoint dir point
 
                 nextCell =
                     Grid.get nextPoint board.grid
@@ -218,7 +204,26 @@ moveSelectionSkip direction board =
     updateSelection (helper direction selection.cursor selection.cursor) selection.direction board
 
 
-{-| Moves the cursor of the specified board a unit in the specified direction 
+neighboringPoint : Grid.Direction -> Point -> Point
+neighboringPoint direction ( x, y ) =
+    case direction of
+        Grid.Up ->
+            ( x, y - 1 )
+
+        Grid.Down ->
+            ( x, y + 1 )
+
+        Grid.Left ->
+            ( x - 1, y )
+
+        Grid.Right ->
+            ( x + 1, y )
+
+        Grid.None ->
+            ( x, y )
+
+
+{-| Moves the cursor of the specified board a unit in the specified direction
 stopping when the cursor hits a shaded cell.
 -}
 moveSelection : Grid.Direction -> Board -> Board
@@ -227,25 +232,8 @@ moveSelection direction board =
         selection =
             board.selection
 
-        ( x, y ) =
-            selection.cursor
-
         nextPoint =
-            case direction of
-                Grid.Up ->
-                    ( x, y - 1 )
-
-                Grid.Down ->
-                    ( x, y + 1 )
-
-                Grid.Left ->
-                    ( x - 1, y )
-
-                Grid.Right ->
-                    ( x + 1, y )
-
-                Grid.None ->
-                    ( x, y )
+            neighboringPoint direction selection.cursor
 
         isShaded =
             Grid.get nextPoint board.grid
@@ -254,7 +242,7 @@ moveSelection direction board =
 
         newPoint =
             if isShaded then
-                ( x, y )
+                selection.cursor
 
             else
                 nextPoint
