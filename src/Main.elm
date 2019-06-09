@@ -92,6 +92,7 @@ view model =
     div
         [ hijackOn "drop" dropDecoder
         , hijackOn "dragover" (Decode.succeed NoOp)
+        , css [ globalStyle ]
         ]
         [ case model of
             Loaded { puzzle, board } ->
@@ -527,6 +528,12 @@ update msg model =
 
 
 --- STYLES ---
+
+
+globalStyle =
+    Css.batch
+        [ Css.fontFamilies [ "Helvetica", "Arial", "sans-serif" ]
+        ]
 
 
 justifyContentCenter =
