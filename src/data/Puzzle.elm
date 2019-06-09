@@ -1,6 +1,6 @@
 module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToString, getMatchingClueId, wordStartMatchesDirection)
 
-import Data.Direction as Direction exposing (Direction(..))
+import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
@@ -86,16 +86,16 @@ getMatchingClueId direction clues =
 wordStartMatchesDirection : WordStartDirection -> Direction -> Bool
 wordStartMatchesDirection word dir =
     case ( word, dir ) of
-        ( AcrossStart, Across ) ->
+        ( AcrossStart, Direction.Across ) ->
             True
 
-        ( DownStart, Down ) ->
+        ( DownStart, Direction.Down ) ->
             True
 
-        ( AcrossAndDownStart, Across ) ->
+        ( AcrossAndDownStart, Direction.Across ) ->
             True
 
-        ( AcrossAndDownStart, Down ) ->
+        ( AcrossAndDownStart, Direction.Down ) ->
             True
 
         ( _, _ ) ->

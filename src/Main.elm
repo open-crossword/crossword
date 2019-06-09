@@ -4,7 +4,7 @@ import Browser
 import Browser.Events
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Board as Board exposing (Board)
-import Data.Direction as Direction exposing (Direction(..))
+import Data.Direction as Direction
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point as Point exposing (Point)
@@ -17,8 +17,8 @@ import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import List.Extra
 import Parser
-import SamplePuzzle
 import Puzzle.Format.Xd
+import SamplePuzzle
 import Task
 
 
@@ -215,7 +215,7 @@ viewClues puzzle board =
     let
         isAcross _ clue =
             case clue.id.direction of
-                Across ->
+                Direction.Across ->
                     True
 
                 _ ->
@@ -404,10 +404,10 @@ update msg model =
 
                 direction =
                     case board.selection.direction of
-                        Across ->
+                        Direction.Across ->
                             Grid.Left
 
-                        Down ->
+                        Direction.Down ->
                             Grid.Up
 
                 newBoard =
@@ -431,10 +431,10 @@ update msg model =
 
                 direction =
                     case board.selection.direction of
-                        Across ->
+                        Direction.Across ->
                             Grid.Right
 
-                        Down ->
+                        Direction.Down ->
                             Grid.Down
 
                 newBoard =
@@ -497,8 +497,8 @@ update msg model =
                     record.board.selection
 
                 isChangingDirection =
-                    (selection.direction == Across && (direction == Grid.Up || direction == Grid.Down))
-                        || (selection.direction == Down && (direction == Grid.Left || direction == Grid.Right))
+                    (selection.direction == Direction.Across && (direction == Grid.Up || direction == Grid.Down))
+                        || (selection.direction == Direction.Down && (direction == Grid.Left || direction == Grid.Right))
 
                 newDirection =
                     if isChangingDirection then
