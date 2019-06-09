@@ -110,7 +110,13 @@ viewCrossword puzzle board =
         , hr [] []
         , viewToolbar
         , div [ css [ displayFlex ] ]
-            [ div [ css [ marginTop (px 71) ] ] [ viewBoard puzzle board ]
+            [ div []
+                [ div []
+                    [ viewSelectedClue puzzle board ]
+                , div
+                    []
+                    [ viewBoard puzzle board ]
+                ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
             ]
         ]
@@ -134,6 +140,23 @@ viewToolbar =
         , button [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
         , button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
+
+
+viewSelectedClue : Puzzle -> Board -> Html Msg
+viewSelectedClue puzzle board =
+    let
+        selectedClue =
+            Board.selectedClue puzzle board
+
+        ( clueNumber, clueText ) =
+            case selectedClue of
+                Just clue ->
+                    ( Puzzle.clueIdToDisplayString clue.id, clue.clue )
+
+                Nothing ->
+                    ( "", "" )
+    in
+    div [ css [ boardClueStyle ] ] [ b [] [ text clueNumber ], text (" " ++ clueText) ]
 
 
 viewBoard : Puzzle -> Board -> Html Msg
@@ -226,7 +249,7 @@ viewClues puzzle board =
             Dict.partition isAcross puzzle.clues
 
         selectedClue =
-            Board.selectedClue puzzle board
+            Board.selectedClueId puzzle board
 
         helper =
             Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)
@@ -613,6 +636,15 @@ clueStyle =
     Css.batch
         [ Css.cursor Css.pointer
         , Css.padding (px 2)
+        ]
+
+
+boardClueStyle =
+    Css.batch
+        [ selectedWordCellStyle
+        , Css.padding (px 16)
+        , Css.marginBottom (px 8)
+        , Css.marginTop (px 8)
         ]
 
 

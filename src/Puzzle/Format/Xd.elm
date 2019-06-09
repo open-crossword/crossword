@@ -253,7 +253,7 @@ cluesDict =
         |> Parser.map
             (\clues ->
                 clues
-                    |> List.map (\clue -> ( Puzzle.clueIdToString clue.id, clue ))
+                    |> List.map (\clue -> ( Puzzle.clueIdToIndex clue.id, clue ))
                     |> Dict.fromList
             )
 

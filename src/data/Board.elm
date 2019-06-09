@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, updateSelection)
+module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -107,7 +107,7 @@ isSelectedWord : Point -> Puzzle -> Board -> Bool
 isSelectedWord point puzzle board =
     let
         clueId =
-            selectedClue puzzle board
+            selectedClueId puzzle board
     in
     case Dict.get (Grid.pointToIndex point puzzle.grid) puzzle.cluesForCell of
         Just (OneOrTwo.One id) ->
@@ -135,11 +135,17 @@ isPartOfWord clue point puzzle =
             False
 
 
-selectedClue : Puzzle -> Board -> Maybe ClueId
-selectedClue puzzle board =
+selectedClueId : Puzzle -> Board -> Maybe ClueId
+selectedClueId puzzle board =
     puzzle.cluesForCell
         |> Dict.get (Grid.pointToIndex board.selection.cursor puzzle.grid)
         |> Maybe.andThen (Puzzle.getMatchingClueId board.selection.direction)
+
+
+selectedClue : Puzzle -> Board -> Maybe Clue
+selectedClue puzzle board =
+    selectedClueId puzzle board
+        |> Maybe.andThen (\clueId -> Dict.get (Puzzle.clueIdToIndex clueId) puzzle.clues)
 
 
 updateSelection : Point -> Direction -> Board -> Board
