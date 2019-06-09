@@ -17,8 +17,8 @@ import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import List.Extra
 import Parser
-import Puzzle
 import SamplePuzzle
+import Puzzle.Format.Xd
 import Task
 
 
@@ -45,9 +45,14 @@ type Msg
 
 init : ( Model, Cmd Msg )
 init =
-    ( loadPuzzle (Puzzle.parse SamplePuzzle.puzzle)
+    ( loadPuzzle (parsePuzzle SamplePuzzle.puzzle)
     , Cmd.none
     )
+
+
+parsePuzzle : String -> Result (List Parser.DeadEnd) Puzzle
+parsePuzzle input =
+    Puzzle.Format.Xd.parse input
 
 
 loadPuzzle : Result (List Parser.DeadEnd) Puzzle -> Model
@@ -322,7 +327,7 @@ update msg model =
             ( model, File.toString file |> Task.perform OnFileRead )
 
         ( OnFileRead content, _ ) ->
-            ( loadPuzzle (Puzzle.parse content), Cmd.none )
+            ( loadPuzzle (parsePuzzle content), Cmd.none )
 
         ( OnCellClick point, Loaded record ) ->
             let
