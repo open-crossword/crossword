@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
+module Data.Board exposing (Board, Selection, cycleSelectedClue, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -251,3 +251,37 @@ moveSelection direction board =
                 nextPoint
     in
     updateSelection newPoint selection.direction board
+
+
+cycleSelectedClue : Puzzle -> Board -> Board
+cycleSelectedClue puzzle board =
+    let
+        selection =
+            board.selection
+
+        -- TODO This index checking works for across clues but all down clues
+        words =
+            puzzle.wordStarts
+                |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex selection.cursor board.grid)
+    in
+    case List.head words of
+        Just word ->
+            updateSelection word.point selection.direction board
+
+        -- No other across/down clue to cycle to next:
+        -- Flip our direction and find the first matching word start
+        Nothing ->
+            let
+                flippedDir =
+                    Direction.swap selection.direction
+
+                flippedWords =
+                    puzzle.wordStarts
+                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
+            in
+            case List.head flippedWords of
+                Just word ->
+                    updateSelection word.point flippedDir board
+
+                Nothing ->
+                    board

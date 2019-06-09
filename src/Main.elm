@@ -473,43 +473,9 @@ update msg model =
             )
 
         ( OnKeyPress CycleSelectedClue, Loaded record ) ->
-            let
-                board =
-                    record.board
-
-                selection =
-                    board.selection
-
-                words =
-                    record.puzzle.wordStarts
-                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex selection.cursor board.grid)
-
-                newBoard =
-                    case List.head words of
-                        Just word ->
-                            Board.updateSelection word.point selection.direction board
-
-                        -- No other across/down clue to cycle to next:
-                        -- Flip our direction and find the first matching word start
-                        Nothing ->
-                            let
-                                flippedDir =
-                                    Direction.swap selection.direction
-
-                                flippedWords =
-                                    record.puzzle.wordStarts
-                                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
-                            in
-                            case List.head flippedWords of
-                                Just word ->
-                                    Board.updateSelection word.point flippedDir board
-
-                                Nothing ->
-                                    board
-            in
             ( Loaded
                 { record
-                    | board = newBoard
+                    | board = Board.cycleSelectedClue record.puzzle record.board
                 }
             , Cmd.none
             )
