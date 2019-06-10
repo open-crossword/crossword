@@ -28,11 +28,11 @@ suite =
             , test "returns false for differing xs" <|
                 \_ ->
                     Point.equals ( 1, 0 ) ( 2, 0 )
-                        |> Expect.true "Expected points to be not equal!"
+                        |> Expect.false "Expected points to be not equal!"
             , test "returns false for differing ys" <|
                 \_ ->
                     Point.equals ( 1, 0 ) ( 1, 1 )
-                        |> Expect.true "Expected points to be not equal!"
+                        |> Expect.false "Expected points to be not equal!"
             ]
         , describe "Point.clamp"
             [ test "sets to min if point is below min" <|
