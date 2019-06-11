@@ -6,6 +6,7 @@ import Data.OneOrTwo as OneOrTwo
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Puzzle)
 import Dict
+import List.Extra as List
 
 
 type alias Board =
@@ -259,12 +260,23 @@ cycleSelectedClue puzzle board =
         selection =
             board.selection
 
-        -- TODO This index checking works for across clues but all down clues
-        words =
+        selectedWordStart =
             puzzle.wordStarts
-                |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex selection.cursor board.grid)
+                |> List.find
+                    (\word ->
+                        Maybe.map (\clue -> clue.number == word.clueNumber) (selectedClueId puzzle board)
+                            |> Maybe.withDefault False
+                    )
+
+        isNextWord word =
+            Maybe.map (\wordStart -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex wordStart.point board.grid) selectedWordStart
+                |> Maybe.withDefault False
+
+        nextMatchingWordStart =
+            puzzle.wordStarts
+                |> List.find isNextWord
     in
-    case List.head words of
+    case nextMatchingWordStart of
         Just word ->
             updateSelection word.point selection.direction board
 
@@ -275,11 +287,11 @@ cycleSelectedClue puzzle board =
                 flippedDir =
                     Direction.swap selection.direction
 
-                flippedWords =
+                firstDifferentWordStart =
                     puzzle.wordStarts
-                        |> List.filter (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
+                        |> List.find (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
             in
-            case List.head flippedWords of
+            case firstDifferentWordStart of
                 Just word ->
                     updateSelection word.point flippedDir board
 
