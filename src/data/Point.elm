@@ -1,13 +1,8 @@
-module Data.Point exposing (Point, clamp, equals, x, y)
+module Data.Point exposing (Point, clamp, x, y)
 
 
 type alias Point =
     ( Int, Int )
-
-
-equals : Point -> Point -> Bool
-equals one two =
-    (x one == x two) && (y one == y two)
 
 
 x : Point -> Int

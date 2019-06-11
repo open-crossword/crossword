@@ -186,7 +186,7 @@ viewCell puzzle board y x cell =
             ( x, y )
 
         isSelected =
-            Point.equals board.selection.cursor point
+            board.selection.cursor == point
 
         isWordStart =
             List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
@@ -359,7 +359,7 @@ update msg model =
                     record.board.selection
 
                 direction =
-                    if Point.equals oldSelection.cursor point then
+                    if oldSelection.cursor == point then
                         Direction.swap oldSelection.direction
 
                     else

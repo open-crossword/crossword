@@ -20,20 +20,6 @@ suite =
                     Point.y ( 1, 0 )
                         |> Expect.equal 0
             ]
-        , describe "Point.equal"
-            [ test "returns true for same x and y" <|
-                \_ ->
-                    Point.equals ( 1, 0 ) ( 1, 0 )
-                        |> Expect.true "Expected points to be equal!"
-            , test "returns false for differing xs" <|
-                \_ ->
-                    Point.equals ( 1, 0 ) ( 2, 0 )
-                        |> Expect.false "Expected points to be not equal!"
-            , test "returns false for differing ys" <|
-                \_ ->
-                    Point.equals ( 1, 0 ) ( 1, 1 )
-                        |> Expect.false "Expected points to be not equal!"
-            ]
         , describe "Point.clamp"
             [ test "sets to min if point is below min" <|
                 \_ ->
