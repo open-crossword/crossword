@@ -143,7 +143,7 @@ viewMetadata metadata =
             ]
             (case Maybe.andThen parseDateString metadata.date of
                 Just { weekDay, englishMonth, dayNum, year } ->
-                    [ h2 [] [ span [class "fw7"] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ]]
+                    [ h2 [] [ span [ class "fw7" ] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ] ]
 
                 Nothing ->
                     [ h2 [] [ text "Puzzle" ] ]
@@ -845,7 +845,7 @@ boardStyle =
 clueStyle =
     Css.batch
         [ Css.cursor Css.pointer
-        , Css.padding (px 2)
+        , Css.padding2 (px 2) (px 5)
         ]
 
 
