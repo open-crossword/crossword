@@ -10,7 +10,7 @@ function run {
 
   date -R;
 
-  elm make src/Main.elm --output=elm.js
+ ./build.sh
 }
 
 export -f run
