@@ -243,7 +243,7 @@ viewCell puzzle board y x cell =
             Letter char ->
                 Svg.g
                     []
-                    [                      Svg.rect
+                    [ Svg.rect
                         [ SvgE.onClick (OnCellClick point)
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
@@ -268,7 +268,6 @@ viewCell puzzle board y x cell =
                         , SvgA.height (String.fromInt h)
                         ]
                         [ Svg.text (String.fromChar char) ]
-
                     ]
 
             Shaded ->
@@ -283,7 +282,10 @@ viewCell puzzle board y x cell =
         , case wordStartNumber of
             Just n ->
                 Svg.text_
-                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ], SvgA.transform "translate(1,-7)" ]
+                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
+                    , SvgA.x "1"
+                    , SvgA.y "3"
+                    ]
                     [ Svg.text (String.fromInt n) ]
 
             Nothing ->
