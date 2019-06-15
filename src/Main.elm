@@ -113,22 +113,26 @@ view model =
 viewCrossword : Puzzle -> Board -> Html Msg
 viewCrossword puzzle board =
     div []
-        [ viewMetadata puzzle.metadata
-        , div [ css [ displayFlex ] ]
-            [ div [ class "w-50" ]
-                [ div [ css [ toolbarStyle ] ]
-                    [ viewToolbar
-                    , viewSelectedClue puzzle board
+        [ div [ class "flex justify-center flex-column items-center" ]
+            [ div [ class "w-90" ]
+                [ viewMetadata puzzle.metadata
+                , div [ css [ displayFlex ] ]
+                    [ div [ class "w-50" ]
+                        [ div [ css [ toolbarStyle ] ]
+                            [ viewToolbar
+                            , viewSelectedClue puzzle board
+                            ]
+                        , div
+                            [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
+                            [ viewBoard puzzle board ]
+                        ]
+                    , div
+                        [ css [ marginLeft (px 40) ]
+                        , class "w-50"
+                        ]
+                        [ viewClues puzzle board ]
                     ]
-                , div
-                    [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
-                    [ viewBoard puzzle board ]
                 ]
-            , div
-                [ css [ marginLeft (px 40) ]
-                , class "w-50"
-                ]
-                [ viewClues puzzle board ]
             ]
         ]
 
