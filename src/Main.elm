@@ -19,6 +19,9 @@ import List.Extra
 import Parser
 import Puzzle.Format.Xd
 import SamplePuzzle
+import Svg.Styled as Svg exposing (Svg)
+import Svg.Styled.Attributes as SvgA
+import Svg.Styled.Events as SvgE
 import Task
 
 
@@ -114,7 +117,7 @@ viewCrossword puzzle board =
                 [ div []
                     [ viewSelectedClue puzzle board ]
                 , div
-                    []
+                    [ css [ Css.margin (px 30) ] ]
                     [ viewBoard puzzle board ]
                 ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
@@ -159,27 +162,55 @@ viewSelectedClue puzzle board =
     div [ css [ boardClueStyle ] ] [ b [] [ text clueNumber ], text (" " ++ clueText) ]
 
 
+viewboxDimensions : Grid a -> ( Int, Int )
+viewboxDimensions grid =
+    let
+        svgScale =
+            10
+    in
+    ( Grid.width grid * svgScale
+    , Grid.height grid * svgScale
+    )
+
+
 viewBoard : Puzzle -> Board -> Html Msg
 viewBoard puzzle board =
-    div
-        [ css [ boardStyle ] ]
-        (board.grid
-            |> Grid.to2DList
-            -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
-            |> List.map (List.filterMap identity)
-            |> List.indexedMap (viewRow puzzle board)
-        )
+    let
+        ( viewboxWidth, viewboxHeight ) =
+            viewboxDimensions puzzle.grid
+    in
+    Svg.svg
+        [ SvgA.viewBox ("-2 -2 " ++ String.fromInt (viewboxWidth + 4) ++ " " ++ String.fromInt (viewboxHeight + 4))
+        ]
+        [ Svg.rect
+            [ SvgA.width (String.fromInt (viewboxWidth + 2))
+            , SvgA.height (String.fromInt (viewboxHeight + 2))
+            , SvgA.x "-1"
+            , SvgA.y "-1"
+            , SvgA.fill "none"
+            , SvgA.stroke "black"
+            , SvgA.strokeWidth "2"
+            ]
+            []
+        , Svg.g []
+            (board.grid
+                |> Grid.to2DList
+                -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
+                |> List.map (List.filterMap identity)
+                |> List.indexedMap (viewRow puzzle board)
+            )
+        ]
 
 
-viewRow : Puzzle -> Board -> Int -> List Cell -> Html Msg
+viewRow : Puzzle -> Board -> Int -> List Cell -> Svg Msg
 viewRow puzzle board y row =
-    pre
-        [ css [ rowStyle ]
+    Svg.g
+        [-- css [ rowStyle ]
         ]
         (List.indexedMap (viewCell puzzle board y) row)
 
 
-viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Html Msg
+viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Svg Msg
 viewCell puzzle board y x cell =
     let
         point =
@@ -195,38 +226,69 @@ viewCell puzzle board y x cell =
         wordStartNumber =
             List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
                 |> Maybe.map .clueNumber
+
+        ( viewboxWidth, viewboxHeight ) =
+            viewboxDimensions puzzle.grid
+
+        w =
+            viewboxWidth // Grid.width puzzle.grid
+
+        h =
+            viewboxHeight // Grid.height puzzle.grid
     in
-    case cell of
-        Letter char ->
-            div
-                [ css
-                    [ cellStyle
-                    , letterCellStyle
-                    , if isSelected then
-                        selectedCellStyle
+    Svg.g
+        [ SvgA.transform ("translate(" ++ String.fromInt (x * w) ++ "," ++ String.fromInt (y * h) ++ ")")
+        ]
+        [ case cell of
+            Letter char ->
+                Svg.g
+                    []
+                    [                      Svg.rect
+                        [ SvgE.onClick (OnCellClick point)
+                        , SvgA.width (String.fromInt w)
+                        , SvgA.height (String.fromInt h)
+                        , SvgA.stroke "black"
+                        , SvgA.strokeWidth ".5"
+                        , if isSelected then
+                            SvgA.fill selectedCursorColor
 
-                      else if Board.isSelectedWord point puzzle board then
-                        selectedWordCellStyle
+                          else if Board.isSelectedWord point puzzle board then
+                            SvgA.fill selectedWordColor
 
-                      else
-                        cellStyle
+                          else
+                            SvgA.fill "white"
+                        ]
+                        []
+                    , Svg.text_
+                        [ SvgA.css [ Css.fontSize (px 5), Css.property "pointer-events" "none" ]
+                        , SvgA.x "5"
+                        , SvgA.y "8"
+                        , SvgA.textAnchor "middle"
+                        , SvgA.width (String.fromInt w)
+                        , SvgA.height (String.fromInt h)
+                        ]
+                        [ Svg.text (String.fromChar char) ]
+
                     ]
-                , onClick (OnCellClick point)
-                ]
-                [ text (String.fromChar char)
-                , div [ css [ cellIdStyle ] ]
-                    -- TODO Dict.get (Grid.pointToIndex ( x, y ) puzzle.grid) puzzle.cluesForCell
-                    [ case wordStartNumber of
-                        Just n ->
-                            viewCellClueIndex n
 
-                        Nothing ->
-                            div [] []
+            Shaded ->
+                Svg.rect
+                    [ SvgA.width (String.fromInt w)
+                    , SvgA.height (String.fromInt h)
+                    , SvgA.fill "black"
+                    , SvgA.stroke "black"
+                    , SvgA.strokeWidth ".5"
                     ]
-                ]
+                    []
+        , case wordStartNumber of
+            Just n ->
+                Svg.text_
+                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ], SvgA.transform "translate(1,-7)" ]
+                    [ Svg.text (String.fromInt n) ]
 
-        Shaded ->
-            b [ css [ cellStyle, shadedCellStyle ] ] [ text "" ]
+            Nothing ->
+                Svg.g [] []
+        ]
 
 
 viewCellClueIndex : Int -> Html Msg
@@ -284,7 +346,7 @@ viewClue selectedClue clue =
         [ css
             [ clueStyle
             , if isSelected then
-                backgroundColor selectedWordColor
+                backgroundColor (Css.hex selectedWordColor)
 
               else
                 backgroundColor (rgb 255 255 255)
@@ -538,11 +600,19 @@ black =
 
 
 selectedCursorColor =
-    rgb 255 218 0
+    "#FFDA00"
+
+
+
+-- rgb 255 218 0
 
 
 selectedWordColor =
-    rgb 167 216 255
+    "#A7D8FF"
+
+
+
+-- rgb 167 216 255
 
 
 rowStyle =
@@ -581,12 +651,11 @@ shadedCellStyle =
     backgroundColor black
 
 
-selectedCellStyle =
-    backgroundColor selectedCursorColor
 
-
-selectedWordCellStyle =
-    backgroundColor selectedWordColor
+-- selectedCellStyle =
+--     backgroundColor selectedCursorColor
+-- selectedWordCellStyle =
+--     backgroundColor selectedWordColor
 
 
 boardStyle =
@@ -607,7 +676,7 @@ clueStyle =
 
 boardClueStyle =
     Css.batch
-        [ selectedWordCellStyle
+        [ backgroundColor (Css.hex selectedWordColor)
         , Css.padding (px 16)
         , Css.marginBottom (px 8)
         , Css.marginTop (px 8)
