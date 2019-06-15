@@ -137,16 +137,17 @@ viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
     div
         [ css [ Css.marginLeft (px 30), Css.marginBottom (px 10) ] ]
-        [ h2
+        [ div
             [ css
                 [ Css.marginBottom (px 5) ]
             ]
-            [ text
-                (metadata.date
-                    |> Maybe.andThen parseDateString
-                    |> Maybe.withDefault "Puzzle"
-                )
-            ]
+            (case Maybe.andThen parseDateString metadata.date of
+                Just { weekDay, englishMonth, dayNum, year } ->
+                    [ h2 [] [ span [class "fw7"] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ]]
+
+                Nothing ->
+                    [ h2 [] [ text "Puzzle" ] ]
+            )
         , div []
             [ span [] [ text "By " ]
             , b [] [ text (Maybe.withDefault "Unknown" metadata.author) ]
@@ -156,71 +157,86 @@ viewMetadata metadata =
         ]
 
 
-parseDateString : String -> Maybe String
+dateFromYearMonthDay : Int -> Int -> Int -> Maybe Calendar.Date
+dateFromYearMonthDay yearInt monthInt dayInt =
+    intToMonth monthInt
+        |> Maybe.andThen
+            (\month ->
+                Calendar.fromRawParts (Calendar.RawDate yearInt month dayInt)
+            )
+
+
+parseDateString : String -> Maybe { weekDay : String, englishMonth : String, dayNum : String, year : String }
 parseDateString dateString =
     let
-        parsed =
-            String.split "-" dateString
-                |> Maybe.Extra.traverse String.toInt
-    in
-    case parsed of
-        Just (yearInt :: monthInt :: dayInt :: []) ->
-            let
-                month =
-                    intToMonth monthInt
-            in
-            case Calendar.fromRawParts (Calendar.RawDate yearInt month dayInt) of
-                Just date ->
-                    Just (toEnglishWeekday (Calendar.getWeekday date) ++ ", " ++ toEnglishMonth month ++ " " ++ String.fromInt (Calendar.getDay date) ++ ", " ++ String.fromInt (Calendar.getYear date))
+        listToTriple : List a -> Maybe ( a, a, a )
+        listToTriple ls =
+            case ls of
+                [ yearInt, monthInt, dayInt ] ->
+                    Just ( yearInt, monthInt, dayInt )
 
-                Nothing ->
+                _ ->
                     Nothing
 
-        Just _ ->
-            Nothing
+        tupleAp3 : (a -> b -> c -> d) -> ( a, b, c ) -> d
+        tupleAp3 fn ( a, b, c ) =
+            fn a b c
+    in
+    String.split "-" dateString
+        |> Maybe.Extra.traverse String.toInt
+        |> Maybe.andThen listToTriple
+        |> Maybe.andThen (tupleAp3 dateFromYearMonthDay)
+        |> Maybe.map
+            (\date ->
+                { weekDay = toEnglishWeekday (Calendar.getWeekday date)
+                , englishMonth = toEnglishMonth (Calendar.getMonth date)
+                , dayNum = String.fromInt (Calendar.getDay date)
+                , year = String.fromInt (Calendar.getYear date)
+                }
+            )
 
-        Nothing ->
-            Nothing
 
-
-intToMonth : Int -> Time.Month
+intToMonth : Int -> Maybe Time.Month
 intToMonth int =
     case int of
         1 ->
-            Time.Jan
+            Just Time.Jan
 
         2 ->
-            Time.Feb
+            Just Time.Feb
 
         3 ->
-            Time.Mar
+            Just Time.Mar
 
         4 ->
-            Time.Apr
+            Just Time.Apr
 
         5 ->
-            Time.May
+            Just Time.May
 
         6 ->
-            Time.Jun
+            Just Time.Jun
 
         7 ->
-            Time.Jul
+            Just Time.Jul
 
         8 ->
-            Time.Aug
+            Just Time.Aug
 
         9 ->
-            Time.Sep
+            Just Time.Sep
 
         10 ->
-            Time.Oct
+            Just Time.Oct
 
         11 ->
-            Time.Nov
+            Just Time.Nov
+
+        12 ->
+            Just Time.Dec
 
         _ ->
-            Time.Dec
+            Nothing
 
 
 toEnglishWeekday : Time.Weekday -> String
