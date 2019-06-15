@@ -142,12 +142,10 @@ viewMetadata metadata =
     div
         [ css [ Css.marginLeft (px 30), Css.marginBottom (px 10) ] ]
         [ div
-            [ css
-                [ Css.marginBottom (px 5) ]
-            ]
+            []
             (case Maybe.andThen parseDateString metadata.date of
                 Just { weekDay, englishMonth, dayNum, year } ->
-                    [ h2 [] [ span [ class "fw7" ] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ] ]
+                    [ h2 [ css [ Css.marginBottom (px 6) ] ] [ span [ class "fw7" ] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ] ]
 
                 Nothing ->
                     [ h2 [] [ text "Puzzle" ] ]
