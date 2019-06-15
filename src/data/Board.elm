@@ -261,16 +261,29 @@ cycleSelectedClue puzzle board =
             board.selection
 
         selectedWordStart =
-            puzzle.wordStarts
-                |> List.find
-                    (\word ->
-                        Maybe.map (\clue -> clue.number == word.clueNumber) (selectedClueId puzzle board)
-                            |> Maybe.withDefault False
-                    )
+            case selectedClueId puzzle board of
+                Just clueId ->
+                    puzzle.wordStarts
+                        |> List.find (\ws -> ws.clueNumber == clueId.number)
+
+                Nothing ->
+                    Nothing
 
         isNextWord word =
-            Maybe.map (\wordStart -> Puzzle.wordStartMatchesDirection word.direction selection.direction && Grid.pointToIndex word.point board.grid > Grid.pointToIndex wordStart.point board.grid) selectedWordStart
-                |> Maybe.withDefault False
+            case selectedWordStart of
+                Just wordStart ->
+                    let
+                        wordIndex =
+                            Grid.pointToIndex word.point board.grid
+
+                        selectionStartIndex =
+                            Grid.pointToIndex wordStart.point board.grid
+                    in
+                    Puzzle.wordStartMatchesDirection word.direction selection.direction
+                        && (wordIndex > selectionStartIndex)
+
+                Nothing ->
+                    False
 
         nextMatchingWordStart =
             puzzle.wordStarts
