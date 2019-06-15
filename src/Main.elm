@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser
 import Browser.Events
+import Calendar
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
@@ -9,6 +10,7 @@ import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import DateTime
 import Dict exposing (Dict)
 import File exposing (File)
 import Html.Styled exposing (..)
@@ -16,6 +18,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
 import List.Extra
+import Maybe.Extra
 import Parser
 import Puzzle.Format.Xd
 import SamplePuzzle
@@ -23,6 +26,7 @@ import Svg.Styled as Svg exposing (Svg)
 import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
 import Task
+import Time
 
 
 type Model
@@ -110,7 +114,6 @@ viewCrossword : Puzzle -> Board -> Html Msg
 viewCrossword puzzle board =
     div []
         [ viewMetadata puzzle.metadata
-        , hr [] []
         , div [ css [ displayFlex ] ]
             [ div [ class "w-50" ]
                 [ div [ css [ toolbarStyle ] ]
@@ -132,12 +135,157 @@ viewCrossword puzzle board =
 
 viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
-    div []
-        [ div [] [ text (Maybe.withDefault "" metadata.title) ]
-        , div [] [ text (Maybe.withDefault "" metadata.author) ]
-        , div [] [ text (Maybe.withDefault "" metadata.editor) ]
-        , div [] [ text (Maybe.withDefault "" metadata.date) ]
+    div
+        [ css [ Css.marginLeft (px 30), Css.marginBottom (px 10) ] ]
+        [ h2
+            [ css
+                [ Css.marginBottom (px 5) ]
+            ]
+            [ text
+                (metadata.date
+                    |> Maybe.andThen parseDateString
+                    |> Maybe.withDefault "Puzzle"
+                )
+            ]
+        , div []
+            [ span [] [ text "By " ]
+            , b [] [ text (Maybe.withDefault "Unknown" metadata.author) ]
+            , span [ css [ Css.paddingLeft (px 15) ] ] [ text "Edited by " ]
+            , b [] [ text (Maybe.withDefault "Unknown" metadata.editor) ]
+            ]
         ]
+
+
+parseDateString : String -> Maybe String
+parseDateString dateString =
+    let
+        parsed =
+            String.split "-" dateString
+                |> Maybe.Extra.traverse String.toInt
+    in
+    case parsed of
+        Just (yearInt :: monthInt :: dayInt :: []) ->
+            let
+                month =
+                    intToMonth monthInt
+            in
+            case Calendar.fromRawParts (Calendar.RawDate yearInt month dayInt) of
+                Just date ->
+                    Just (toEnglishWeekday (Calendar.getWeekday date) ++ ", " ++ toEnglishMonth month ++ " " ++ String.fromInt (Calendar.getDay date) ++ ", " ++ String.fromInt (Calendar.getYear date))
+
+                Nothing ->
+                    Nothing
+
+        Just _ ->
+            Nothing
+
+        Nothing ->
+            Nothing
+
+
+intToMonth : Int -> Time.Month
+intToMonth int =
+    case int of
+        1 ->
+            Time.Jan
+
+        2 ->
+            Time.Feb
+
+        3 ->
+            Time.Mar
+
+        4 ->
+            Time.Apr
+
+        5 ->
+            Time.May
+
+        6 ->
+            Time.Jun
+
+        7 ->
+            Time.Jul
+
+        8 ->
+            Time.Aug
+
+        9 ->
+            Time.Sep
+
+        10 ->
+            Time.Oct
+
+        11 ->
+            Time.Nov
+
+        _ ->
+            Time.Dec
+
+
+toEnglishWeekday : Time.Weekday -> String
+toEnglishWeekday weekday =
+    case weekday of
+        Time.Mon ->
+            "Monday"
+
+        Time.Tue ->
+            "Tuesday"
+
+        Time.Wed ->
+            "Wednesday"
+
+        Time.Thu ->
+            "Thursday"
+
+        Time.Fri ->
+            "Friday"
+
+        Time.Sat ->
+            "Saturday"
+
+        Time.Sun ->
+            "Sunday"
+
+
+toEnglishMonth : Time.Month -> String
+toEnglishMonth month =
+    case month of
+        Time.Jan ->
+            "January"
+
+        Time.Feb ->
+            "Feburary"
+
+        Time.Mar ->
+            "March"
+
+        Time.Apr ->
+            "April"
+
+        Time.May ->
+            "May"
+
+        Time.Jun ->
+            "June"
+
+        Time.Jul ->
+            "July"
+
+        Time.Aug ->
+            "August"
+
+        Time.Sep ->
+            "September"
+
+        Time.Oct ->
+            "October"
+
+        Time.Nov ->
+            "November"
+
+        Time.Dec ->
+            "December"
 
 
 viewToolbar : Html Msg
@@ -146,7 +294,7 @@ viewToolbar =
         styles =
             class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate bg-near-white hover-bg-white pointer link"
     in
-    div [class "flex justify-start mb2"]
+    div [ class "flex justify-start mb2" ]
         [ button [ styles, onClick ResetPuzzle ] [ text "Reset Puzzle" ]
         , button [ styles, onClick RevealSelectedCell ] [ text "Reveal Square" ]
         , button [ styles, onClick RevealSelectedWord ] [ text "Reveal Word" ]
