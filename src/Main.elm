@@ -548,10 +548,6 @@ keyDecoder =
 
 keyCodeToKeyEvent : Int -> KeyType
 keyCodeToKeyEvent code =
-    let
-        text =
-            Debug.log "key" code
-    in
     case code of
         37 ->
             ArrowKey Grid.Left
