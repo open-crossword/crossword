@@ -95,7 +95,7 @@ view model =
     div
         [ hijackOn "drop" dropDecoder
         , hijackOn "dragover" (Decode.succeed NoOp)
-        , css [ globalStyle ]
+        , class "avenir"
         ]
         [ case model of
             Loaded { puzzle, board } ->
@@ -113,14 +113,18 @@ viewCrossword puzzle board =
         , hr [] []
         , viewToolbar
         , div [ css [ displayFlex ] ]
-            [ div []
+            [ div [ class "w-50" ]
                 [ div []
                     [ viewSelectedClue puzzle board ]
                 , div
                     [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
                     [ viewBoard puzzle board ]
                 ]
-            , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
+            , div
+                [ css [ marginLeft (px 40) ]
+                , class "w-50"
+                ]
+                [ viewClues puzzle board ]
             ]
         ]
 
@@ -128,10 +132,10 @@ viewCrossword puzzle board =
 viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
     div []
-        [ div [] [ text ("Title: " ++ Maybe.withDefault "" metadata.title) ]
-        , div [] [ text ("Author: " ++ Maybe.withDefault "" metadata.author) ]
-        , div [] [ text ("Editor: " ++ Maybe.withDefault "" metadata.editor) ]
-        , div [] [ text ("Date: " ++ Maybe.withDefault "" metadata.date) ]
+        [ div [] [ text (Maybe.withDefault "" metadata.title) ]
+        , div [] [ text (Maybe.withDefault "" metadata.author) ]
+        , div [] [ text (Maybe.withDefault "" metadata.editor) ]
+        , div [] [ text (Maybe.withDefault "" metadata.date) ]
         ]
 
 
@@ -319,11 +323,11 @@ viewClues puzzle board =
             Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)
     in
     div [ css [ displayFlex ] ]
-        [ div []
+        [ div [ class "w-100" ]
             [ h2 [] [ text "Across" ]
             , div [] (helper acrossClues)
             ]
-        , div [ css [ marginLeft (px 20) ] ]
+        , div [ class "w-100", css [ marginLeft (px 20) ] ]
             [ h2 [] [ text "Down" ]
             , div [] (helper downClues)
             ]
