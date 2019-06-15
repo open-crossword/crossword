@@ -111,11 +111,12 @@ viewCrossword puzzle board =
     div []
         [ viewMetadata puzzle.metadata
         , hr [] []
-        , viewToolbar
         , div [ css [ displayFlex ] ]
             [ div [ class "w-50" ]
-                [ div []
-                    [ viewSelectedClue puzzle board ]
+                [ div [ css [ toolbarStyle ] ]
+                    [ viewToolbar
+                    , viewSelectedClue puzzle board
+                    ]
                 , div
                     [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
                     [ viewBoard puzzle board ]
@@ -141,11 +142,15 @@ viewMetadata metadata =
 
 viewToolbar : Html Msg
 viewToolbar =
-    div []
-        [ button [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
-        , button [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
-        , button [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
-        , button [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
+    let
+        styles =
+            class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate bg-near-white hover-bg-white pointer link"
+    in
+    div [class "flex justify-start mb2"]
+        [ button [ styles, onClick ResetPuzzle ] [ text "Reset Puzzle" ]
+        , button [ styles, onClick RevealSelectedCell ] [ text "Reveal Square" ]
+        , button [ styles, onClick RevealSelectedWord ] [ text "Reveal Word" ]
+        , button [ styles, onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
 
 
@@ -684,7 +689,12 @@ boardClueStyle =
     Css.batch
         [ backgroundColor (Css.hex selectedWordColor)
         , Css.padding (px 16)
-        , Css.marginBottom (px 8)
+        ]
+
+
+toolbarStyle =
+    Css.batch
+        [ Css.marginBottom (px 8)
         , Css.marginTop (px 8)
         , Css.marginLeft (px 30)
         , Css.marginRight (px 30)
