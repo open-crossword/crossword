@@ -117,7 +117,7 @@ viewCrossword puzzle board =
                 [ div []
                     [ viewSelectedClue puzzle board ]
                 , div
-                    [ css [ Css.margin (px 30) ] ]
+                    [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
                     [ viewBoard puzzle board ]
                 ]
             , div [ css [ marginLeft (px 40) ] ] [ viewClues puzzle board ]
@@ -682,6 +682,8 @@ boardClueStyle =
         , Css.padding (px 16)
         , Css.marginBottom (px 8)
         , Css.marginTop (px 8)
+        , Css.marginLeft (px 30)
+        , Css.marginRight (px 30)
         ]
 
 
