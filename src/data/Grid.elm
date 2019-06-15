@@ -2,7 +2,7 @@ module Data.Grid exposing (Direction(..), Grid, above, below, empty, findIndex, 
 
 import Array exposing (Array)
 import Data.Point exposing (Point)
-import List.Extra
+import List.Extra as List
 
 
 type Grid a
@@ -153,7 +153,7 @@ findIndex : (Maybe a -> Bool) -> Grid a -> Maybe Int
 findIndex fn (Grid grid) =
     grid.cells
         |> Array.toList
-        |> List.Extra.findIndex fn
+        |> List.findIndex fn
 
 
 mapNonEmpty : (a -> b) -> Grid a -> Grid b
@@ -192,7 +192,7 @@ the (Maybe a) is because cells can be uninitialized
 -}
 to2DList : Grid a -> List (List (Maybe a))
 to2DList (Grid grid) =
-    List.Extra.groupsOf grid.width (Array.toList grid.cells)
+    List.groupsOf grid.width (Array.toList grid.cells)
 
 
 above : Point -> Grid a -> Maybe a

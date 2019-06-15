@@ -17,8 +17,8 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Json.Decode as Decode
-import List.Extra
-import Maybe.Extra
+import List.Extra as List
+import Maybe.Extra as Maybe
 import Parser
 import Puzzle.Format.Xd
 import SamplePuzzle
@@ -187,7 +187,7 @@ parseDateString dateString =
             fn a b c
     in
     String.split "-" dateString
-        |> Maybe.Extra.traverse String.toInt
+        |> Maybe.traverse String.toInt
         |> Maybe.andThen listToTriple
         |> Maybe.andThen (tupleAp3 dateFromYearMonthDay)
         |> Maybe.map
@@ -397,11 +397,11 @@ viewCell puzzle board y x cell =
             board.selection.cursor == point
 
         isWordStart =
-            List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
+            List.find (\ws -> ws.point == point) puzzle.wordStarts
                 |> Maybe.map .direction
 
         wordStartNumber =
-            List.Extra.find (\ws -> ws.point == point) puzzle.wordStarts
+            List.find (\ws -> ws.point == point) puzzle.wordStarts
                 |> Maybe.map .clueNumber
 
         ( viewboxWidth, viewboxHeight ) =
