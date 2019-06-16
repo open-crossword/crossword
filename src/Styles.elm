@@ -1,12 +1,6 @@
-module Styles exposing (black, boardClue, board, cellId, cell, clue, global, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, selectedCursorColor, selectedWordColor, shadedCell, toolbar)
+module Styles exposing (black, board, boardClue, cell, cellId, clue, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, selectedCursorColor, selectedWordColor, shadedCell, toolbar)
 
 import Css exposing (..)
-
-
-global =
-    Css.batch
-        [ Css.fontFamilies [ "Helvetica", "Arial", "sans-serif" ]
-        ]
 
 
 justifyContentCenter =
@@ -65,8 +59,6 @@ cellId =
 
 shadedCell =
     backgroundColor black
-
-
 
 
 board =

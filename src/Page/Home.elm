@@ -1,6 +1,7 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
 import Html.Styled exposing (..)
+import Html.Styled.Attributes exposing (..)
 import Session exposing (Session)
 
 
@@ -20,7 +21,7 @@ init session =
 view : Model -> { title : String, content : Html Msg }
 view model =
     { title = "Home"
-    , content = div [] [ text "I am home" ]
+    , content = div [ class "avenir" ] [ text "I am home" ]
     }
 
 
