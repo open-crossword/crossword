@@ -24,11 +24,13 @@ import Parser
 import Puzzle.Format.Xd
 import SamplePuzzle
 import Session exposing (Session)
+import Styles
 import Svg.Styled as Svg exposing (Svg)
 import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
 import Task
 import Time
+import View.Board as Board
 
 
 type Model
@@ -113,13 +115,19 @@ viewCrossword puzzle board =
                 [ viewMetadata puzzle.metadata
                 , div [ css [ displayFlex ] ]
                     [ div [ class "w-50" ]
-                        [ div [ css [ toolbarStyle ] ]
+                        [ div [ css [ Styles.toolbar ] ]
                             [ viewToolbar
                             , viewSelectedClue puzzle board
                             ]
                         , div
                             [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
-                            [ viewBoard puzzle board ]
+                            [ Board.view
+                                { clueIndicesVisible = True
+                                , onCellClicked = OnCellClick
+                                , board = board
+                                , puzzle = puzzle
+                                }
+                            ]
                         ]
                     , div
                         [ css [ marginLeft (px 40) ]
@@ -329,145 +337,7 @@ viewSelectedClue puzzle board =
                 Nothing ->
                     ( "", "" )
     in
-    div [ css [ boardClueStyle ] ] [ b [] [ text clueNumber ], text (" " ++ clueText) ]
-
-
-viewboxDimensions : Grid a -> ( Int, Int )
-viewboxDimensions grid =
-    let
-        svgScale =
-            10
-    in
-    ( Grid.width grid * svgScale
-    , Grid.height grid * svgScale
-    )
-
-
-viewBoard : Puzzle -> Board -> Html Msg
-viewBoard puzzle board =
-    let
-        ( viewboxWidth, viewboxHeight ) =
-            viewboxDimensions puzzle.grid
-    in
-    Svg.svg
-        [ SvgA.viewBox ("-2 -2 " ++ String.fromInt (viewboxWidth + 4) ++ " " ++ String.fromInt (viewboxHeight + 4))
-        , SvgA.id "game-grid"
-        ]
-        [ Svg.rect
-            [ SvgA.width (String.fromInt (viewboxWidth + 2))
-            , SvgA.height (String.fromInt (viewboxHeight + 2))
-            , SvgA.x "-1"
-            , SvgA.y "-1"
-            , SvgA.fill "none"
-            , SvgA.stroke "black"
-            , SvgA.strokeWidth "2"
-            ]
-            []
-        , Svg.g []
-            (board.grid
-                |> Grid.to2DList
-                -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
-                |> List.map (List.filterMap identity)
-                |> List.indexedMap (viewRow puzzle board)
-            )
-        ]
-
-
-viewRow : Puzzle -> Board -> Int -> List Cell -> Svg Msg
-viewRow puzzle board y row =
-    Svg.g
-        [-- css [ rowStyle ]
-        ]
-        (List.indexedMap (viewCell puzzle board y) row)
-
-
-viewCell : Puzzle -> Board -> Int -> Int -> Cell -> Svg Msg
-viewCell puzzle board y x cell =
-    let
-        point =
-            ( x, y )
-
-        isSelected =
-            board.selection.cursor == point
-
-        isWordStart =
-            List.find (\ws -> ws.point == point) puzzle.wordStarts
-                |> Maybe.map .direction
-
-        wordStartNumber =
-            List.find (\ws -> ws.point == point) puzzle.wordStarts
-                |> Maybe.map .clueNumber
-
-        ( viewboxWidth, viewboxHeight ) =
-            viewboxDimensions puzzle.grid
-
-        w =
-            viewboxWidth // Grid.width puzzle.grid
-
-        h =
-            viewboxHeight // Grid.height puzzle.grid
-    in
-    Svg.g
-        [ SvgA.transform ("translate(" ++ String.fromInt (x * w) ++ "," ++ String.fromInt (y * h) ++ ")")
-        ]
-        [ case cell of
-            Letter char ->
-                Svg.g
-                    []
-                    [ Svg.rect
-                        [ SvgE.onClick (OnCellClick point)
-                        , SvgA.width (String.fromInt w)
-                        , SvgA.height (String.fromInt h)
-                        , SvgA.stroke "black"
-                        , SvgA.strokeWidth ".5"
-                        , SvgA.css [ Css.property "touch-action" "manipulation" ]
-                        , if isSelected then
-                            SvgA.fill selectedCursorColor
-
-                          else if Board.isSelectedWord point puzzle board then
-                            SvgA.fill selectedWordColor
-
-                          else
-                            SvgA.fill "white"
-                        ]
-                        []
-                    , Svg.text_
-                        [ SvgA.css [ Css.fontSize (px 5), Css.property "pointer-events" "none" ]
-                        , SvgA.x "5"
-                        , SvgA.y "8"
-                        , SvgA.textAnchor "middle"
-                        , SvgA.width (String.fromInt w)
-                        , SvgA.height (String.fromInt h)
-                        ]
-                        [ Svg.text (String.fromChar char) ]
-                    ]
-
-            Shaded ->
-                Svg.rect
-                    [ SvgA.width (String.fromInt w)
-                    , SvgA.height (String.fromInt h)
-                    , SvgA.fill "black"
-                    , SvgA.stroke "black"
-                    , SvgA.strokeWidth ".5"
-                    ]
-                    []
-        , case wordStartNumber of
-            Just n ->
-                Svg.text_
-                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
-                    , SvgA.x "1"
-                    , SvgA.y "3"
-                    ]
-                    [ Svg.text (String.fromInt n) ]
-
-            Nothing ->
-                Svg.g [] []
-        ]
-
-
-viewCellClueIndex : Int -> Html Msg
-viewCellClueIndex number =
-    span [] [ text (String.fromInt number) ]
+    div [ css [ Styles.boardClue ] ] [ b [] [ text clueNumber ], text (" " ++ clueText) ]
 
 
 viewClues : Puzzle -> Board -> Html Msg
@@ -518,9 +388,9 @@ viewClue selectedClue clue =
     in
     div
         [ css
-            [ clueStyle
+            [ Styles.clue
             , if isSelected then
-                backgroundColor (Css.hex selectedWordColor)
+                backgroundColor (Css.hex Styles.selectedWordColor)
 
               else
                 backgroundColor (rgb 255 255 255)
@@ -745,119 +615,6 @@ update msg model =
 
         ( _, _ ) ->
             ( model, Cmd.none )
-
-
-
---- STYLES ---
-
-
-globalStyle =
-    Css.batch
-        [ Css.fontFamilies [ "Helvetica", "Arial", "sans-serif" ]
-        ]
-
-
-justifyContentCenter =
-    Css.property "justify-content" "center"
-
-
-justifyContentSpaceBetween =
-    Css.property "justify-content" "space-between"
-
-
-black =
-    rgb 0 0 0
-
-
-selectedCursorColor =
-    "#FFDA00"
-
-
-
--- rgb 255 218 0
-
-
-selectedWordColor =
-    "#A7D8FF"
-
-
-
--- rgb 167 216 255
-
-
-rowStyle =
-    Css.batch [ displayFlex, margin (px 0) ]
-
-
-cellStyle =
-    Css.batch
-        [ displayFlex
-        , justifyContentCenter
-        , border3 (px 1) solid black
-        , Css.height (px 30)
-        , Css.width (px 30)
-        , alignItems center
-        , fontSize (px 13)
-        , position relative
-        ]
-
-
-letterCellStyle =
-    Css.batch
-        [ Css.cursor Css.pointer
-        ]
-
-
-cellIdStyle =
-    Css.batch
-        [ position absolute
-        , top (px 1)
-        , left (px 1)
-        , fontSize (px 10)
-        ]
-
-
-shadedCellStyle =
-    backgroundColor black
-
-
-
--- selectedCellStyle =
---     backgroundColor selectedCursorColor
--- selectedWordCellStyle =
---     backgroundColor selectedWordColor
-
-
-boardStyle =
-    Css.batch
-        [ Css.property "user-select" "none"
-        , Css.property "-moz-user-select" "none"
-        , Css.property "-webkit-user-select" "none"
-        , Css.property "-webkit-touch-callout" "none"
-        ]
-
-
-clueStyle =
-    Css.batch
-        [ Css.cursor Css.pointer
-        , Css.padding2 (px 2) (px 5)
-        ]
-
-
-boardClueStyle =
-    Css.batch
-        [ backgroundColor (Css.hex selectedWordColor)
-        , Css.padding (px 16)
-        ]
-
-
-toolbarStyle =
-    Css.batch
-        [ Css.marginBottom (px 8)
-        , Css.marginTop (px 8)
-        , Css.marginLeft (px 30)
-        , Css.marginRight (px 30)
-        ]
 
 
 
