@@ -1,7 +1,7 @@
-module Route exposing (Route(..), fromUrl)
+module Route exposing (Route(..), fromUrl, gameForId, root)
 
-import Html
-import Html.Attributes exposing (href)
+import Html.Styled as Html
+import Html.Styled.Attributes exposing (href)
 import Url exposing (Url)
 import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
 
@@ -42,3 +42,13 @@ toHref route =
             toParts route
     in
     href ("#/" ++ String.join "/" parts)
+
+
+gameForId : String -> Html.Attribute msg
+gameForId id =
+    toHref (Game id)
+
+
+root : Html.Attribute msg
+root =
+    toHref Root

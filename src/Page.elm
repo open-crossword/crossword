@@ -1,9 +1,11 @@
 module Page exposing (Page(..), view)
 
 import Browser exposing (Document)
+import Css exposing (px)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
+import Route
 import Session exposing (Session)
 
 
@@ -22,7 +24,10 @@ view session page { title, content } =
 
 viewHeader : Page -> Html msg
 viewHeader page =
-    div [] [ text "The Header" ]
+    div []
+        [ a [ Route.root ] [ text "Crossword Games" ]
+        , a [ Route.gameForId "default", css [ Css.marginLeft (px 10) ] ] [ text "Game" ]
+        ]
 
 
 viewFooter : Html msg
