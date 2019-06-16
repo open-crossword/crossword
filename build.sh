@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
 # Compiles the project with elm make
 
-elm make src/Main.elm --output=elm.js --debug
+if [ "$1" == "prod" ]; then
+    elm make src/Main.elm --output=elm.js --optimize
+else
+    elm make src/Main.elm --output=elm.js --debug
+fi

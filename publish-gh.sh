@@ -11,7 +11,7 @@ function publish {
     git -C $TMP checkout --orphan gh-pages
     git -C $TMP reset
     git -C $TMP clean -dxf
-    ./build.sh
+    ./build.sh "prod"
     cp index.html elm.js $TMP/
     git -C $TMP add .
     git -C $TMP commit -m "Update crossword website"
