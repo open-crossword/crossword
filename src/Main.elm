@@ -424,6 +424,7 @@ viewCell puzzle board y x cell =
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
+                        , SvgA.css [Css.property "touch-action" "manipulation"]
                         , if isSelected then
                             SvgA.fill selectedCursorColor
 
