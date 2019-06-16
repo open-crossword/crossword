@@ -8,6 +8,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
 import Json.Decode as Decode exposing (Value)
 import Page exposing (Page)
+import Page.About as About
 import Page.Blank as Blank
 import Page.Game as Game
 import Page.Home as Home
@@ -26,6 +27,7 @@ type Model
     | NotFound Session
     | Home Session Home.Model
     | Game Session Game.Model
+    | About Session About.Model
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -49,6 +51,9 @@ toSession model =
         Game session _ ->
             session
 
+        About session _ ->
+            session
+
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
 changeRouteTo maybeRoute model =
@@ -67,6 +72,10 @@ changeRouteTo maybeRoute model =
         Just (Route.Game gameId) ->
             Game.init session
                 |> updateWith (Game session) GotGameMsg model
+
+        Just Route.About ->
+            About.init session
+                |> updateWith (About session) GotAboutMsg model
 
 
 updateWith :
@@ -110,6 +119,9 @@ view model =
         Game session subModel ->
             viewPage Page.Game GotGameMsg (Game.view subModel)
 
+        About session subModel ->
+            viewPage Page.About GotAboutMsg (About.view subModel)
+
 
 
 -- UPDATE --
@@ -122,6 +134,7 @@ type Msg
     | ClickedLink Browser.UrlRequest
     | GotHomeMsg Home.Msg
     | GotGameMsg Game.Msg
+    | GotAboutMsg About.Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -151,6 +164,10 @@ update msg model =
         ( GotGameMsg subMsg, Game session subModel ) ->
             Game.update subMsg subModel
                 |> updateWith (Game session) GotGameMsg model
+
+        ( GotAboutMsg subMsg, About session subModel ) ->
+            About.update subMsg subModel
+                |> updateWith (About session) GotAboutMsg model
 
         ( _, _ ) ->
             ( model, Cmd.none )

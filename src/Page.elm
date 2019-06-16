@@ -13,6 +13,7 @@ type Page
     = Other
     | Home
     | Game
+    | About
 
 
 view : Session -> Page -> { title : String, content : Html msg } -> Document msg
@@ -31,6 +32,7 @@ viewHeader page =
         ]
         [ viewHeaderLink Route.home "Crossword Games"
         , viewHeaderLink (Route.gameForId "default") "Solo Game"
+        , viewHeaderLink Route.about "About"
         ]
 
 
