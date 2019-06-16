@@ -157,6 +157,21 @@ update msg model =
 
 
 
+-- SUBS __
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    case model of
+        Game _ subModel ->
+            Game.subscriptions subModel
+                |> Sub.map GotGameMsg
+
+        _ ->
+            Sub.none
+
+
+
 -- MAIN --
 
 
@@ -166,7 +181,7 @@ main =
         { init = init
         , onUrlChange = ChangedUrl
         , onUrlRequest = ClickedLink
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         , update = update
         , view = view
         }

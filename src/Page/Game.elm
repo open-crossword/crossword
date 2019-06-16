@@ -1,6 +1,7 @@
-module Page.Game exposing (Model, Msg, init, update, view)
+module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser
+import Browser.Dom
 import Browser.Events
 import Calendar
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
@@ -54,7 +55,7 @@ type Msg
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( loadPuzzle (parsePuzzle SamplePuzzle.puzzle)
-    , Cmd.none
+    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
     )
 
 
@@ -350,6 +351,7 @@ viewBoard puzzle board =
     in
     Svg.svg
         [ SvgA.viewBox ("-2 -2 " ++ String.fromInt (viewboxWidth + 4) ++ " " ++ String.fromInt (viewboxHeight + 4))
+        , SvgA.id "game-grid"
         ]
         [ Svg.rect
             [ SvgA.width (String.fromInt (viewboxWidth + 2))
