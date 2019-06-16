@@ -1,10 +1,10 @@
 module Page.Blank exposing (view)
 
-import Html exposing (Html)
+import Html.Styled exposing (Html, text)
 
 
 view : { title : String, content : Html msg }
 view =
     { title = ""
-    , content = Html.text ""
+    , content = text ""
     }

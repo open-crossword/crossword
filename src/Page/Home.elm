@@ -1,7 +1,7 @@
-module Page.Home exposing (Model, Msg, init, view, update)
+module Page.Home exposing (Model, Msg, init, update, view)
 
+import Html.Styled exposing (..)
 import Session exposing (Session)
-import Html exposing (..)
 
 
 type Msg
@@ -12,9 +12,9 @@ type alias Model =
     {}
 
 
-init : Session -> (Model, Cmd Msg)
+init : Session -> ( Model, Cmd Msg )
 init session =
-    ({}, Cmd.none)
+    ( {}, Cmd.none )
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -23,6 +23,7 @@ view model =
     , content = div [] [ text "I am home" ]
     }
 
-update : Msg -> Model -> (Model, Cmd Msg)
+
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    (model, Cmd.none)
+    ( model, Cmd.none )

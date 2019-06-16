@@ -8,12 +8,14 @@ import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
 
 type Route
     = Root
+    | Game String
 
 
 parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Root Parser.top
+        , Parser.map Game (s "game" </> string)
         ]
 
 
@@ -28,6 +30,9 @@ toParts route =
     case route of
         Root ->
             []
+
+        Game string ->
+            [ "game", string ]
 
 
 toHref : Route -> Html.Attribute msg

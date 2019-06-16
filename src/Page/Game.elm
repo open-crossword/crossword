@@ -1,4 +1,4 @@
-module Game exposing (main)
+module Page.Game exposing (Model, Msg, init, update, view)
 
 import Browser
 import Browser.Events
@@ -22,6 +22,7 @@ import Maybe.Extra as Maybe
 import Parser
 import Puzzle.Format.Xd
 import SamplePuzzle
+import Session exposing (Session)
 import Svg.Styled as Svg exposing (Svg)
 import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
@@ -50,8 +51,8 @@ type Msg
     | NoOp
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Session -> ( Model, Cmd Msg )
+init session =
     ( loadPuzzle (parsePuzzle SamplePuzzle.puzzle)
     , Cmd.none
     )
@@ -75,16 +76,6 @@ loadPuzzle parsedPuzzle =
             Failed err
 
 
-main : Program () Model Msg
-main =
-    Browser.element
-        { init = always init
-        , view = view >> toUnstyled
-        , update = update
-        , subscriptions = subscriptions
-        }
-
-
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
@@ -94,20 +85,23 @@ subscriptions _ =
 --- VIEW ---
 
 
-view : Model -> Html Msg
+view : Model -> { content : Html Msg, title : String }
 view model =
-    div
-        [ hijackOn "drop" dropDecoder
-        , hijackOn "dragover" (Decode.succeed NoOp)
-        , class "avenir"
-        ]
-        [ case model of
-            Loaded { puzzle, board } ->
-                viewCrossword puzzle board
+    { title = "Game"
+    , content =
+        div
+            [ hijackOn "drop" dropDecoder
+            , hijackOn "dragover" (Decode.succeed NoOp)
+            , class "avenir"
+            ]
+            [ case model of
+                Loaded { puzzle, board } ->
+                    viewCrossword puzzle board
 
-            Failed err ->
-                pre [] [ text (Debug.toString err) ]
-        ]
+                Failed err ->
+                    pre [] [ text (Debug.toString err) ]
+            ]
+    }
 
 
 viewCrossword : Puzzle -> Board -> Html Msg
@@ -424,7 +418,7 @@ viewCell puzzle board y x cell =
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
-                        , SvgA.css [Css.property "touch-action" "manipulation"]
+                        , SvgA.css [ Css.property "touch-action" "manipulation" ]
                         , if isSelected then
                             SvgA.fill selectedCursorColor
 
