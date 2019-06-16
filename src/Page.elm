@@ -25,7 +25,7 @@ view session page { title, content } =
 viewHeader : Page -> Html msg
 viewHeader page =
     div []
-        [ a [ Route.root ] [ text "Crossword Games" ]
+        [ a [ Route.home ] [ text "Crossword Games" ]
         , a [ Route.gameForId "default", css [ Css.marginLeft (px 10) ] ] [ text "Game" ]
         ]
 

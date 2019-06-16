@@ -60,7 +60,7 @@ changeRouteTo maybeRoute model =
         Nothing ->
             ( NotFound session, Cmd.none )
 
-        Just Route.Root ->
+        Just Route.Home ->
             Home.init session
                 |> updateWith (Home session) GotHomeMsg model
 
