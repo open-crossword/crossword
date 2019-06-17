@@ -109,32 +109,30 @@ view model =
 
 viewCrossword : Puzzle -> Board -> Html Msg
 viewCrossword puzzle board =
-    div []
-        [ div [ class "flex justify-center flex-column items-center" ]
-            [ div [ class "w-90" ]
-                [ viewMetadata puzzle.metadata
-                , div [ css [ displayFlex ] ]
-                    [ div [ class "w-50" ]
-                        [ div [ css [ Styles.toolbar ] ]
-                            [ viewToolbar
-                            , viewSelectedClue puzzle board
-                            ]
-                        , div
-                            [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
-                            [ Board.view
-                                { clueIndicesVisible = True
-                                , onCellClicked = OnCellClick
-                                , board = board
-                                , puzzle = puzzle
-                                }
-                            ]
+    div [ class "flex justify-center flex-column items-center" ]
+        [ div [ class "w-90" ]
+            [ viewMetadata puzzle.metadata
+            , div [ css [ displayFlex ] ]
+                [ div [ class "w-50" ]
+                    [ div [ css [ Styles.toolbar ] ]
+                        [ viewToolbar
+                        , viewSelectedClue puzzle board
                         ]
                     , div
-                        [ css [ marginLeft (px 40) ]
-                        , class "w-50"
+                        [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
+                        [ Board.view
+                            { clueIndicesVisible = True
+                            , onCellClicked = OnCellClick
+                            , board = board
+                            , puzzle = puzzle
+                            }
                         ]
-                        [ viewClues puzzle board ]
                     ]
+                , div
+                    [ css [ marginLeft (px 40) ]
+                    , class "w-50"
+                    ]
+                    [ viewClues puzzle board ]
                 ]
             ]
         ]
