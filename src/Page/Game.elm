@@ -120,7 +120,7 @@ view model =
 viewCrossword : Puzzle -> Board -> Html Msg
 viewCrossword puzzle board =
     div [ class "flex justify-center flex-column items-center" ]
-        [ div [ class "w-90" ]
+        [ div [ class "w-70" ]
             [ viewMetadata puzzle.metadata
             , div [ css [ Styles.toolbar ] ]
                 [ viewToolbar ]
