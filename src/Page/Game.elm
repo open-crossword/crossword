@@ -136,7 +136,7 @@ viewCrossword puzzle board =
                             , puzzle = puzzle
                             }
                         ]
-                    , div [class "flex justify-around mt2"]
+                    , div [ class "flex justify-around mt2" ]
                         [ ourButton [ onClick (OnKeyPress UndoKey) ] [ text "undo" ]
                         , ourButton [ onClick (OnKeyPress RedoKey) ] [ text "redo" ]
                         ]
@@ -159,7 +159,11 @@ viewMetadata metadata =
             []
             (case Maybe.andThen parseDateString metadata.date of
                 Just { weekDay, englishMonth, dayNum, year } ->
-                    [ h2 [ css [ Css.marginBottom (px 6) ] ] [ span [ class "fw7" ] [ text (weekDay ++ " ") ], span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ] ] ]
+                    [ h2 [ css [ Css.marginBottom (px 6) ] ]
+                        [ span [ class "fw7" ] [ text (weekDay ++ " ") ]
+                        , span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ]
+                        ]
+                    ]
 
                 Nothing ->
                     [ h2 [] [ text "Puzzle" ] ]
@@ -319,12 +323,14 @@ toEnglishMonth month =
         Time.Dec ->
             "December"
 
+
 ourButton attrs children =
     let
         styles =
             class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate bg-near-white hover-bg-white pointer link"
     in
-    button (attrs ++ [styles]) children
+    button (attrs ++ [ styles ]) children
+
 
 viewToolbar : Html Msg
 viewToolbar =
@@ -413,60 +419,6 @@ viewClue selectedClue clue =
         [ viewIndex, span [] [ text (" " ++ clue.clue) ] ]
 
 
-type KeyType
-    = ArrowKey Grid.Direction
-    | LetterKey Char
-    | Delete
-    | CycleSelectedClue
-    | UndoKey
-    | RedoKey
-    | Other
-
-
-keyDecoder : Decode.Decoder KeyType
-keyDecoder =
-    Decode.map3 keyCodeToKeyEvent
-        (Decode.field "keyCode" Decode.int)
-        (Decode.field "metaKey" Decode.bool)
-        (Decode.field "shiftKey" Decode.bool)
-
-
-keyCodeToKeyEvent : Int -> Bool -> Bool -> KeyType
-keyCodeToKeyEvent code meta shiftKey =
-    case code of
-        37 ->
-            ArrowKey Grid.Left
-
-        39 ->
-            ArrowKey Grid.Right
-
-        38 ->
-            ArrowKey Grid.Up
-
-        40 ->
-            ArrowKey Grid.Down
-
-        8 ->
-            Delete
-
-        _ ->
-            if meta && code == 90 then
-                if shiftKey then
-                    RedoKey
-
-                else
-                    UndoKey
-
-            else if (64 <= code && code <= 90) || (code == 32) then
-                LetterKey (Char.fromCode code)
-
-            else if code == 9 || code == 13 then
-                CycleSelectedClue
-
-            else
-                Other
-
-
 
 --- UPDATE ---
 
@@ -532,7 +484,7 @@ update msg model =
             , Cmd.none
             )
 
-        ( OnKeyPress Delete, Loaded record ) ->
+        ( OnKeyPress DeleteKey, Loaded record ) ->
             let
                 board =
                     record.board
@@ -580,7 +532,7 @@ update msg model =
             , Cmd.none
             )
 
-        ( OnKeyPress CycleSelectedClue, Loaded record ) ->
+        ( OnKeyPress CycleSelectedClueKey, Loaded record ) ->
             let
                 newBoard =
                     Board.cycleSelectedClue record.puzzle record.board
@@ -664,3 +616,57 @@ hijackOn event decoder =
 hijack : msg -> ( msg, Bool )
 hijack msg =
     ( msg, True )
+
+
+type KeyType
+    = ArrowKey Grid.Direction
+    | LetterKey Char
+    | DeleteKey
+    | CycleSelectedClueKey
+    | UndoKey
+    | RedoKey
+    | OtherKey
+
+
+keyDecoder : Decode.Decoder KeyType
+keyDecoder =
+    Decode.map3 keyCodeToKeyEvent
+        (Decode.field "keyCode" Decode.int)
+        (Decode.field "metaKey" Decode.bool)
+        (Decode.field "shiftKey" Decode.bool)
+
+
+keyCodeToKeyEvent : Int -> Bool -> Bool -> KeyType
+keyCodeToKeyEvent code meta shiftKey =
+    case code of
+        37 ->
+            ArrowKey Grid.Left
+
+        39 ->
+            ArrowKey Grid.Right
+
+        38 ->
+            ArrowKey Grid.Up
+
+        40 ->
+            ArrowKey Grid.Down
+
+        8 ->
+            DeleteKey
+
+        _ ->
+            if meta && code == 90 then
+                if shiftKey then
+                    RedoKey
+
+                else
+                    UndoKey
+
+            else if (64 <= code && code <= 90) || (code == 32) then
+                LetterKey (Char.fromCode code)
+
+            else if code == 9 || code == 13 then
+                CycleSelectedClueKey
+
+            else
+                OtherKey
