@@ -30,14 +30,19 @@ import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
 import Task
 import Time
+import UndoList exposing (UndoList)
 import View.Board as Board
 
 
+type alias LoadedModel =
+    { puzzle : Puzzle
+    , board : Board
+    , undoList : UndoList Board
+    }
+
+
 type Model
-    = Loaded
-        { puzzle : Puzzle
-        , board : Board
-        }
+    = Loaded LoadedModel
     | Failed (List Parser.DeadEnd)
 
 
@@ -70,9 +75,14 @@ loadPuzzle : Result (List Parser.DeadEnd) Puzzle -> Model
 loadPuzzle parsedPuzzle =
     case parsedPuzzle of
         Ok puzzle ->
+            let
+                freshBoard =
+                    Board.fromPuzzle puzzle
+            in
             Loaded
                 { puzzle = puzzle
-                , board = Board.fromPuzzle puzzle
+                , board = freshBoard
+                , undoList = UndoList.fresh freshBoard
                 }
 
         Err err ->
@@ -402,16 +412,21 @@ type KeyType
     | LetterKey Char
     | Delete
     | CycleSelectedClue
+    | UndoKey
+    | RedoKey
     | Other
 
 
 keyDecoder : Decode.Decoder KeyType
 keyDecoder =
-    Decode.map keyCodeToKeyEvent (Decode.field "keyCode" Decode.int)
+    Decode.map3 keyCodeToKeyEvent
+        (Decode.field "keyCode" Decode.int)
+        (Decode.field "metaKey" Decode.bool)
+        (Decode.field "shiftKey" Decode.bool)
 
 
-keyCodeToKeyEvent : Int -> KeyType
-keyCodeToKeyEvent code =
+keyCodeToKeyEvent : Int -> Bool -> Bool -> KeyType
+keyCodeToKeyEvent code meta shiftKey =
     case code of
         37 ->
             ArrowKey Grid.Left
@@ -429,7 +444,14 @@ keyCodeToKeyEvent code =
             Delete
 
         _ ->
-            if (64 <= code && code <= 90) || (code == 32) then
+            if meta && code == 90 then
+                if shiftKey then
+                    RedoKey
+
+                else
+                    UndoKey
+
+            else if (64 <= code && code <= 90) || (code == 32) then
                 LetterKey (Char.fromCode code)
 
             else if code == 9 || code == 13 then
@@ -441,6 +463,11 @@ keyCodeToKeyEvent code =
 
 
 --- UPDATE ---
+
+
+updateBoard : LoadedModel -> Board -> LoadedModel
+updateBoard loadedModel board =
+    { loadedModel | board = board, undoList = UndoList.new board loadedModel.undoList }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -467,10 +494,7 @@ update msg model =
                 newBoard =
                     Board.updateSelection point direction record.board
             in
-            ( Loaded
-                { record
-                    | board = newBoard
-                }
+            ( Loaded (updateBoard record newBoard)
             , Cmd.none
             )
 
@@ -478,42 +502,27 @@ update msg model =
             ( model, Cmd.none )
 
         ( OnClueClick clue, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.moveSelectionToWord clue record.puzzle record.board
-                }
+            ( Loaded (updateBoard record (Board.moveSelectionToWord clue record.puzzle record.board))
             , Cmd.none
             )
 
         ( ResetPuzzle, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.fromPuzzle record.puzzle
-                }
+            ( Loaded (updateBoard record (Board.fromPuzzle record.puzzle))
             , Cmd.none
             )
 
         ( RevealSelectedWord, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.revealSelectedWord record.puzzle record.board
-                }
+            ( Loaded (updateBoard record (Board.revealSelectedWord record.puzzle record.board))
             , Cmd.none
             )
 
         ( RevealSelectedCell, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.revealSelectedCell record.puzzle record.board
-                }
+            ( Loaded (updateBoard record (Board.revealSelectedCell record.puzzle record.board))
             , Cmd.none
             )
 
         ( RevealPuzzle, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.revealPuzzle record.puzzle record.board
-                }
+            ( Loaded (updateBoard record (Board.revealPuzzle record.puzzle record.board))
             , Cmd.none
             )
 
@@ -537,10 +546,7 @@ update msg model =
                     { board | grid = Grid.set cursor (Letter ' ') board.grid }
                         |> Board.moveSelection direction
             in
-            ( Loaded
-                { record
-                    | board = newBoard
-                }
+            ( Loaded (updateBoard record newBoard)
             , Cmd.none
             )
 
@@ -564,18 +570,16 @@ update msg model =
                     { board | grid = Grid.set cursor (Letter char) board.grid }
                         |> Board.moveSelection direction
             in
-            ( Loaded
-                { record
-                    | board = newBoard
-                }
+            ( Loaded (updateBoard record newBoard)
             , Cmd.none
             )
 
         ( OnKeyPress CycleSelectedClue, Loaded record ) ->
-            ( Loaded
-                { record
-                    | board = Board.cycleSelectedClue record.puzzle record.board
-                }
+            let
+                newBoard =
+                    Board.cycleSelectedClue record.puzzle record.board
+            in
+            ( Loaded (updateBoard record newBoard)
             , Cmd.none
             )
 
@@ -603,9 +607,32 @@ update msg model =
                     else
                         Board.moveSelectionSkip direction record.board
             in
+            ( Loaded (updateBoard record newBoard)
+            , Cmd.none
+            )
+
+        ( OnKeyPress UndoKey, Loaded record ) ->
+            let
+                undoList =
+                    UndoList.undo record.undoList
+            in
             ( Loaded
                 { record
-                    | board = newBoard
+                    | undoList = undoList
+                    , board = undoList.present
+                }
+            , Cmd.none
+            )
+
+        ( OnKeyPress RedoKey, Loaded record ) ->
+            let
+                undoList =
+                    UndoList.redo record.undoList
+            in
+            ( Loaded
+                { record
+                    | undoList = undoList
+                    , board = undoList.present
                 }
             , Cmd.none
             )
