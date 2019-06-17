@@ -86,8 +86,6 @@ boardClue =
 
 toolbar =
     Css.batch
-        [ Css.marginBottom (px 8)
-        , Css.marginTop (px 8)
-        , Css.marginLeft (px 30)
-        , Css.marginRight (px 30)
+        [ Css.marginBottom (px 16)
+        , Css.marginTop (px 16)
         ]

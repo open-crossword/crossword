@@ -112,14 +112,13 @@ viewCrossword puzzle board =
     div [ class "flex justify-center flex-column items-center" ]
         [ div [ class "w-90" ]
             [ viewMetadata puzzle.metadata
+            , div [ css [ Styles.toolbar ] ]
+                [ viewToolbar ]
             , div [ css [ displayFlex ] ]
                 [ div [ class "w-50" ]
-                    [ div [ css [ Styles.toolbar ] ]
-                        [ viewToolbar
-                        , viewSelectedClue puzzle board
-                        ]
+                    [ viewSelectedClue puzzle board
                     , div
-                        [ css [ Css.margin (px 30), Css.marginTop (px 15) ] ]
+                        [ css [ Css.marginTop (px 15) ] ]
                         [ Board.view
                             { clueIndicesVisible = True
                             , onCellClicked = OnCellClick
@@ -141,7 +140,7 @@ viewCrossword puzzle board =
 viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
     div
-        [ css [ Css.marginLeft (px 30), Css.marginBottom (px 10) ] ]
+        []
         [ div
             []
             (case Maybe.andThen parseDateString metadata.date of
