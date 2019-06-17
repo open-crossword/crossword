@@ -136,6 +136,10 @@ viewCrossword puzzle board =
                             , puzzle = puzzle
                             }
                         ]
+                    , div [class "flex justify-around mt2"]
+                        [ ourButton [ onClick (OnKeyPress UndoKey) ] [ text "undo" ]
+                        , ourButton [ onClick (OnKeyPress RedoKey) ] [ text "redo" ]
+                        ]
                     ]
                 , div
                     [ css [ marginLeft (px 40) ]
@@ -315,18 +319,20 @@ toEnglishMonth month =
         Time.Dec ->
             "December"
 
-
-viewToolbar : Html Msg
-viewToolbar =
+ourButton attrs children =
     let
         styles =
             class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate bg-near-white hover-bg-white pointer link"
     in
+    button (attrs ++ [styles]) children
+
+viewToolbar : Html Msg
+viewToolbar =
     div [ class "flex justify-start mb2" ]
-        [ button [ styles, onClick ResetPuzzle ] [ text "Reset Puzzle" ]
-        , button [ styles, onClick RevealSelectedCell ] [ text "Reveal Square" ]
-        , button [ styles, onClick RevealSelectedWord ] [ text "Reveal Word" ]
-        , button [ styles, onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
+        [ ourButton [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
+        , ourButton [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
+        , ourButton [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
+        , ourButton [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
         ]
 
 
