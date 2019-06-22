@@ -3,3 +3,4 @@ src/.#*
 .#*
 elm.js
 .DS_Store
+*.code-workspace
