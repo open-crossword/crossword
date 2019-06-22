@@ -4,13 +4,13 @@ import Css exposing (..)
 import Css.Media as CssM
 
 
-
 colors =
     { white = hex "#FFFFFF"
     , black = hex "#000000"
     , hotPink = hex "#FF41B4"
     , selectedCursor = hex "#FFDA00"
     , selectedWord = hex "#A7D8FF"
+    , lightGrey = hex "#F4F4F4"
     }
 
 
@@ -23,10 +23,12 @@ fontSizes =
     }
 
 
+
 -- fontWeights =
 --     {
---         fw1 = 
+--         fw1 =
 --     }
+
 
 colorToRgbString : Css.Color -> String
 colorToRgbString { red, green, blue } =

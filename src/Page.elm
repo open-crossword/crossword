@@ -7,6 +7,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
 import Route exposing (Route)
 import Session exposing (Session)
+import Styles
 import View.Logo as Logo
 
 
@@ -28,8 +29,12 @@ viewHeader : Page -> Html msg
 viewHeader page =
     div
         [ css
-            [ Css.overflow Css.hidden, Css.displayFlex, Css.alignItems Css.center ]
-        , class "bg-near-white avenir"
+            [ Css.overflow Css.hidden
+            , Css.displayFlex
+            , Css.alignItems Css.center
+            , Css.backgroundColor Styles.colors.lightGrey
+            ]
+        , class "avenir"
         ]
         [ a
             [ Route.home

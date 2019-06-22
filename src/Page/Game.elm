@@ -331,9 +331,17 @@ toEnglishMonth month =
 ourButton attrs children =
     let
         styles =
-            class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate bg-near-white hover-bg-white pointer link"
+            class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate hover-bg-white pointer link"
     in
-    button (attrs ++ [ styles ]) children
+    button
+        (attrs
+            ++ [ styles
+               , css
+                    [ Css.backgroundColor Styles.colors.lightGrey
+                    ]
+               ]
+        )
+        children
 
 
 viewToolbar : Html Msg
