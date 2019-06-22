@@ -102,10 +102,10 @@ viewCell ({ puzzle, board } as config) y x cell =
                         , SvgA.strokeWidth ".5"
                         , SvgA.css [ Css.property "touch-action" "manipulation" ]
                         , if isSelected then
-                            SvgA.fill Styles.selectedCursorColor
+                            SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
 
                           else if Board.isSelectedWord point puzzle board then
-                            SvgA.fill Styles.selectedWordColor
+                            SvgA.fill (Styles.colorToRgbString Styles.colors.selectedWord)
 
                           else
                             SvgA.fill "white"

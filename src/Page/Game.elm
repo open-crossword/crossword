@@ -413,7 +413,7 @@ viewClue selectedClue clue =
         [ css
             [ Styles.clue
             , if isSelected then
-                backgroundColor (Css.hex Styles.selectedWordColor)
+                backgroundColor Styles.colors.selectedWord
 
               else
                 backgroundColor (rgb 255 255 255)

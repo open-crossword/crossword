@@ -1,7 +1,27 @@
-module Styles exposing (black, board, boardClue, cell, cellId, clue, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, selectedCursorColor, selectedWordColor, shadedCell, toolbar)
+module Styles exposing (board, boardClue, cell, cellId, clue, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, colors, shadedCell, toolbar, colorToRgbString)
 
 import Css exposing (..)
 import Css.Media as CssM
+
+
+colorToRgbString : Css.Color -> String
+colorToRgbString {red, green, blue} =
+    "red(" ++ String.fromInt red ++ "," ++ String.fromInt green ++ "," ++ String.fromInt blue ++ ")"
+colors =
+    { white = rgb 255 255 255
+    , black = rgb 0 0 0
+    , hotPink = rgb 255 65 180
+    , selectedCursor = hex "#FFDA00"
+    , selectedWord = hex "#A7D8FF"
+    }
+
+
+buttonStyle =
+    Css.batch
+        [ hover
+            [ backgroundColor colors.white
+            ]
+        ]
 
 
 justifyContentCenter =
@@ -12,31 +32,20 @@ justifyContentSpaceBetween =
     Css.property "justify-content" "space-between"
 
 
-black =
-    rgb 0 0 0
-
-
-selectedCursorColor =
-    -- rgb 255 218 0
-    "#FFDA00"
-
-
-selectedWordColor =
-    -- rgb 167 216 255
-    "#A7D8FF"
-
-
 row =
-    Css.batch [ displayFlex, margin (px 0) ]
+    Css.batch
+        [ displayFlex
+        , margin (px 0)
+        ]
 
 
 cell =
     Css.batch
         [ displayFlex
         , justifyContentCenter
-        , border3 (px 1) solid black
-        , Css.height (px 30)
-        , Css.width (px 30)
+        , border3 (px 1) solid colors.black
+        , height (px 30)
+        , width (px 30)
         , alignItems center
         , fontSize (px 13)
         , position relative
@@ -45,7 +54,7 @@ cell =
 
 letterCell =
     Css.batch
-        [ Css.cursor Css.pointer
+        [ cursor pointer
         ]
 
 
@@ -59,39 +68,39 @@ cellId =
 
 
 shadedCell =
-    backgroundColor black
+    backgroundColor colors.black
 
 
 board =
     Css.batch
-        [ Css.property "user-select" "none"
-        , Css.property "-moz-user-select" "none"
-        , Css.property "-webkit-user-select" "none"
-        , Css.property "-webkit-touch-callout" "none"
+        [ property "user-select" "none"
+        , property "-moz-user-select" "none"
+        , property "-webkit-user-select" "none"
+        , property "-webkit-touch-callout" "none"
         ]
 
 
 clue =
     Css.batch
-        [ Css.cursor Css.pointer
-        , Css.padding2 (px 2) (px 5)
+        [ cursor pointer
+        , padding2 (px 2) (px 5)
         ]
 
 
 boardClue =
     Css.batch
-        [ backgroundColor (Css.hex selectedWordColor)
-        , Css.padding (px 16)
+        [ backgroundColor colors.selectedWord
+        , padding (px 16)
         ]
 
 
 toolbar =
     Css.batch
-        [ Css.marginBottom (px 16)
-        , Css.marginTop (px 16)
+        [ marginBottom (px 16)
+        , marginTop (px 16)
         ]
 
 
 hideOnMobile =
     CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
-        [ Css.display Css.none ]
+        [ display none ]

@@ -44,6 +44,7 @@ viewHeaderLink route string =
             , Css.textAlign Css.center
             , Css.padding (px 14)
             , Css.textDecoration Css.none
+            , Css.outline Css.zero
             ]
         , class "hover-hot-pink bg-animate hover-bg-white black link"
         , route
