@@ -34,21 +34,30 @@ import UndoList exposing (UndoList)
 import View.Board as Board
 
 
-type alias LoadedModel =
-    { puzzle : Puzzle
-    , board : Board
-    , undoList : UndoList Board
-    }
+type Game
+    = Initialized
+        { puzzle : Puzzle
+        }
+    | InProgress
+        { puzzle : Puzzle
+        , board : Board
+        , undoList : UndoList Board
+        }
+    | Ended
+        { puzzle : Puzzle
+        , board : Board
+        }
 
 
 type Model
-    = Loaded LoadedModel
+    = Loaded Game
     | Failed (List Parser.DeadEnd)
 
 
 type Msg
     = OnDropFile File (List File)
     | OnFileRead String
+    | OnGameStart
     | OnCellClick Point
     | OnKeyPress KeyType
     | OnClueClick Clue
@@ -75,15 +84,10 @@ loadPuzzle : Result (List Parser.DeadEnd) Puzzle -> Model
 loadPuzzle parsedPuzzle =
     case parsedPuzzle of
         Ok puzzle ->
-            let
-                freshBoard =
-                    Board.fromPuzzle puzzle
-            in
             Loaded
-                { puzzle = puzzle
-                , board = freshBoard
-                , undoList = UndoList.fresh freshBoard
-                }
+                (Initialized
+                    { puzzle = puzzle }
+                )
 
         Err err ->
             Failed err
@@ -110,13 +114,36 @@ view model =
                 ]
             ]
             [ case model of
-                Loaded { puzzle, board } ->
+                Loaded (Initialized { puzzle }) ->
+                    viewGameStart puzzle
+
+                Loaded (InProgress { puzzle, board }) ->
+                    viewCrossword puzzle board
+
+                Loaded (Ended { puzzle, board }) ->
                     viewCrossword puzzle board
 
                 Failed err ->
                     pre [] [ text (Debug.toString err) ]
             ]
     }
+
+
+viewGameStart : Puzzle -> Html Msg
+viewGameStart puzzle =
+    div [ class "flex justify-center flex-column items-center" ]
+        [ div [ class "w-70" ]
+            [ viewMetadata puzzle.metadata
+            , ourButton
+                [ onClick OnGameStart
+                , css
+                    [ Css.padding (px 20)
+                    , Css.marginTop (px 16)
+                    ]
+                ]
+                [ text "Begin" ]
+            ]
+        ]
 
 
 viewCrossword : Puzzle -> Board -> Html Msg
@@ -437,21 +464,44 @@ viewClue selectedClue clue =
 --- UPDATE ---
 
 
-updateBoard : LoadedModel -> Board -> LoadedModel
-updateBoard loadedModel board =
-    { loadedModel | board = board, undoList = UndoList.new board loadedModel.undoList }
+updateBoard : Game -> Board -> Game
+updateBoard game board =
+    case game of
+        InProgress record ->
+            InProgress { record | board = board, undoList = UndoList.new board record.undoList }
+
+        _ ->
+            game
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
+        -- Crossword File Loading
         ( OnDropFile file _, _ ) ->
             ( model, File.toString file |> Task.perform OnFileRead )
 
         ( OnFileRead content, _ ) ->
             ( loadPuzzle (parsePuzzle content), Cmd.none )
 
-        ( OnCellClick point, Loaded record ) ->
+        -- Crossword Start
+        ( OnGameStart, Loaded (Initialized { puzzle }) ) ->
+            let
+                freshBoard =
+                    Board.fromPuzzle puzzle
+            in
+            ( Loaded
+                (InProgress
+                    { puzzle = puzzle
+                    , board = freshBoard
+                    , undoList = UndoList.fresh freshBoard
+                    }
+                )
+            , Cmd.none
+            )
+
+        -- Crossword Game
+        ( OnCellClick point, Loaded ((InProgress record) as gameState) ) ->
             let
                 oldSelection =
                     record.board.selection
@@ -466,39 +516,39 @@ update msg model =
                 newBoard =
                     Board.updateSelection point direction record.board
             in
-            ( Loaded (updateBoard record newBoard)
+            ( Loaded (updateBoard gameState newBoard)
             , Cmd.none
             )
 
         ( OnCellClick _, _ ) ->
             ( model, Cmd.none )
 
-        ( OnClueClick clue, Loaded record ) ->
-            ( Loaded (updateBoard record (Board.moveSelectionToWord clue record.puzzle record.board))
+        ( OnClueClick clue, Loaded ((InProgress record) as gameState) ) ->
+            ( Loaded (updateBoard gameState (Board.moveSelectionToWord clue record.puzzle record.board))
             , Cmd.none
             )
 
-        ( ResetPuzzle, Loaded record ) ->
-            ( Loaded (updateBoard record (Board.fromPuzzle record.puzzle))
+        ( ResetPuzzle, Loaded ((InProgress record) as gameState) ) ->
+            ( Loaded (updateBoard gameState (Board.fromPuzzle record.puzzle))
             , Cmd.none
             )
 
-        ( RevealSelectedWord, Loaded record ) ->
-            ( Loaded (updateBoard record (Board.revealSelectedWord record.puzzle record.board))
+        ( RevealSelectedWord, Loaded ((InProgress record) as gameState) ) ->
+            ( Loaded (updateBoard gameState (Board.revealSelectedWord record.puzzle record.board))
             , Cmd.none
             )
 
-        ( RevealSelectedCell, Loaded record ) ->
-            ( Loaded (updateBoard record (Board.revealSelectedCell record.puzzle record.board))
+        ( RevealSelectedCell, Loaded ((InProgress record) as gameState) ) ->
+            ( Loaded (updateBoard gameState (Board.revealSelectedCell record.puzzle record.board))
             , Cmd.none
             )
 
-        ( RevealPuzzle, Loaded record ) ->
-            ( Loaded (updateBoard record (Board.revealPuzzle record.puzzle record.board))
+        ( RevealPuzzle, Loaded ((InProgress record) as gameState) ) ->
+            ( Loaded (updateBoard gameState (Board.revealPuzzle record.puzzle record.board))
             , Cmd.none
             )
 
-        ( OnKeyPress DeleteKey, Loaded record ) ->
+        ( OnKeyPress DeleteKey, Loaded ((InProgress record) as gameState) ) ->
             let
                 board =
                     record.board
@@ -518,11 +568,11 @@ update msg model =
                     { board | grid = Grid.set cursor (Letter ' ') board.grid }
                         |> Board.moveSelection direction
             in
-            ( Loaded (updateBoard record newBoard)
+            ( Loaded (updateBoard gameState newBoard)
             , Cmd.none
             )
 
-        ( OnKeyPress (LetterKey char), Loaded record ) ->
+        ( OnKeyPress (LetterKey char), Loaded ((InProgress record) as gameState) ) ->
             let
                 board =
                     record.board
@@ -542,21 +592,21 @@ update msg model =
                     { board | grid = Grid.set cursor (Letter char) board.grid }
                         |> Board.moveSelection direction
             in
-            ( Loaded (updateBoard record newBoard)
+            ( Loaded (updateBoard gameState newBoard)
             , Cmd.none
             )
 
-        ( OnKeyPress CycleSelectedClueKey, Loaded record ) ->
+        ( OnKeyPress CycleSelectedClueKey, Loaded ((InProgress record) as gameState) ) ->
             let
                 newBoard =
                     Board.cycleSelectedClue record.puzzle record.board
             in
-            ( Loaded (updateBoard record newBoard)
+            ( Loaded (updateBoard gameState newBoard)
             , Cmd.none
             )
 
         -- TODO We just want this case to pattern match on arrow keys
-        ( OnKeyPress (ArrowKey direction), Loaded record ) ->
+        ( OnKeyPress (ArrowKey direction), Loaded ((InProgress record) as gameState) ) ->
             let
                 selection =
                     record.board.selection
@@ -579,33 +629,37 @@ update msg model =
                     else
                         Board.moveSelectionSkip direction record.board
             in
-            ( Loaded (updateBoard record newBoard)
+            ( Loaded (updateBoard gameState newBoard)
             , Cmd.none
             )
 
-        ( OnKeyPress UndoKey, Loaded record ) ->
+        ( OnKeyPress UndoKey, Loaded (InProgress record) ) ->
             let
                 undoList =
                     UndoList.undo record.undoList
             in
             ( Loaded
-                { record
-                    | undoList = undoList
-                    , board = undoList.present
-                }
+                (InProgress
+                    { record
+                        | undoList = undoList
+                        , board = undoList.present
+                    }
+                )
             , Cmd.none
             )
 
-        ( OnKeyPress RedoKey, Loaded record ) ->
+        ( OnKeyPress RedoKey, Loaded (InProgress record) ) ->
             let
                 undoList =
                     UndoList.redo record.undoList
             in
             ( Loaded
-                { record
-                    | undoList = undoList
-                    , board = undoList.present
-                }
+                (InProgress
+                    { record
+                        | undoList = undoList
+                        , board = undoList.present
+                    }
+                )
             , Cmd.none
             )
 
