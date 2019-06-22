@@ -4,24 +4,39 @@ import Css exposing (..)
 import Css.Media as CssM
 
 
+
+colors =
+    { white = hex "#FFFFFF"
+    , black = hex "#000000"
+    , hotPink = hex "#FF41B4"
+    , selectedCursor = hex "#FFDA00"
+    , selectedWord = hex "#A7D8FF"
+    }
+
+
+fontSizes =
+    { xs = px 12
+    , sm = px 14
+    , reg = px 16
+    , lg = px 18
+    , xl = px 21
+    }
+
+
+fontWeights =
+    {
+        fw1 = 
+    }
+
 colorToRgbString : Css.Color -> String
 colorToRgbString { red, green, blue } =
-    "red("
+    "rgb("
         ++ String.fromInt red
         ++ ","
         ++ String.fromInt green
         ++ ","
         ++ String.fromInt blue
         ++ ")"
-
-
-colors =
-    { white = rgb 255 255 255
-    , black = rgb 0 0 0
-    , hotPink = rgb 255 65 180
-    , selectedCursor = hex "#FFDA00"
-    , selectedWord = hex "#A7D8FF"
-    }
 
 
 buttonStyle =
@@ -55,7 +70,7 @@ cell =
         , height (px 30)
         , width (px 30)
         , alignItems center
-        , fontSize (px 13)
+        , fontSize (px 12)
         , position relative
         ]
 
