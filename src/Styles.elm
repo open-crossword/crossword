@@ -1,12 +1,20 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, colors, shadedCell, toolbar, colorToRgbString)
+module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
 
 import Css exposing (..)
 import Css.Media as CssM
 
 
 colorToRgbString : Css.Color -> String
-colorToRgbString {red, green, blue} =
-    "red(" ++ String.fromInt red ++ "," ++ String.fromInt green ++ "," ++ String.fromInt blue ++ ")"
+colorToRgbString { red, green, blue } =
+    "red("
+        ++ String.fromInt red
+        ++ ","
+        ++ String.fromInt green
+        ++ ","
+        ++ String.fromInt blue
+        ++ ")"
+
+
 colors =
     { white = rgb 255 255 255
     , black = rgb 0 0 0
