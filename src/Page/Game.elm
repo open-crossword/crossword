@@ -5,7 +5,6 @@ import Browser.Dom
 import Browser.Events
 import Calendar
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
-import Css.Media as CssM
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
 import Data.Grid as Grid exposing (Grid)
@@ -122,7 +121,8 @@ viewCrossword : Puzzle -> Board -> Html Msg
 viewCrossword puzzle board =
     div [ class "flex justify-center flex-column items-center" ]
         [ div [ class "w-70" ]
-            [ viewMetadata puzzle.metadata
+            [ div [ css [ Styles.hideOnMobile ] ]
+                [ viewMetadata puzzle.metadata ]
             , div [ css [ Styles.toolbar ] ]
                 [ viewToolbar ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
@@ -145,8 +145,7 @@ viewCrossword puzzle board =
                 , div
                     [ css
                         [ marginLeft (px 40)
-                        , CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
-                            [ Css.display Css.none ]
+                        , Styles.hideOnMobile
                         ]
                     , class "w-100"
                     ]

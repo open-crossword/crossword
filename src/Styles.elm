@@ -1,6 +1,7 @@
-module Styles exposing (black, board, boardClue, cell, cellId, clue, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, selectedCursorColor, selectedWordColor, shadedCell, toolbar)
+module Styles exposing (black, board, boardClue, cell, cellId, clue, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, selectedCursorColor, selectedWordColor, shadedCell, toolbar)
 
 import Css exposing (..)
+import Css.Media as CssM
 
 
 justifyContentCenter =
@@ -89,3 +90,8 @@ toolbar =
         [ Css.marginBottom (px 16)
         , Css.marginTop (px 16)
         ]
+
+
+hideOnMobile =
+    CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
+        [ Css.display Css.none ]
