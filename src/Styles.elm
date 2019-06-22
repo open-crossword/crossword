@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
+module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
 
 import Css exposing (..)
 import Css.Media as CssM
@@ -20,6 +20,11 @@ fontSizes =
     , reg = px 16
     , lg = px 18
     , xl = px 21
+    }
+
+
+fonts =
+    { avenir = Css.fontFamilies [ "avenir next", "avenir", "san-serif" ]
     }
 
 

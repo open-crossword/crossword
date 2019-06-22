@@ -3,6 +3,7 @@ module Page.About exposing (Model, Msg, init, update, view)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Session exposing (Session)
+import Styles
 
 
 type Msg
@@ -21,7 +22,11 @@ init session =
 view : Model -> { title : String, content : Html Msg }
 view model =
     { title = "About"
-    , content = div [ class "avenir" ] [ text "This is the about page" ]
+    , content =
+        div
+            [ css [ Styles.fonts.avenir ]
+            ]
+            [ text "This is the about page" ]
     }
 
 

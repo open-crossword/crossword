@@ -4,6 +4,7 @@ import Css exposing (px)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Session exposing (Session)
+import Styles
 import View.Logo as Logo
 
 
@@ -29,7 +30,14 @@ view model =
 
 content : Html msg
 content =
-    div [ class "avenir", css [ Css.displayFlex, Css.flexDirection Css.column, Css.alignItems Css.center ] ]
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.flexDirection Css.column
+            , Css.alignItems Css.center
+            , Styles.fonts.avenir
+            ]
+        ]
         [ h3 [] [ text "Welcome to Crossword Games!" ]
         , div
             [ css [ Css.maxWidth (px 300) ]

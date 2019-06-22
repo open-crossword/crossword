@@ -105,7 +105,9 @@ view model =
         div
             [ hijackOn "drop" dropDecoder
             , hijackOn "dragover" (Decode.succeed NoOp)
-            , class "avenir"
+            , css
+                [ Styles.fonts.avenir
+                ]
             ]
             [ case model of
                 Loaded { puzzle, board } ->

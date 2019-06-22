@@ -33,8 +33,8 @@ viewHeader page =
             , Css.displayFlex
             , Css.alignItems Css.center
             , Css.backgroundColor Styles.colors.lightGrey
+            , Styles.fonts.avenir
             ]
-        , class "avenir"
         ]
         [ a
             [ Route.home
