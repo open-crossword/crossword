@@ -23,10 +23,10 @@ fontSizes =
     }
 
 
-fontWeights =
-    {
-        fw1 = 
-    }
+-- fontWeights =
+--     {
+--         fw1 = 
+--     }
 
 colorToRgbString : Css.Color -> String
 colorToRgbString { red, green, blue } =
