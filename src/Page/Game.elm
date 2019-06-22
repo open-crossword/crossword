@@ -5,6 +5,7 @@ import Browser.Dom
 import Browser.Events
 import Calendar
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
+import Css.Media as CssM
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
 import Data.Grid as Grid exposing (Grid)
@@ -124,8 +125,8 @@ viewCrossword puzzle board =
             [ viewMetadata puzzle.metadata
             , div [ css [ Styles.toolbar ] ]
                 [ viewToolbar ]
-            , div [ css [ displayFlex ] ]
-                [ div [ class "w-50" ]
+            , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
+                [ div [ class "w-100" ]
                     [ viewSelectedClue puzzle board
                     , div
                         [ css [ Css.marginTop (px 15) ] ]
@@ -142,8 +143,12 @@ viewCrossword puzzle board =
                         ]
                     ]
                 , div
-                    [ css [ marginLeft (px 40) ]
-                    , class "w-50"
+                    [ css
+                        [ marginLeft (px 40)
+                        , CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
+                            [ Css.display Css.none ]
+                        ]
+                    , class "w-100"
                     ]
                     [ viewClues puzzle board ]
                 ]
