@@ -7,6 +7,7 @@ import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
 import Route exposing (Route)
 import Session exposing (Session)
+import View.Logo as Logo
 
 
 type Page
@@ -27,10 +28,22 @@ viewHeader : Page -> Html msg
 viewHeader page =
     div
         [ css
-            [ Css.overflow Css.hidden ]
+            [ Css.overflow Css.hidden, Css.displayFlex, Css.alignItems Css.center ]
         , class "bg-near-white avenir"
         ]
-        [ viewHeaderLink Route.home "Crossword Games"
+        [ a
+            [ Route.home
+            , css
+                [ Css.textDecoration Css.none
+                , Css.float Css.left
+                , Css.alignItems Css.center
+                , Css.margin (px 14)
+                , Css.marginRight (px 0)
+                , Css.maxWidth (px 25)
+                ]
+            ]
+            [ Logo.view ]
+        , viewHeaderLink Route.home "Crossword Games"
         , viewHeaderLink (Route.gameForId "default") "Solo Game"
         , viewHeaderLink Route.about "About"
         ]
@@ -46,7 +59,6 @@ viewHeaderLink route string =
             , Css.textDecoration Css.none
             , Css.outline Css.zero
             ]
-        , class "hover-hot-pink bg-animate hover-bg-white black link"
         , route
         ]
         [ text string ]
