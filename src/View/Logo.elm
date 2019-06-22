@@ -21,15 +21,15 @@ view =
             ]
     in
     Svg.svg
-        [ SvgA.viewBox "-2 -2 24 24" ]
+        [ SvgA.viewBox "0 0 21 21" ]
         [ Svg.rect
-            [ SvgA.width "22"
-            , SvgA.height "22"
-            , SvgA.x "-1"
-            , SvgA.y "-1"
+            [ SvgA.width "21"
+            , SvgA.height "21"
+            , SvgA.x "0"
+            , SvgA.y "0"
             , SvgA.fill "none"
             , SvgA.stroke "black"
-            , SvgA.strokeWidth "2"
+            , SvgA.strokeWidth "1"
             ]
             []
         , Svg.g [] (List.indexedMap viewCell (List.concat grid))
@@ -46,14 +46,20 @@ viewCell index square =
 
                 Black ->
                     "black"
+
+        x =
+            toFloat (5 * modBy 4 index) + 0.5
+
+        y =
+            toFloat (5 * (index // 4)) + 0.5
     in
     Svg.rect
-        [ SvgA.x (String.fromInt (5 * modBy 4 index))
-        , SvgA.y (String.fromInt (5 * (index // 4)))
+        [ SvgA.x (String.fromFloat x)
+        , SvgA.y (String.fromFloat y)
         , SvgA.width "5"
         , SvgA.height "5"
         , SvgA.stroke "black"
-        , SvgA.strokeWidth ".5"
+        , SvgA.strokeWidth ".4"
         , SvgA.fill color
         ]
         []
