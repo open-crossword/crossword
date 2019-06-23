@@ -136,9 +136,21 @@ view model =
                     viewCrossword gameState
 
                 Failed err ->
-                    pre [] [ text (Debug.toString err) ]
+                    viewPuzzleError
             ]
     }
+
+
+viewPuzzleError : Html Msg
+viewPuzzleError =
+    div
+        [ class "flex flex-column"
+        , css
+            [ Css.padding (px 15) ]
+        ]
+        [ h2 [] [ text "Oh No!" ]
+        , div [] [ text "There was an error loading your puzzle." ]
+        ]
 
 
 viewGameStart : { puzzle : Puzzle } -> Html Msg
