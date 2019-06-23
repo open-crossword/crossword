@@ -159,7 +159,7 @@ viewGameStart gameState =
         ]
 
 
-viewCrossword : { board : Board, puzzle : Puzzle, timeSeconds : Int, undoList : UndoList Board } -> Html Msg
+viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
 viewCrossword gameState =
     div [ class "flex justify-center flex-column items-center" ]
         [ div [ class "w-70" ]
