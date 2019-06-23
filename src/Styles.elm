@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
+module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
 
 import Css exposing (..)
 import Css.Media as CssM
@@ -135,3 +135,13 @@ toolbar =
 hideOnMobile =
     CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
         [ display none ]
+
+
+isMobile : List Css.Style -> List Css.Style -> Css.Style
+isMobile mobileCss nonMobileCss =
+    Css.batch
+        [ CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
+            mobileCss
+        , CssM.withMedia [ CssM.only CssM.screen [ CssM.minWidth (px 500) ] ]
+            nonMobileCss
+        ]

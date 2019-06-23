@@ -2,6 +2,7 @@ module Page exposing (Page(..), view)
 
 import Browser exposing (Document)
 import Css exposing (px, rgb)
+import Css.Media as CssM
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
@@ -34,6 +35,9 @@ viewHeader page =
             , Css.backgroundColor Styles.colors.lightGrey
             , Css.padding (px 14)
             , Styles.fonts.avenir
+            , Styles.isMobile
+                [ Css.flexDirection Css.column ]
+                []
             ]
         ]
         [ a
@@ -57,6 +61,18 @@ viewHeader page =
                 [ Logo.view ]
             , text "Crossword Games"
             ]
+        , div
+            [ css
+                [ Styles.isMobile
+                    [ Css.alignSelf Css.flexEnd
+                    , Css.display Css.initial
+                    , Css.position Css.absolute
+                    , Css.cursor Css.pointer
+                    ]
+                    [ Css.display Css.none ]
+                ]
+            ]
+            [ text "M" ]
         , viewHeaderLink (Route.gameForId "default") "Solo Game"
         , viewHeaderLink Route.about "About"
         ]
@@ -66,7 +82,9 @@ viewHeaderLink : Html.Styled.Attribute msg -> String -> Html msg
 viewHeaderLink route string =
     a
         [ css
-            [ Css.paddingRight (px 20)
+            [ Styles.isMobile
+                [ Css.display Css.none ]
+                [ Css.paddingRight (px 20) ]
             , Css.textDecoration Css.none
             , Css.outline Css.zero
             , Css.color Styles.colors.black
