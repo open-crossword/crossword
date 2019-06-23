@@ -27,28 +27,36 @@ view session page { title, content } =
 
 viewHeader : Page -> Html msg
 viewHeader page =
-    div
+    nav
         [ css
-            [ Css.overflow Css.hidden
-            , Css.displayFlex
+            [ Css.displayFlex
             , Css.alignItems Css.center
             , Css.backgroundColor Styles.colors.lightGrey
+            , Css.padding (px 14)
             , Styles.fonts.avenir
             ]
         ]
         [ a
-            [ Route.home
-            , css
-                [ Css.textDecoration Css.none
-                , Css.float Css.left
+            [ css
+                [ Css.displayFlex
                 , Css.alignItems Css.center
-                , Css.margin (px 14)
-                , Css.marginRight (px 0)
-                , Css.maxWidth (px 25)
+                , Css.paddingRight (px 20)
+                , Css.textDecoration Css.none
+                , Css.outline Css.zero
+                , Css.color Styles.colors.black
                 ]
+            , Route.home
             ]
-            [ Logo.view ]
-        , viewHeaderLink Route.home "Crossword Games"
+            [ div
+                [ Route.home
+                , css
+                    [ Css.marginRight (px 14)
+                    , Css.maxWidth (px 25)
+                    ]
+                ]
+                [ Logo.view ]
+            , text "Crossword Games"
+            ]
         , viewHeaderLink (Route.gameForId "default") "Solo Game"
         , viewHeaderLink Route.about "About"
         ]
@@ -58,11 +66,10 @@ viewHeaderLink : Html.Styled.Attribute msg -> String -> Html msg
 viewHeaderLink route string =
     a
         [ css
-            [ Css.float Css.left
-            , Css.textAlign Css.center
-            , Css.padding (px 14)
+            [ Css.paddingRight (px 20)
             , Css.textDecoration Css.none
             , Css.outline Css.zero
+            , Css.color Styles.colors.black
             ]
         , route
         ]
