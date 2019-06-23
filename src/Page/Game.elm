@@ -49,7 +49,6 @@ type Game
         { puzzle : Puzzle
         , board : Board
         , timeSeconds : Int
-        , undoList : UndoList Board
         }
 
 
