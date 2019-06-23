@@ -11,6 +11,7 @@ import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Data.TimeFormat as TimeFormat
 import DateTime
 import Dict exposing (Dict)
 import File exposing (File)
@@ -42,10 +43,13 @@ type Game
         { puzzle : Puzzle
         , board : Board
         , undoList : UndoList Board
+        , timeSeconds : Int
         }
     | Ended
         { puzzle : Puzzle
         , board : Board
+        , timeSeconds : Int
+        , undoList : UndoList Board
         }
 
 
@@ -58,6 +62,7 @@ type Msg
     = OnDropFile File (List File)
     | OnFileRead String
     | OnGameStart
+    | TimerTick
     | OnCellClick Point
     | OnKeyPress KeyType
     | OnClueClick Clue
@@ -94,8 +99,16 @@ loadPuzzle parsedPuzzle =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
+subscriptions model =
+    case model of
+        Loaded (InProgress _) ->
+            Sub.batch
+                [ Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
+                , Time.every 1000 (always TimerTick)
+                ]
+
+        _ ->
+            Sub.none
 
 
 
@@ -114,14 +127,14 @@ view model =
                 ]
             ]
             [ case model of
-                Loaded (Initialized { puzzle }) ->
-                    viewGameStart puzzle
+                Loaded (Initialized gameState) ->
+                    viewGameStart gameState
 
-                Loaded (InProgress { puzzle, board }) ->
-                    viewCrossword puzzle board
+                Loaded (InProgress gameState) ->
+                    viewCrossword gameState
 
-                Loaded (Ended { puzzle, board }) ->
-                    viewCrossword puzzle board
+                Loaded (Ended gameState) ->
+                    viewCrossword gameState
 
                 Failed err ->
                     pre [] [ text (Debug.toString err) ]
@@ -129,11 +142,11 @@ view model =
     }
 
 
-viewGameStart : Puzzle -> Html Msg
-viewGameStart puzzle =
+viewGameStart : { puzzle : Puzzle } -> Html Msg
+viewGameStart gameState =
     div [ class "flex justify-center flex-column items-center" ]
         [ div [ class "w-70" ]
-            [ viewMetadata puzzle.metadata
+            [ viewMetadata gameState.puzzle.metadata
             , ourButton
                 [ onClick OnGameStart
                 , css
@@ -146,24 +159,26 @@ viewGameStart puzzle =
         ]
 
 
-viewCrossword : Puzzle -> Board -> Html Msg
-viewCrossword puzzle board =
+viewCrossword : { board : Board, puzzle : Puzzle, timeSeconds : Int, undoList : UndoList Board } -> Html Msg
+viewCrossword gameState =
     div [ class "flex justify-center flex-column items-center" ]
         [ div [ class "w-70" ]
             [ div [ css [ Styles.hideOnMobile ] ]
-                [ viewMetadata puzzle.metadata ]
+                [ viewMetadata gameState.puzzle.metadata
+                , text (TimeFormat.formatSeconds gameState.timeSeconds)
+                ]
             , div [ css [ Styles.toolbar ] ]
                 [ viewToolbar ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
                 [ div [ class "w-100" ]
-                    [ viewSelectedClue puzzle board
+                    [ viewSelectedClue gameState.puzzle gameState.board
                     , div
                         [ css [ Css.marginTop (px 15) ] ]
                         [ Board.view
                             { clueIndicesVisible = True
                             , onCellClicked = OnCellClick
-                            , board = board
-                            , puzzle = puzzle
+                            , board = gameState.board
+                            , puzzle = gameState.puzzle
                             }
                         ]
                     , div [ class "flex justify-around mt2" ]
@@ -178,7 +193,7 @@ viewCrossword puzzle board =
                         ]
                     , class "w-100"
                     ]
-                    [ viewClues puzzle board ]
+                    [ viewClues gameState.puzzle gameState.board ]
                 ]
             ]
         ]
@@ -495,12 +510,20 @@ update msg model =
                     { puzzle = puzzle
                     , board = freshBoard
                     , undoList = UndoList.fresh freshBoard
+                    , timeSeconds = 0
                     }
                 )
             , Cmd.none
             )
 
         -- Crossword Game
+        ( TimerTick, Loaded (InProgress gameState) ) ->
+            let
+                newTime =
+                    gameState.timeSeconds + 1
+            in
+            ( Loaded (InProgress { gameState | timeSeconds = newTime }), Cmd.none )
+
         ( OnCellClick point, Loaded ((InProgress record) as gameState) ) ->
             let
                 oldSelection =
@@ -528,8 +551,19 @@ update msg model =
             , Cmd.none
             )
 
-        ( ResetPuzzle, Loaded ((InProgress record) as gameState) ) ->
-            ( Loaded (updateBoard gameState (Board.fromPuzzle record.puzzle))
+        ( ResetPuzzle, Loaded (InProgress record) ) ->
+            let
+                newBoard =
+                    Board.fromPuzzle record.puzzle
+            in
+            ( Loaded
+                (InProgress
+                    { puzzle = record.puzzle
+                    , board = newBoard
+                    , undoList = UndoList.fresh newBoard
+                    , timeSeconds = 0
+                    }
+                )
             , Cmd.none
             )
 
