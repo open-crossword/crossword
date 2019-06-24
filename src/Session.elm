@@ -3,15 +3,19 @@ module Session exposing (Session, init, navKey)
 import Browser.Navigation as Nav
 
 
-type Session
-    = Session Nav.Key
+type alias Session =
+    { navKey : Nav.Key
+    , menuCollapsed : Bool
+    }
 
 
 init : Nav.Key -> Session
 init key =
-    Session key
+    { navKey = key
+    , menuCollapsed = False
+    }
 
 
-navKey : Session -> Nav.Key
-navKey (Session key) =
-    key
+navKey : { a | navKey : Nav.Key } -> Nav.Key
+navKey record =
+    record.navKey

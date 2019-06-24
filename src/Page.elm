@@ -22,12 +22,12 @@ type Page
 view : Session -> Page -> { title : String, content : Html msg } -> Document msg
 view session page { title, content } =
     { title = title
-    , body = List.map toUnstyled [ viewHeader page, content, viewFooter ]
+    , body = List.map toUnstyled [ viewHeader session page, content, viewFooter ]
     }
 
 
-viewHeader : Page -> Html msg
-viewHeader page =
+viewHeader : Session -> Page -> Html msg
+viewHeader session page =
     nav
         [ css
             [ Css.displayFlex
@@ -73,17 +73,25 @@ viewHeader page =
                 ]
             ]
             [ text "M" ]
-        , viewHeaderLink (Route.gameForId "default") "Solo Game"
-        , viewHeaderLink Route.about "About"
+        , viewHeaderLink session (Route.gameForId "default") "Solo Game"
+        , viewHeaderLink session Route.about "About"
         ]
 
 
-viewHeaderLink : Html.Styled.Attribute msg -> String -> Html msg
-viewHeaderLink route string =
+viewHeaderLink : Session -> Html.Styled.Attribute msg -> String -> Html msg
+viewHeaderLink session route string =
+    let
+        showMenu =
+            if session.menuCollapsed then
+                [ Css.display Css.none ]
+
+            else
+                []
+    in
     a
         [ css
             [ Styles.isMobile
-                [ Css.display Css.none ]
+                showMenu
                 [ Css.paddingRight (px 20) ]
             , Css.textDecoration Css.none
             , Css.outline Css.zero

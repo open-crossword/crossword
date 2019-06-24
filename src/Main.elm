@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (Msg(..), main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
@@ -131,6 +131,7 @@ type Msg
     = NoOp
     | ChangedRoute (Maybe Route)
     | ChangedUrl Url
+    | NavBarToggled
     | ClickedLink Browser.UrlRequest
     | GotHomeMsg Home.Msg
     | GotGameMsg Game.Msg
