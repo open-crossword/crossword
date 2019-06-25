@@ -367,6 +367,7 @@ updateGameState msg gameState =
             -- TODO
             gameState
 
+
 updateInitializedGame : Msg -> InitializedState -> Game
 updateInitializedGame msg state =
     case msg of
@@ -543,7 +544,6 @@ updateInProgressGame msg gameState =
 
         OnGameStart ->
             noOp
-
 
 
 freshInProgress : Puzzle -> Game
