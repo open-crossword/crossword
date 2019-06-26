@@ -111,7 +111,7 @@ viewHeaderLink session route string =
                 [ Css.display Css.none ]
 
             else
-                []
+                [ Css.marginTop (px 10) ]
     in
     a
         [ css
