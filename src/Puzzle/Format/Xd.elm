@@ -1,4 +1,4 @@
-module Puzzle.Format.Xd exposing (parse)
+module Puzzle.Format.Xd exposing (parse, puzzle)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
