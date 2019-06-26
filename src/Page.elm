@@ -19,15 +19,28 @@ type Page
     | About
 
 
-view : Session -> Page -> { title : String, content : Html msg } -> Document msg
-view session page { title, content } =
-    { title = title
-    , body = List.map toUnstyled [ viewHeader session page, content, viewFooter ]
+type alias Config msg =
+    { session : Session
+    , page : Page
+    , content : { title : String, content : Html msg }
+    , onMenuToggle : msg
     }
 
 
-viewHeader : Session -> Page -> Html msg
-viewHeader session page =
+view : Config msg -> Document msg
+view config =
+    { title = config.content.title
+    , body =
+        List.map toUnstyled
+            [ viewHeader config
+            , config.content.content
+            , viewFooter
+            ]
+    }
+
+
+viewHeader : Config msg -> Html msg
+viewHeader config =
     nav
         [ css
             [ Css.displayFlex
@@ -40,42 +53,53 @@ viewHeader session page =
                 []
             ]
         ]
-        [ a
+        [ div
             [ css
                 [ Css.displayFlex
                 , Css.alignItems Css.center
                 , Css.paddingRight (px 20)
-                , Css.textDecoration Css.none
-                , Css.outline Css.zero
-                , Css.color Styles.colors.black
                 ]
-            , Route.home
             ]
-            [ div
-                [ Route.home
-                , css
-                    [ Css.marginRight (px 14)
-                    , Css.maxWidth (px 25)
+            [ a
+                [ css
+                    [ Css.displayFlex
+                    , Css.alignItems Css.center
+                    , Css.textDecoration Css.none
+                    , Css.outline Css.zero
+                    , Css.color Styles.colors.black
                     ]
+                , Route.home
                 ]
-                [ Logo.view ]
-            , text "Crossword Games"
-            ]
-        , div
-            [ css
-                [ Styles.isMobile
-                    [ Css.alignSelf Css.flexEnd
-                    , Css.display Css.initial
-                    , Css.position Css.absolute
-                    , Css.cursor Css.pointer
+                [ div
+                    [ Route.home
+                    , css
+                        [ Css.marginRight (px 14)
+                        , Css.maxWidth (px 25)
+                        ]
                     ]
-                    [ Css.display Css.none ]
+                    [ Logo.view ]
+                , text "Crossword Games"
                 ]
+            , hamburgerMenuToggle config.onMenuToggle
             ]
-            [ text "M" ]
-        , viewHeaderLink session (Route.gameForId "default") "Solo Game"
-        , viewHeaderLink session Route.about "About"
+        , viewHeaderLink config.session (Route.gameForId "default") "Solo Game"
+        , viewHeaderLink config.session Route.about "About"
         ]
+
+
+hamburgerMenuToggle onMenuToggle =
+    div
+        [ css
+            [ Styles.isMobile
+                [ Css.position Css.absolute
+                , Css.cursor Css.pointer
+                , Css.right (px 30)
+                ]
+                [ Css.display Css.none ]
+            ]
+        , onClick onMenuToggle
+        ]
+        [ text "M" ]
 
 
 viewHeaderLink : Session -> Html.Styled.Attribute msg -> String -> Html msg

@@ -1,4 +1,4 @@
-module Main exposing (Msg(..), main)
+module Main exposing (main)
 
 import Browser exposing (Document)
 import Browser.Navigation as Nav
@@ -22,37 +22,31 @@ import Url exposing (Url)
 -- MODEL --
 
 
-type Model
-    = Redirect Session
-    | NotFound Session
-    | Home Session Home.Model
-    | Game Session Game.Model
-    | About Session About.Model
+type PageModel
+    = Redirect
+    | NotFound
+    | Home Home.Model
+    | Game Game.Model
+    | About About.Model
+
+
+type alias Model =
+    { session : Session
+    , pageModel : PageModel
+    }
 
 
 init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
 init _ url navKey =
     changeRouteTo (Route.fromUrl url)
-        (Redirect (Session.init navKey))
+        { session = Session.init navKey
+        , pageModel = Redirect
+        }
 
 
 toSession : Model -> Session
-toSession model =
-    case model of
-        Redirect session ->
-            session
-
-        NotFound session ->
-            session
-
-        Home session _ ->
-            session
-
-        Game session _ ->
-            session
-
-        About session _ ->
-            session
+toSession { session } =
+    session
 
 
 changeRouteTo : Maybe Route -> Model -> ( Model, Cmd Msg )
@@ -60,32 +54,36 @@ changeRouteTo maybeRoute model =
     let
         session =
             toSession model
+
+        doInit : (subModel -> PageModel) -> ( subModel, Cmd subMsg ) -> (subMsg -> Msg) -> ( PageModel, Cmd Msg )
+        doInit toModel ( subModel, subCmd ) toMsg =
+            ( toModel subModel, Cmd.map toMsg subCmd )
+
+        ( pageModel, cmd ) =
+            case maybeRoute of
+                Nothing ->
+                    ( NotFound, Cmd.none )
+
+                Just Route.Home ->
+                    doInit Home (Home.init session) GotHomeMsg
+
+                Just (Route.Game gameId) ->
+                    doInit Game (Game.init session) GotGameMsg
+
+                Just Route.About ->
+                    doInit About (About.init session) GotAboutMsg
     in
-    case maybeRoute of
-        Nothing ->
-            ( NotFound session, Cmd.none )
-
-        Just Route.Home ->
-            Home.init session
-                |> updateWith (Home session) GotHomeMsg model
-
-        Just (Route.Game gameId) ->
-            Game.init session
-                |> updateWith (Game session) GotGameMsg model
-
-        Just Route.About ->
-            About.init session
-                |> updateWith (About session) GotAboutMsg model
+    ( { model | pageModel = pageModel }, cmd )
 
 
 updateWith :
-    (subModel -> Model)
+    Model
+    -> (subModel -> PageModel)
     -> (subMsg -> Msg)
-    -> Model
     -> ( subModel, Cmd subMsg )
     -> ( Model, Cmd Msg )
-updateWith toModel toMsg model ( subModel, subCmd ) =
-    ( toModel subModel
+updateWith originalModel toModel toMsg ( subModel, subCmd ) =
+    ( { originalModel | pageModel = toModel subModel }
     , Cmd.map toMsg subCmd
     )
 
@@ -97,29 +95,38 @@ updateWith toModel toMsg model ( subModel, subCmd ) =
 view : Model -> Document Msg
 view model =
     let
+        viewPage : Page -> (msg -> Msg) -> { title : String, content : Html msg } -> Document Msg
         viewPage page toMsg content =
             let
+                mappedContent =
+                    content.content |> Html.Styled.map toMsg
+
                 { title, body } =
-                    Page.view (toSession model) page content
+                    Page.view
+                        { session = toSession model
+                        , page = page
+                        , content = { content = mappedContent, title = content.title }
+                        , onMenuToggle = NavBarToggled
+                        }
             in
             { title = title
-            , body = List.map (UnstyledHtml.map toMsg) body
+            , body = body
             }
     in
-    case model of
-        Redirect _ ->
+    case model.pageModel of
+        Redirect ->
             viewPage Page.Other (\_ -> NoOp) Blank.view
 
-        NotFound _ ->
+        NotFound ->
             viewPage Page.Other (\_ -> NoOp) NotFound.view
 
-        Home session subModel ->
+        Home subModel ->
             viewPage Page.Home GotHomeMsg (Home.view subModel)
 
-        Game session subModel ->
+        Game subModel ->
             viewPage Page.Game GotGameMsg (Game.view subModel)
 
-        About session subModel ->
+        About subModel ->
             viewPage Page.About GotAboutMsg (About.view subModel)
 
 
@@ -140,7 +147,7 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case ( msg, model ) of
+    case ( msg, model.pageModel ) of
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.Internal url ->
@@ -158,17 +165,22 @@ update msg model =
         ( ChangedUrl url, _ ) ->
             changeRouteTo (Route.fromUrl url) model
 
-        ( GotHomeMsg subMsg, Home session subModel ) ->
+        ( GotHomeMsg subMsg, Home subModel ) ->
             Home.update subMsg subModel
-                |> updateWith (Home session) GotHomeMsg model
+                |> updateWith model Home GotHomeMsg
 
-        ( GotGameMsg subMsg, Game session subModel ) ->
+        ( GotGameMsg subMsg, Game subModel ) ->
             Game.update subMsg subModel
-                |> updateWith (Game session) GotGameMsg model
+                |> updateWith model Game GotGameMsg
 
-        ( GotAboutMsg subMsg, About session subModel ) ->
+        ( GotAboutMsg subMsg, About subModel ) ->
             About.update subMsg subModel
-                |> updateWith (About session) GotAboutMsg model
+                |> updateWith model About GotAboutMsg
+
+        ( NavBarToggled, _ ) ->
+            ( { model | session = Session.toggleMenuCollapsed model.session }
+            , Cmd.none
+            )
 
         ( _, _ ) ->
             ( model, Cmd.none )
@@ -180,8 +192,8 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model of
-        Game _ subModel ->
+    case model.pageModel of
+        Game subModel ->
             Game.subscriptions subModel
                 |> Sub.map GotGameMsg
 

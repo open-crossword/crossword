@@ -1,4 +1,4 @@
-module Session exposing (Session, init, navKey)
+module Session exposing (Session, init, navKey, toggleMenuCollapsed)
 
 import Browser.Navigation as Nav
 
@@ -19,3 +19,8 @@ init key =
 navKey : { a | navKey : Nav.Key } -> Nav.Key
 navKey record =
     record.navKey
+
+
+toggleMenuCollapsed : Session -> Session
+toggleMenuCollapsed session =
+    { session | menuCollapsed = not session.menuCollapsed }
