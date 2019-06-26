@@ -1,4 +1,5 @@
-<img src="https://raw.githubusercontent.com/open-crossword/crossword/master/assets/elm-crossword-image.png" width="48">
+<img src="https://raw.githubusercontent.com/open-crossword/crossword/master/assets/elm-crossword-image.png" width="255">
+
 # crossword
 Web crossword software built with Elm
 
