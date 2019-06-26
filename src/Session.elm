@@ -12,7 +12,7 @@ type alias Session =
 init : Nav.Key -> Session
 init key =
     { navKey = key
-    , menuCollapsed = False
+    , menuCollapsed = True
     }
 
 
