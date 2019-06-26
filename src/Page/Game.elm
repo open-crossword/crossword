@@ -132,7 +132,7 @@ viewGame game =
             viewCrossword gameState
 
         Ended gameState ->
-            viewCrossword gameState
+            viewGameEnd gameState
 
 
 viewPuzzleError : List Parser.DeadEnd -> Html Msg
@@ -161,6 +161,21 @@ viewGameStart gameState =
                 ]
                 [ text "Begin" ]
             ]
+        ]
+
+
+viewGameEnd : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
+viewGameEnd gameState =
+    div []
+        [ div
+            [ class "flex justify-center flex-column items-center"
+            , css
+                [ Css.backgroundColor Styles.colors.lightGreen
+                , Css.padding (px 16)
+                ]
+            ]
+            [ text ("Puzzle completed in " ++ TimeFormat.formatSeconds gameState.timeSeconds ++ "!") ]
+        , viewCrossword gameState
         ]
 
 
@@ -384,8 +399,21 @@ updateInProgressGame msg gameState =
         noOp =
             InProgress gameState
 
+        updateBoard : InProgressState -> Board -> Game
         updateBoard game board =
-            InProgress { game | board = board, undoList = UndoList.new board game.undoList }
+            let
+                isPuzzleCorrect =
+                    Grid.equals board.grid game.puzzle.grid
+            in
+            if isPuzzleCorrect then
+                Ended
+                    { puzzle = game.puzzle
+                    , board = board
+                    , timeSeconds = game.timeSeconds
+                    }
+
+            else
+                InProgress { game | board = board, undoList = UndoList.new board game.undoList }
     in
     case msg of
         TimerTick ->

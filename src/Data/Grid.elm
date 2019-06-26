@@ -1,4 +1,4 @@
-module Data.Grid exposing (Direction(..), Grid, above, below, empty, findIndex, foldlIndexed, from2DList, fromList, get, height, indexToPoint, indexedMap, leftOf, map, mapNonEmpty, pointToIndex, rightOf, set, to2DList, width)
+module Data.Grid exposing (Direction(..), Grid, above, below, empty, equals, findIndex, foldlIndexed, from2DList, fromList, get, height, indexToPoint, indexedMap, leftOf, map, mapNonEmpty, pointToIndex, rightOf, set, to2DList, width)
 
 import Array exposing (Array)
 import Data.Point exposing (Point)
@@ -213,6 +213,11 @@ rightOf ( x, y ) =
 leftOf : Point -> Grid a -> Maybe a
 leftOf ( x, y ) =
     get ( x - 1, y )
+
+
+equals : Grid a -> Grid a -> Bool
+equals (Grid one) (Grid two) =
+    one.cells == two.cells
 
 
 

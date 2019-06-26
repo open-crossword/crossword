@@ -163,6 +163,25 @@ suite =
                                 ]
                             )
             ]
+        , describe "Grid.equals"
+            [ test "two identical grids are equal" <|
+                \_ ->
+                    Grid.equals sampleTwoByTwoGrid sampleTwoByTwoGrid
+                        |> Expect.equal True
+            , test "two different grids are not equal" <|
+                \_ ->
+                    let
+                        one =
+                            Grid.fromList 2 2 [ 0, 8, 9, 2 ]
+                                |> Maybe.withDefault (Grid.empty 0 0)
+
+                        two =
+                            Grid.fromList 2 2 [ 1, 2, 3, 4 ]
+                                |> Maybe.withDefault (Grid.empty 0 0)
+                    in
+                    Grid.equals one two
+                        |> Expect.equal False
+            ]
 
         -- , describe "Grid.to2DList"
         --     [ test "can roundtrip [[]]" <|

@@ -11,6 +11,7 @@ colors =
     , selectedCursor = hex "#FFDA00"
     , selectedWord = hex "#A7D8FF"
     , lightGrey = hex "#F4F4F4"
+    , lightGreen = hex "#9EEBCF"
     }
 
 
