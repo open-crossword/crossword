@@ -1,4 +1,4 @@
-![crossword](https://raw.githubusercontent.com/open-crossword/crossword/master/assets/elm-crossword-image.png)
+<img src="https://raw.githubusercontent.com/open-crossword/crossword/master/assets/elm-crossword-image.png" width="48">
 # crossword
 Web crossword software built with Elm
 
