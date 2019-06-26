@@ -1,3 +1,4 @@
+![crossword](https://raw.githubusercontent.com/open-crossword/crossword/master/assets/elm-crossword-image.png)
 # crossword
 Web crossword software built with Elm
 
