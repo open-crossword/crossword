@@ -11,6 +11,7 @@ import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Data.TimeFormat as TimeFormat
 import DateTime
 import Dict exposing (Dict)
@@ -18,11 +19,13 @@ import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
-import Json.Decode as Decode
+import Http
+import Json.Decode as Decode exposing (Decoder)
 import List.Extra as List
 import Maybe.Extra as Maybe
-import Parser
+import Parser exposing (Parser)
 import Puzzle.Format.Xd
+import Result.Extra as Result
 import SamplePuzzle
 import Session exposing (Session)
 import Styles
@@ -78,19 +81,36 @@ type Msg
     | RevealPuzzle
     | RevealSelectedWord
     | RevealSelectedCell
+    | GotPuzzleString PuzzleId (Result Http.Error String)
     | NoOp
 
 
-init : Session -> ( Model, Cmd Msg )
-init session =
-    ( { game = loadPuzzle "sample" SamplePuzzle.puzzle
+init : Session -> Maybe PuzzleId -> ( Model, Cmd Msg )
+init session puzzleId =
+    ( { game = loadGame "sample" SamplePuzzle.puzzle
       }
-    , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
+    , Cmd.batch
+        [ Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
+        , case puzzleId of
+            Just id ->
+                fetchPuzzle (GotPuzzleString id) id
+
+            Nothing ->
+                Cmd.none
+        ]
     )
 
 
-loadPuzzle : String -> String -> Result (List Parser.DeadEnd) Game
-loadPuzzle id =
+fetchPuzzle : (Result Http.Error String -> msg) -> PuzzleId -> Cmd msg
+fetchPuzzle toMsg puzzleId =
+    Http.get
+        { url = "http://localhost:8080/puzzles/" ++ PuzzleId.toString puzzleId
+        , expect = Http.expectString toMsg
+        }
+
+
+loadGame : String -> String -> Result (List Parser.DeadEnd) Game
+loadGame id =
     parsePuzzle id >> Result.map (InitializedState >> Initialized)
 
 
@@ -371,7 +391,13 @@ update msg model =
             )
 
         ( OnFileRead { contents, name }, _ ) ->
-            ( Model (loadPuzzle name contents), Cmd.none )
+            ( Model (loadGame name contents), Cmd.none )
+
+        ( GotPuzzleString id (Ok puzzleString), _ ) ->
+            ( Model (loadGame (PuzzleId.toString id) puzzleString), Cmd.none )
+
+        ( GotPuzzleString id (Err p), _ ) ->
+            ( model, Cmd.none )
 
         ( _, Err err ) ->
             ( model, Cmd.none )
@@ -582,6 +608,9 @@ updateInProgressGame msg gameState =
             noOp
 
         OnGameStart ->
+            noOp
+
+        GotPuzzleString _ _ ->
             noOp
 
 

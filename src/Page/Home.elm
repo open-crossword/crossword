@@ -39,7 +39,7 @@ getRandomPuzzles =
 
 puzzleDecoder : Decoder Puzzle
 puzzleDecoder =
-    JD.field "name" JD.string
+    JD.field "id" JD.string
         |> JD.andThen
             (\name ->
                 JD.field "puzzle" (parserToDecoder (Puzzle.Format.Xd.puzzle name))

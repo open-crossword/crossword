@@ -68,7 +68,7 @@ changeRouteTo maybeRoute model =
                     doInit Home (Home.init session) GotHomeMsg
 
                 Just (Route.Game gameId) ->
-                    doInit Game (Game.init session) GotGameMsg
+                    doInit Game (Game.init session gameId) GotGameMsg
 
                 Just Route.About ->
                     doInit About (About.init session) GotAboutMsg
