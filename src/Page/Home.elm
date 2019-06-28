@@ -1,6 +1,5 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
-import Route
 import Css exposing (px)
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
@@ -8,15 +7,16 @@ import Data.Puzzle as Puzzle exposing (Puzzle)
 import Data.Puzzle.Id as PuzzleId
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
-import Http
-import Json.Decode as JD exposing (Decoder)
+import Http.Puzzle
 import Parser exposing (Parser)
 import Puzzle.Format.Xd
 import Result.Extra as Result
+import Route
 import Session exposing (Session)
 import Styles
 import View.Board as Board
 import View.Logo as Logo
+import Http
 
 
 type Msg
@@ -29,34 +29,11 @@ type alias Model =
     }
 
 
-getRandomPuzzles : Cmd Msg
-getRandomPuzzles =
-    Http.get
-        { url = "http://localhost:8080/puzzles/"
-        , expect = Http.expectJson GotRandomPuzzles (JD.list puzzleDecoder)
-        }
-
-
-puzzleDecoder : Decoder Puzzle
-puzzleDecoder =
-    JD.field "id" JD.string
-        |> JD.andThen
-            (\name ->
-                JD.field "puzzle" (parserToDecoder (Puzzle.Format.Xd.puzzle name))
-            )
-
-
-parserToDecoder : Parser a -> Decoder a
-parserToDecoder parser =
-    JD.string
-        |> JD.map (\x -> Parser.run parser (x ++ "\n"))
-        |> JD.map (Result.mapError Debug.toString)
-        |> JD.andThen (Result.unpack JD.fail JD.succeed)
-
-
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { samplePuzzles = Loadable.Loading }, getRandomPuzzles )
+    ( { samplePuzzles = Loadable.Loading }
+    , Http.Puzzle.random GotRandomPuzzles 8
+    )
 
 
 view : Model -> { title : String, content : Html Msg }

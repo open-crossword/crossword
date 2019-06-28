@@ -20,12 +20,12 @@ import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import Http
+import Http.Puzzle
 import Json.Decode as Decode exposing (Decoder)
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Parser exposing (Parser)
 import Puzzle.Format.Xd
-import Result.Extra as Result
 import SamplePuzzle
 import Session exposing (Session)
 import Styles
@@ -59,7 +59,8 @@ type alias EndedState =
 
 
 type Game
-    = Initialized InitializedState
+    = Loading
+    | Initialized InitializedState
     | InProgress InProgressState
     | Ended EndedState
 
@@ -81,19 +82,19 @@ type Msg
     | RevealPuzzle
     | RevealSelectedWord
     | RevealSelectedCell
-    | GotPuzzleString PuzzleId (Result Http.Error String)
+    | GotPuzzle PuzzleId (Result Http.Puzzle.Error Puzzle)
     | NoOp
 
 
 init : Session -> Maybe PuzzleId -> ( Model, Cmd Msg )
 init session puzzleId =
-    ( { game = loadGame "sample" SamplePuzzle.puzzle
+    ( { game = loadGame SamplePuzzle.id SamplePuzzle.puzzle
       }
     , Cmd.batch
         [ Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
         , case puzzleId of
             Just id ->
-                fetchPuzzle (GotPuzzleString id) id
+                Http.Puzzle.get (GotPuzzle id) id
 
             Nothing ->
                 Cmd.none
@@ -101,22 +102,14 @@ init session puzzleId =
     )
 
 
-fetchPuzzle : (Result Http.Error String -> msg) -> PuzzleId -> Cmd msg
-fetchPuzzle toMsg puzzleId =
-    Http.get
-        { url = "http://localhost:8080/puzzles/" ++ PuzzleId.toString puzzleId
-        , expect = Http.expectString toMsg
-        }
-
-
-loadGame : String -> String -> Result (List Parser.DeadEnd) Game
+loadGame : PuzzleId -> String -> Result (List Parser.DeadEnd) Game
 loadGame id =
     parsePuzzle id >> Result.map (InitializedState >> Initialized)
 
 
-parsePuzzle : String -> String -> Result (List Parser.DeadEnd) Puzzle
+parsePuzzle : PuzzleId -> String -> Result (List Parser.DeadEnd) Puzzle
 parsePuzzle id input =
-    Puzzle.Format.Xd.parse input id
+    Puzzle.Format.Xd.parse id input
 
 
 
@@ -153,6 +146,9 @@ viewGame game =
 
         Ended gameState ->
             viewGameEnd gameState
+
+        Loading ->
+            div [] [ text "loading..." ]
 
 
 viewPuzzleError : List Parser.DeadEnd -> Html Msg
@@ -391,12 +387,12 @@ update msg model =
             )
 
         ( OnFileRead { contents, name }, _ ) ->
-            ( Model (loadGame name contents), Cmd.none )
+            ( Model (loadGame (PuzzleId.fromString name) contents), Cmd.none )
 
-        ( GotPuzzleString id (Ok puzzleString), _ ) ->
-            ( Model (loadGame (PuzzleId.toString id) puzzleString), Cmd.none )
+        ( GotPuzzle id (Ok puzzle), _ ) ->
+            ( Model <| Ok <| Initialized <| InitializedState puzzle, Cmd.none )
 
-        ( GotPuzzleString id (Err p), _ ) ->
+        ( GotPuzzle id (Err p), _ ) ->
             ( model, Cmd.none )
 
         ( _, Err err ) ->
@@ -414,6 +410,9 @@ updateGameState msg gameState =
 
         InProgress inProgressGame ->
             updateInProgressGame msg inProgressGame
+
+        Loading ->
+            gameState
 
         Ended endedState ->
             -- TODO
@@ -610,7 +609,7 @@ updateInProgressGame msg gameState =
         OnGameStart ->
             noOp
 
-        GotPuzzleString _ _ ->
+        GotPuzzle _ _ ->
             noOp
 
 

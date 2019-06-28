@@ -1,4 +1,11 @@
-module SamplePuzzle exposing (puzzle)
+module SamplePuzzle exposing (puzzle, id)
+
+import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
+
+
+id : PuzzleId
+id =
+    PuzzleId.fromString "sample"
 
 
 puzzle : String
