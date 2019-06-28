@@ -1,5 +1,6 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
+import Route
 import Css exposing (px)
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
@@ -110,7 +111,7 @@ viewPuzzle puzzle =
             , Css.borderRadius (px 8)
             , Css.boxShadow5 (px 0) (px 3) (px 5) (px 1) (Css.rgba 0 0 0 0.1)
             ]
-        , Route
+        , Route.gameForId puzzle.id
         ]
         [ div []
             [ Board.view
