@@ -62,7 +62,7 @@ viewRow ({ puzzle, board } as config) y row =
 
 
 viewCell : Config msg -> Int -> Int -> Cell -> Svg msg
-viewCell ({ puzzle, board } as config) y x cell =
+viewCell ({ puzzle, board, clueIndicesVisible } as config) y x cell =
     let
         point =
             ( x, y )
@@ -131,8 +131,8 @@ viewCell ({ puzzle, board } as config) y x cell =
                     , SvgA.strokeWidth ".5"
                     ]
                     []
-        , case wordStartNumber of
-            Just n ->
+        , case ( clueIndicesVisible, wordStartNumber ) of
+            ( True, Just n ) ->
                 Svg.text_
                     [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
                     , SvgA.x "1"
@@ -140,7 +140,7 @@ viewCell ({ puzzle, board } as config) y x cell =
                     ]
                     [ Svg.text (String.fromInt n) ]
 
-            Nothing ->
+            ( _, _ ) ->
                 Svg.g [] []
         ]
 
