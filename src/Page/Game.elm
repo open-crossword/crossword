@@ -196,6 +196,7 @@ viewCrossword gameState =
                         [ css [ Css.marginTop (px 15) ] ]
                         [ Board.view
                             { clueIndicesVisible = True
+                            , selectionVisible = True
                             , onCellClicked = OnCellClick
                             , board = gameState.board
                             , puzzle = gameState.puzzle

@@ -125,11 +125,12 @@ viewPuzzle puzzle =
             [ Board.view
                 { onCellClicked = always NoOp
                 , clueIndicesVisible = False
+                , selectionVisible = False
                 , board = Board.fromPuzzle puzzle
                 , puzzle = puzzle
                 }
             ]
-        , div [css [Css.textAlign Css.center, Css.marginTop (px 4)]]
+        , div [ css [ Css.textAlign Css.center, Css.marginTop (px 4) ] ]
             [ case puzzle.metadata.date of
                 Just date ->
                     text date

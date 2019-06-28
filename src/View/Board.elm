@@ -18,6 +18,7 @@ import Svg.Styled.Events as SvgE
 type alias Config msg =
     { onCellClicked : Point -> msg
     , clueIndicesVisible : Bool
+    , selectionVisible : Bool
     , board : Board
     , puzzle : Puzzle
     }
@@ -62,7 +63,7 @@ viewRow ({ puzzle, board } as config) y row =
 
 
 viewCell : Config msg -> Int -> Int -> Cell -> Svg msg
-viewCell ({ puzzle, board, clueIndicesVisible } as config) y x cell =
+viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x cell =
     let
         point =
             ( x, y )
@@ -101,10 +102,10 @@ viewCell ({ puzzle, board, clueIndicesVisible } as config) y x cell =
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
                         , SvgA.css [ Css.property "touch-action" "manipulation" ]
-                        , if isSelected then
+                        , if selectionVisible && isSelected then
                             SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
 
-                          else if Board.isSelectedWord point puzzle board then
+                          else if selectionVisible && Board.isSelectedWord point puzzle board then
                             SvgA.fill (Styles.colorToRgbString Styles.colors.selectedWord)
 
                           else
