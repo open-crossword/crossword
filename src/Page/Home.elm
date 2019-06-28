@@ -2,6 +2,7 @@ module Page.Home exposing (Model, Msg, init, update, view)
 
 import Css exposing (px)
 import Data.Board as Board exposing (Board)
+import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -24,22 +25,6 @@ type Msg
 type alias Model =
     { samplePuzzles : Loadable (List Puzzle)
     }
-
-
-type Loadable a
-    = Loading
-    | Loaded a
-    | Failed Http.Error
-
-
-httpResultToLoadable : Result Http.Error a -> Loadable a
-httpResultToLoadable result =
-    case result of
-        Ok data ->
-            Loaded data
-
-        Err err ->
-            Failed err
 
 
 getRandomPuzzles : Cmd Msg
@@ -65,7 +50,7 @@ parserToDecoder parser =
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { samplePuzzles = Loading }, getRandomPuzzles )
+    ( { samplePuzzles = Loadable.Loading }, getRandomPuzzles )
 
 
 view : Model -> { title : String, content : Html Msg }
@@ -91,10 +76,10 @@ content model =
             ]
             [ Logo.view ]
         , case model.samplePuzzles of
-            Loading ->
+            Loadable.Loading ->
                 div [] [ text "loading..." ]
 
-            Loaded puzzles ->
+            Loadable.Loaded puzzles ->
                 div
                     [ css
                         [ Css.displayFlex
@@ -104,7 +89,7 @@ content model =
                     ]
                     (List.map viewPuzzle puzzles)
 
-            Failed err ->
+            Loadable.Failed err ->
                 pre [] [ text (Debug.toString err) ]
         ]
 
@@ -148,4 +133,4 @@ update msg model =
             ( model, Cmd.none )
 
         GotRandomPuzzles result ->
-            ( { model | samplePuzzles = httpResultToLoadable result }, Cmd.none )
+            ( { model | samplePuzzles = Loadable.fromHttpResult result }, Cmd.none )
