@@ -68,7 +68,7 @@ type alias Model =
 
 type Msg
     = OnDropFile File (List File)
-    | OnFileRead String
+    | OnFileRead { name : String, contents : String }
     | OnGameStart
     | TimerTick
     | OnCellClick Point
@@ -83,20 +83,20 @@ type Msg
 
 init : Session -> ( Model, Cmd Msg )
 init session =
-    ( { game = loadPuzzle SamplePuzzle.puzzle
+    ( { game = loadPuzzle "sample" SamplePuzzle.puzzle
       }
     , Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
     )
 
 
-loadPuzzle : String -> Result (List Parser.DeadEnd) Game
-loadPuzzle =
-    parsePuzzle >> Result.map (InitializedState >> Initialized)
+loadPuzzle : String -> String -> Result (List Parser.DeadEnd) Game
+loadPuzzle id =
+    parsePuzzle id >> Result.map (InitializedState >> Initialized)
 
 
-parsePuzzle : String -> Result (List Parser.DeadEnd) Puzzle
-parsePuzzle input =
-    Puzzle.Format.Xd.parse input
+parsePuzzle : String -> String -> Result (List Parser.DeadEnd) Puzzle
+parsePuzzle id input =
+    Puzzle.Format.Xd.parse input id
 
 
 
@@ -356,12 +356,22 @@ ourButton attrs children =
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        onFileRead file contents =
+            OnFileRead
+                { contents = contents
+                , name = File.name file
+                }
+    in
     case ( msg, model.game ) of
         ( OnDropFile file _, _ ) ->
-            ( model, File.toString file |> Task.perform OnFileRead )
+            ( model
+            , File.toString file
+                |> Task.perform (onFileRead file)
+            )
 
-        ( OnFileRead content, _ ) ->
-            ( Model (loadPuzzle content), Cmd.none )
+        ( OnFileRead { contents, name }, _ ) ->
+            ( Model (loadPuzzle name contents), Cmd.none )
 
         ( _, Err err ) ->
             ( model, Cmd.none )

@@ -4,6 +4,7 @@ import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
+import Data.Puzzle.Id exposing (PuzzleId)
 import Dict exposing (Dict)
 
 
@@ -16,7 +17,8 @@ type alias ClueIndex =
 
 
 type alias Puzzle =
-    { notes : Maybe String
+    { id : PuzzleId
+    , notes : Maybe String
     , metadata : Metadata
     , grid : Grid Cell
     , clues : Dict ClueIndex Clue

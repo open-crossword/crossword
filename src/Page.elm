@@ -83,7 +83,7 @@ viewHeader config =
                 ]
             , hamburgerMenuToggle config.onMenuToggle
             ]
-        , viewHeaderLink config.session (Route.gameForId "default") "Solo Game"
+        , viewHeaderLink config.session Route.defaultGame "Solo Game"
         , viewHeaderLink config.session Route.about "About"
         ]
 

@@ -1,14 +1,15 @@
-module Route exposing (Route(..), about, fromUrl, gameForId, home)
+module Route exposing (Route(..), about, defaultGame, fromUrl, gameForId, home)
 
+import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Html.Styled as Html
 import Html.Styled.Attributes exposing (href)
 import Url exposing (Url)
-import Url.Parser as Parser exposing ((</>), Parser, oneOf, s, string)
+import Url.Parser as Parser exposing ((</>), Parser, oneOf, s)
 
 
 type Route
     = Home
-    | Game String
+    | Game (Maybe PuzzleId)
     | About
 
 
@@ -16,7 +17,8 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Home Parser.top
-        , Parser.map Game (s "game" </> string)
+        , Parser.map Game (s "game" </> Parser.map (PuzzleId.fromString >> Just) Parser.string)
+        , Parser.map (Game Nothing) (s "game")
         , Parser.map About (s "about")
         ]
 
@@ -33,8 +35,11 @@ toParts route =
         Home ->
             []
 
-        Game string ->
-            [ "game", string ]
+        Game (Just id) ->
+            [ "game", PuzzleId.toString id ]
+
+        Game Nothing ->
+            [ "game" ]
 
         About ->
             [ "about" ]
@@ -49,9 +54,14 @@ toHref route =
     href ("#/" ++ String.join "/" parts)
 
 
-gameForId : String -> Html.Attribute msg
+defaultGame : Html.Attribute msg
+defaultGame =
+    toHref (Game Nothing)
+
+
+gameForId : PuzzleId -> Html.Attribute msg
 gameForId id =
-    toHref (Game id)
+    toHref (Game (Just id))
 
 
 home : Html.Attribute msg

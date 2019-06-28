@@ -4,6 +4,7 @@ import Css exposing (px)
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
+import Data.Puzzle.Id as PuzzleId
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Http
@@ -37,7 +38,11 @@ getRandomPuzzles =
 
 puzzleDecoder : Decoder Puzzle
 puzzleDecoder =
-    parserToDecoder Puzzle.Format.Xd.puzzle
+    JD.field "name" JD.string
+        |> JD.andThen
+            (\name ->
+                JD.field "puzzle" (parserToDecoder (Puzzle.Format.Xd.puzzle name))
+            )
 
 
 parserToDecoder : Parser a -> Decoder a
@@ -96,7 +101,7 @@ content model =
 
 viewPuzzle : Puzzle -> Html Msg
 viewPuzzle puzzle =
-    div
+    a
         [ css
             [ Css.width (Css.pct 20)
             , Css.margin (px 20)
@@ -105,6 +110,7 @@ viewPuzzle puzzle =
             , Css.borderRadius (px 8)
             , Css.boxShadow5 (px 0) (px 3) (px 5) (px 1) (Css.rgba 0 0 0 0.1)
             ]
+        , Route
         ]
         [ div []
             [ Board.view
@@ -123,6 +129,7 @@ viewPuzzle puzzle =
                 Nothing ->
                     text ""
             ]
+        , div [] [ text (PuzzleId.toString puzzle.id) ]
         ]
 
 

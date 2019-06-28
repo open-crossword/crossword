@@ -5,18 +5,19 @@ import Data.Grid as Grid exposing (Grid)
 import Data.OneOrTwo as OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..))
+import Data.Puzzle.Id as PuzzleId
 import Dict exposing (Dict)
 import Parser exposing (..)
 
 
-parse : String -> Result (List Parser.DeadEnd) Puzzle
-parse input =
+parse : String -> String -> Result (List Parser.DeadEnd) Puzzle
+parse input id =
     -- adding this newline because parsers are hard
-    run puzzle (input ++ "\n")
+    run (puzzle id) (input ++ "\n")
 
 
-puzzle : Parser Puzzle
-puzzle =
+puzzle : String -> Parser Puzzle
+puzzle id =
     let
         buildPuzzle =
             \metadata_ grid_ clues_ ->
@@ -30,6 +31,7 @@ puzzle =
                 , clues = clues_
                 , cluesForCell = annotate grid_ wordStarts_ clues_
                 , wordStarts = wordStarts_
+                , id = PuzzleId.fromString id
                 }
     in
     succeed buildPuzzle
