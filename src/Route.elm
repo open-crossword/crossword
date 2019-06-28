@@ -17,7 +17,7 @@ parser : Parser (Route -> a) a
 parser =
     oneOf
         [ Parser.map Home Parser.top
-        , Parser.map Game (s "game" </> Parser.map (PuzzleId.fromString >> Just) Parser.string)
+        , Parser.map Game (s "game" </> Parser.map (Just << PuzzleId.fromString) Parser.string)
         , Parser.map (Game Nothing) (s "game")
         , Parser.map About (s "about")
         ]
