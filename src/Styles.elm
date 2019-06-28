@@ -1,6 +1,7 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, toolbar)
+module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar)
 
 import Css exposing (..)
+import Css.Animations as CssA
 import Css.Media as CssM
 
 
@@ -144,4 +145,27 @@ isMobile mobileCss nonMobileCss =
             mobileCss
         , CssM.withMedia [ CssM.only CssM.screen [ CssM.minWidth (px 500) ] ]
             nonMobileCss
+        ]
+
+
+shimmerAnimation =
+    Css.batch
+        [ Css.animationDuration (sec 2)
+        , Css.property "animation-fill-mode" "forwards"
+        , Css.property "animation-iteration-count" "infinite"
+        , Css.animationName
+            (CssA.keyframes
+                [ ( 0, [ CssA.property "background-position" "-1200px 0" ] )
+                , ( 100, [ CssA.property "background-position" "1200px 0" ] )
+                ]
+            )
+        , Css.property "animation-timing-function" "linear"
+        , Css.backgroundColor (hex "#F0F0F5")
+        , Css.backgroundImage
+            (Css.linearGradient2 (deg 125)
+                (stop2 (hex "#F0F0F5") <| pct 4)
+                (stop2 (hex "#E9E9ED") <| pct 25)
+                [ stop2 (hex "#F0F0F5") <| pct 36 ]
+            )
+        , Css.backgroundSize2 (px 1200) (pct 100)
         ]

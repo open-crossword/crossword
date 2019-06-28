@@ -1,6 +1,6 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
-import Css exposing (px)
+import Css exposing (pct, px)
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
@@ -15,6 +15,8 @@ import Result.Extra as Result
 import Route
 import Session exposing (Session)
 import Styles
+import Svg.Styled as Svg
+import Svg.Styled.Attributes as SvgA
 import View.Board as Board
 import View.Logo as Logo
 
@@ -56,20 +58,55 @@ content model =
         [ h3 [] [ text "Welcome to Crossword Games!" ]
         , case model.samplePuzzles of
             Loadable.Loading ->
-                div [] [ text "loading..." ]
+                viewCards (List.repeat 8 Nothing)
 
             Loadable.Loaded puzzles ->
-                div
-                    [ css
-                        [ Css.displayFlex
-                        , Css.flexWrap Css.wrap
-                        , Styles.justifyContentCenter
-                        ]
-                    ]
-                    (List.map viewPuzzle puzzles)
+                viewCards (List.map Just puzzles)
 
             Loadable.Failed err ->
                 pre [] [ text (Debug.toString err) ]
+        ]
+
+
+viewCards : List (Maybe Puzzle) -> Html Msg
+viewCards puzzles =
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.flexWrap Css.wrap
+            , Styles.justifyContentCenter
+            ]
+        ]
+        (List.map viewCard puzzles)
+
+
+viewCard : Maybe Puzzle -> Html Msg
+viewCard maybePuzzle =
+    case maybePuzzle of
+        Just puzzle ->
+            viewPuzzle puzzle
+
+        Nothing ->
+            viewPuzzleLoading
+
+
+cardStyle =
+    Css.batch
+        [ Css.width (pct 20)
+        , Css.minWidth (px 200)
+        , Css.maxWidth (px 400)
+        , Css.margin (pct 1)
+        , Css.borderRadius (px 0)
+        , Css.boxShadow4 (px 0) (px 6) (px 8) (Css.rgba 0 0 0 0.1)
+        , Css.textDecoration Css.none
+        , Css.color Styles.colors.black
+        ]
+
+
+cardTitleStyle =
+    Css.batch
+        [ Css.textAlign Css.center
+        , Css.margin (pct 3)
         ]
 
 
@@ -77,16 +114,11 @@ viewPuzzle : Puzzle -> Html Msg
 viewPuzzle puzzle =
     a
         [ css
-            [ Css.width (Css.pct 20)
-            , Css.margin (px 20)
-            , Css.padding (px 20)
-            , Css.border3 (px 2) Css.solid Styles.colors.black
-            , Css.borderRadius (px 8)
-            , Css.boxShadow5 (px 0) (px 3) (px 5) (px 1) (Css.rgba 0 0 0 0.1)
-            ]
+            [ cardStyle ]
         , Route.gameForId puzzle.id
         ]
-        [ div []
+        [ div
+            []
             [ Board.view
                 { onCellClicked = always NoOp
                 , clueIndicesVisible = False
@@ -95,14 +127,38 @@ viewPuzzle puzzle =
                 , puzzle = puzzle
                 }
             ]
-        , div [ css [ Css.textAlign Css.center, Css.marginTop (px 4) ] ]
+        , div [ css [ cardTitleStyle ] ]
             [ case puzzle.metadata.date of
                 Just date ->
                     text date
 
                 Nothing ->
-                    text ""
+                    text "Puzzle"
             ]
+        ]
+
+
+viewPuzzleLoading : Html Msg
+viewPuzzleLoading =
+    div
+        [ css
+            [ cardStyle ]
+        ]
+        [ div
+            [ css
+                [ Styles.shimmerAnimation
+                ]
+            ]
+            -- Use an empty SVG to keep aspect ratio but fill all available space
+            [ Svg.svg [ SvgA.viewBox "0 0 1 1" ] [] ]
+        , div
+            [ css
+                [ Styles.shimmerAnimation
+                , cardTitleStyle
+                , Css.height (px 16)
+                ]
+            ]
+            [ text "" ]
         ]
 
 
