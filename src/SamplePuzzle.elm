@@ -1,4 +1,4 @@
-module SamplePuzzle exposing (puzzle, id)
+module SamplePuzzle exposing (id, puzzle)
 
 import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 

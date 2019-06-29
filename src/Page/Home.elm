@@ -7,6 +7,7 @@ import Data.Puzzle as Puzzle exposing (Puzzle)
 import Data.Puzzle.Id as PuzzleId
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
+import Http
 import Http.Puzzle
 import Parser exposing (Parser)
 import Puzzle.Format.Xd
@@ -16,7 +17,6 @@ import Session exposing (Session)
 import Styles
 import View.Board as Board
 import View.Logo as Logo
-import Http
 
 
 type Msg
