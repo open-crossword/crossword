@@ -75,7 +75,7 @@ viewHeader config =
                     [ Route.home
                     , css
                         [ Css.marginRight (px 14)
-                        , Css.maxWidth (px 25)
+                        , Css.width (px 25)
                         ]
                     ]
                     [ Logo.view ]
