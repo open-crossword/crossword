@@ -1,6 +1,7 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
 import Css exposing (pct, px)
+import Css.Transitions
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
@@ -102,6 +103,16 @@ cardStyle =
         , Css.textDecoration Css.none
         , Css.color Styles.colors.black
         , Css.cursor Css.pointer
+        , Css.Transitions.transition
+            [ Css.Transitions.transform3 50 0 Css.Transitions.easeOut
+            , Css.Transitions.boxShadow3 50 0 Css.Transitions.easeOut
+            ]
+        , Css.property "transition" "transform 0.05s ease-out, box-shadow 0.05s ease-out"
+        , Css.backgroundColor Styles.colors.white
+        , Css.hover
+            [ Css.boxShadow4 (px 0) (px 6) (px 8) (Css.rgba 0 0 0 0.2)
+            , Css.transform (Css.scale 1.01)
+            ]
         ]
 
 
