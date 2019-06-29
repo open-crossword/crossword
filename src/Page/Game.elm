@@ -165,7 +165,13 @@ viewPuzzleError errors =
 viewGameStart : { puzzle : Puzzle } -> Html Msg
 viewGameStart gameState =
     div [ class "flex justify-center flex-column items-center" ]
-        [ div [ class "w-70" ]
+        [ div
+            [ css
+                [ Styles.isMobile
+                    [ Styles.widths.p90 ]
+                    [ Styles.widths.p70 ]
+                ]
+            ]
             [ viewMetadata gameState.puzzle.metadata
             , ourButton
                 [ onClick OnGameStart
@@ -197,7 +203,13 @@ viewGameEnd gameState =
 viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
 viewCrossword gameState =
     div [ class "flex justify-center flex-column items-center" ]
-        [ div [ class "w-70" ]
+        [ div
+            [ css
+                [ Styles.isMobile
+                    [ Styles.widths.p90 ]
+                    [ Styles.widths.p70 ]
+                ]
+            ]
             [ div [ css [ Styles.hideOnMobile ] ]
                 [ viewMetadata gameState.puzzle.metadata
                 , text (TimeFormat.formatSeconds gameState.timeSeconds)
@@ -205,7 +217,7 @@ viewCrossword gameState =
             , div [ css [ Styles.toolbar ] ]
                 [ viewToolbar ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
-                [ div [ class "w-100" ]
+                [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
                     , div
                         [ css [ Css.marginTop (px 15) ] ]
@@ -226,8 +238,8 @@ viewCrossword gameState =
                     [ css
                         [ marginLeft (px 40)
                         , Styles.hideOnMobile
+                        , Styles.widths.p100
                         ]
-                    , class "w-100"
                     ]
                     [ viewClues gameState.puzzle gameState.board ]
                 ]
@@ -309,11 +321,20 @@ viewClues puzzle board =
             Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)
     in
     div [ css [ displayFlex ] ]
-        [ div [ class "w-100" ]
+        [ div
+            [ css
+                [ Styles.widths.p100
+                ]
+            ]
             [ h2 [] [ text "Across" ]
             , div [] (helper acrossClues)
             ]
-        , div [ class "w-100", css [ marginLeft (px 20) ] ]
+        , div
+            [ css
+                [ marginLeft (px 20)
+                , Styles.widths.p100
+                ]
+            ]
             [ h2 [] [ text "Down" ]
             , div [] (helper downClues)
             ]

@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar)
+module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
 
 import Css exposing (..)
 import Css.Animations as CssA
@@ -13,6 +13,13 @@ colors =
     , selectedWord = hex "#A7D8FF"
     , lightGrey = hex "#F4F4F4"
     , lightGreen = hex "#9EEBCF"
+    }
+
+
+widths =
+    { p70 = Css.width (pct 70)
+    , p90 = Css.width (pct 90)
+    , p100 = Css.width (pct 100)
     }
 
 
