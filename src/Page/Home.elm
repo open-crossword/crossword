@@ -54,10 +54,6 @@ content model =
             ]
         ]
         [ h3 [] [ text "Welcome to Crossword Games!" ]
-        , div
-            [ css [ Css.maxWidth (px 300) ]
-            ]
-            [ Logo.view ]
         , case model.samplePuzzles of
             Loadable.Loading ->
                 div [] [ text "loading..." ]
@@ -107,7 +103,6 @@ viewPuzzle puzzle =
                 Nothing ->
                     text ""
             ]
-        , div [] [ text (PuzzleId.toString puzzle.id) ]
         ]
 
 
