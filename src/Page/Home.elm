@@ -101,6 +101,7 @@ cardStyle =
         , Css.boxShadow4 (px 0) (px 6) (px 8) (Css.rgba 0 0 0 0.1)
         , Css.textDecoration Css.none
         , Css.color Styles.colors.black
+        , Css.cursor Css.pointer
         ]
 
 
@@ -114,8 +115,7 @@ cardTitleStyle =
 viewPuzzle : Puzzle -> Html Msg
 viewPuzzle puzzle =
     a
-        [ css
-            [ cardStyle ]
+        [ css [ cardStyle ]
         , Route.gameForId puzzle.id
         ]
         [ div
