@@ -4,6 +4,7 @@ import Css exposing (pct, px)
 import Data.Board as Board exposing (Board)
 import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
+import Data.Puzzle.Date as PuzzleDate
 import Data.Puzzle.Id as PuzzleId
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -128,9 +129,13 @@ viewPuzzle puzzle =
                 }
             ]
         , div [ css [ cardTitleStyle ] ]
-            [ case puzzle.metadata.date of
-                Just date ->
-                    text date
+            [ case
+                puzzle.metadata.date
+                    |> Maybe.andThen
+                        PuzzleDate.parseDateString
+              of
+                Just { weekDay, englishMonth, dayNum, year } ->
+                    text (weekDay ++ " " ++ englishMonth ++ " " ++ dayNum ++ ", " ++ year)
 
                 Nothing ->
                     text "Puzzle"
