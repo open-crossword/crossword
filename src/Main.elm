@@ -149,16 +149,20 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.pageModel ) of
         ( ClickedLink urlRequest, _ ) ->
+            let
+                newModel =
+                    { model | session = Session.collapseMenu (toSession model) }
+            in
             case urlRequest of
                 Browser.Internal url ->
-                    ( model
+                    ( newModel
                     , Nav.pushUrl
                         (Session.navKey (toSession model))
                         (Url.toString url)
                     )
 
                 Browser.External href ->
-                    ( model
+                    ( newModel
                     , Nav.load href
                     )
 

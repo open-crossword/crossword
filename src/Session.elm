@@ -1,4 +1,4 @@
-module Session exposing (Session, init, navKey, toggleMenuCollapsed)
+module Session exposing (Session, collapseMenu, init, navKey, toggleMenuCollapsed)
 
 import Browser.Navigation as Nav
 
@@ -24,3 +24,8 @@ navKey record =
 toggleMenuCollapsed : Session -> Session
 toggleMenuCollapsed session =
     { session | menuCollapsed = not session.menuCollapsed }
+
+
+collapseMenu : Session -> Session
+collapseMenu session =
+    { session | menuCollapsed = True }
