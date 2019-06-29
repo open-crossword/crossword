@@ -55,6 +55,7 @@ content model =
             , Css.flexDirection Css.column
             , Css.alignItems Css.center
             , Styles.fonts.avenir
+            , Css.backgroundColor Styles.colors.lightGrey
             ]
         ]
         [ h3 [] [ text "Welcome to Crossword Games!" ]
@@ -103,6 +104,7 @@ cardStyle =
         , Css.textDecoration Css.none
         , Css.color Styles.colors.black
         , Css.cursor Css.pointer
+        , Css.backgroundColor Styles.colors.white
         , Css.Transitions.transition
             [ Css.Transitions.transform3 50 0 Css.Transitions.easeOut
             , Css.Transitions.boxShadow3 50 0 Css.Transitions.easeOut
