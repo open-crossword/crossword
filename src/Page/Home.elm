@@ -97,7 +97,10 @@ cardStyle =
         [ Css.width (pct 20)
         , Css.minWidth (px 200)
         , Css.maxWidth (px 400)
-        , Css.margin (pct 1)
+        , Styles.isMobile
+            [ Css.margin (pct 3) ]
+            [ Css.margin (pct 1) ]
+        , Css.marginBottom (pct 4)
         , Css.borderRadius (px 0)
         , Css.boxShadow4 (px 0) (px 6) (px 8) (Css.rgba 0 0 0 0.1)
         , Css.textDecoration Css.none
@@ -108,11 +111,10 @@ cardStyle =
             [ Css.Transitions.transform3 50 0 Css.Transitions.easeOut
             , Css.Transitions.boxShadow3 50 0 Css.Transitions.easeOut
             ]
-        , Css.property "transition" "transform 0.05s ease-out, box-shadow 0.05s ease-out"
         , Css.backgroundColor Styles.colors.white
         , Css.hover
             [ Css.boxShadow4 (px 0) (px 6) (px 8) (Css.rgba 0 0 0 0.2)
-            , Css.transform (Css.scale 1.01)
+            , Css.transform (Css.scale 1.03)
             ]
         ]
 
