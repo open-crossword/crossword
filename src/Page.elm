@@ -28,11 +28,10 @@ type alias Config msg =
     }
 
 
-view : Config msg -> Document msg
+view : Config msg -> {title: String, body: List (Html msg)}
 view config =
     { title = config.content.title
     , body =
-        List.map toUnstyled
             [ viewHeader config
             , config.content.content
             , viewFooter
@@ -46,7 +45,6 @@ viewHeader config =
         [ css
             [ Css.displayFlex
             , Css.alignItems Css.center
-            , Css.backgroundColor Styles.colors.lightGrey
             , Css.padding (px 14)
             , Styles.fonts.avenir
             , Styles.isMobile

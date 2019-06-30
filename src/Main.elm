@@ -110,7 +110,7 @@ view model =
                         }
             in
             { title = title
-            , body = body
+            , body = [ div [] body |> toUnstyled ]
             }
     in
     case model.pageModel of
