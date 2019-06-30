@@ -62,10 +62,12 @@ type Game
     | Initialized InitializedState
     | InProgress InProgressState
     | Ended EndedState
+      -- TODO Capture error state (Http/Parser)
+    | Error
 
 
 type alias Model =
-    { game : Result (List Parser.DeadEnd) Game
+    { game : Game
     }
 
 
@@ -87,7 +89,13 @@ type Msg
 
 init : Session -> Maybe PuzzleId -> ( Model, Cmd Msg )
 init session puzzleId =
-    ( { game = loadGame SamplePuzzle.id SamplePuzzle.puzzle
+    ( { game =
+            case puzzleId of
+                Just _ ->
+                    Loading
+
+                Nothing ->
+                    loadGame SamplePuzzle.id SamplePuzzle.puzzle
       }
     , Cmd.batch
         [ Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
@@ -101,9 +109,11 @@ init session puzzleId =
     )
 
 
-loadGame : PuzzleId -> String -> Result (List Parser.DeadEnd) Game
+loadGame : PuzzleId -> String -> Game
 loadGame id =
-    parsePuzzle id >> Result.map (InitializedState >> Initialized)
+    parsePuzzle id
+        >> Result.map (InitializedState >> Initialized)
+        >> Result.withDefault Error
 
 
 parsePuzzle : PuzzleId -> String -> Result (List Parser.DeadEnd) Puzzle
@@ -124,12 +134,7 @@ view model =
             , hijackOn "dragover" (Decode.succeed NoOp)
             , css [ Styles.fonts.avenir ]
             ]
-            [ case model.game of
-                Ok game ->
-                    viewGame game
-
-                Err err ->
-                    viewPuzzleError err
+            [ viewGame model.game
             ]
     }
 
@@ -148,6 +153,9 @@ viewGame game =
 
         Loading ->
             div [] [ text "loading..." ]
+
+        Error ->
+            div [] [ text "Failed to load puzzle! " ]
 
 
 viewPuzzleError : List Parser.DeadEnd -> Html Msg
@@ -410,16 +418,13 @@ update msg model =
             ( Model (loadGame (PuzzleId.fromString name) contents), Cmd.none )
 
         ( GotPuzzle id (Ok puzzle), _ ) ->
-            ( Model <| Ok <| Initialized <| InitializedState puzzle, Cmd.none )
+            ( Model <| Initialized <| InitializedState puzzle, Cmd.none )
 
         ( GotPuzzle id (Err p), _ ) ->
             ( model, Cmd.none )
 
-        ( _, Err err ) ->
-            ( model, Cmd.none )
-
-        ( _, Ok game ) ->
-            ( { model | game = Ok (updateGameState msg game) }, Cmd.none )
+        ( _, game ) ->
+            ( { model | game = updateGameState msg game }, Cmd.none )
 
 
 updateGameState : Msg -> Game -> Game
@@ -436,6 +441,9 @@ updateGameState msg gameState =
 
         Ended endedState ->
             -- TODO
+            gameState
+
+        Error ->
             gameState
 
 
@@ -654,7 +662,7 @@ freshInProgress puzzle =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     case model.game of
-        Ok (InProgress _) ->
+        InProgress _ ->
             Sub.batch
                 [ Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
                 , Time.every 1000 (always TimerTick)
