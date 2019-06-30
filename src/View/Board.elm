@@ -96,7 +96,7 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                 Svg.g
                     []
                     [ Svg.rect
-                        [ SvgE.onClick (config.onCellClicked point)
+                        [ SvgE.onMouseDown (config.onCellClicked point)
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
