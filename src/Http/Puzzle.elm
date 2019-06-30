@@ -33,19 +33,18 @@ get toMsg puzzleId =
         }
 
 
-random : (Result Http.Error (List Puzzle) -> msg) -> Int -> Cmd msg
+random : (Result Error (List Puzzle) -> msg) -> Int -> Cmd msg
 random toMsg howMany =
-    -- TODO: use Error instead of Http.Error
     Http.get
         { url = "http://localhost:8080/puzzles?n=" ++ String.fromInt howMany
-        , expect = Http.expectJson toMsg (JD.list puzzleDecoder)
+        , expect = Http.expectJson (errorify toMsg) (JD.list puzzleDecoder)
         }
 
 
-errorify : (Result Error y -> msg) -> (x -> Result Error y) -> Result Http.Error x -> msg
-errorify toMsg resultFromX =
-    \result ->
-        Debug.todo ""
+errorify : (Result Error x -> msg) -> (Result Http.Error x -> msg)
+errorify resultFromX =
+    \httpResult ->
+        resultFromX (Result.mapError HttpError httpResult)
 
 
 puzzleDecoder : Decoder Puzzle

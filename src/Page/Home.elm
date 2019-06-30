@@ -24,12 +24,12 @@ import View.Logo as Logo
 
 
 type Msg
-    = GotRandomPuzzles (Result Http.Error (List Puzzle))
+    = GotRandomPuzzles (Result Http.Puzzle.Error (List Puzzle))
     | NoOp
 
 
 type alias Model =
-    { samplePuzzles : Loadable (List Puzzle)
+    { samplePuzzles : Loadable Http.Puzzle.Error (List Puzzle)
     }
 
 
@@ -186,4 +186,4 @@ update msg model =
             ( model, Cmd.none )
 
         GotRandomPuzzles result ->
-            ( { model | samplePuzzles = Loadable.fromHttpResult result }, Cmd.none )
+            ( { model | samplePuzzles = Loadable.fromResult result }, Cmd.none )
