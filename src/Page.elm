@@ -28,14 +28,14 @@ type alias Config msg =
     }
 
 
-view : Config msg -> {title: String, body: List (Html msg)}
+view : Config msg -> { title : String, body : List (Html msg) }
 view config =
     { title = config.content.title
     , body =
-            [ viewHeader config
-            , config.content.content
-            , viewFooter
-            ]
+        [ viewHeader config
+        , config.content.content
+        , viewFooter
+        ]
     }
 
 

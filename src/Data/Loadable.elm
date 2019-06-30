@@ -1,7 +1,7 @@
 module Data.Loadable exposing (Loadable(..), fromResult, toMaybe)
 
-
 import Http
+
 
 type Loadable x a
     = Loading
