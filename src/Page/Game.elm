@@ -39,6 +39,7 @@ import Task
 import Time
 import UndoList exposing (UndoList)
 import View.Board as Board
+import View.Icons
 import View.Keyboard as Keyboard
 
 
@@ -284,11 +285,9 @@ viewCrossword probablyMobile gameState =
                 ]
             ]
             [ div [ css [ Styles.hideOnMobile ] ]
-                [ viewMetadata gameState.puzzle.metadata
-                , text (TimeFormat.formatSeconds gameState.timeSeconds)
-                ]
+                [ viewMetadata gameState.puzzle.metadata ]
             , div [ css [ Styles.toolbar ] ]
-                [ viewToolbar ]
+                [ viewToolbar gameState.timeSeconds ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
                 [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
@@ -337,7 +336,7 @@ hammerIf cond =
 viewMetadata : Metadata -> Html Msg
 viewMetadata metadata =
     div
-        []
+        [ css [ Styles.hideOnMobile ] ]
         [ div
             []
             (case Maybe.andThen PuzzleDate.parseDateString metadata.date of
@@ -370,20 +369,29 @@ viewMetadata metadata =
         ]
 
 
-viewToolbar : Html Msg
-viewToolbar =
+viewToolbar : Int -> Html Msg
+viewToolbar timeSeconds =
     div
         [ css
             [ Css.displayFlex
             , Css.justifyContent Css.flexStart
+            , Css.alignItems Css.center
             , Css.marginBottom (rem 0.5)
             ]
         ]
-        [ ourButton [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
-        , ourButton [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
-        , ourButton [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
-        , ourButton [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
+        [ i
+            [ css [ Css.marginRight (px 10) ]
+            ]
+            [ View.Icons.toHtml Icons.clock ]
+        , text (TimeFormat.formatSeconds timeSeconds)
         ]
+
+
+
+-- , ourButton [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
+-- , ourButton [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
+-- , ourButton [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
+-- , ourButton [ onClick RevealPuzzle ] [ text "Reveal Puzzle" ]
 
 
 viewSelectedClue : Puzzle -> Board -> Html Msg

@@ -3,13 +3,14 @@ module Page exposing (Page(..), view)
 import Browser exposing (Document)
 import Css exposing (px, rgb)
 import Css.Media as CssM
-import FeatherIcons
+import FeatherIcons as Icons
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick)
 import Route exposing (Route)
 import Session exposing (Session)
 import Styles
+import View.Icons
 import View.Logo as Logo
 
 
@@ -98,7 +99,7 @@ hamburgerMenuToggle onMenuToggle =
             ]
         , onClick onMenuToggle
         ]
-        [ (FeatherIcons.menu |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled ]
+        [ View.Icons.toHtml Icons.menu ]
 
 
 viewHeaderLink : Session -> Html.Styled.Attribute msg -> String -> Html msg
