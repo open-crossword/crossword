@@ -3,7 +3,7 @@ module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
 import Browser
 import Browser.Dom
 import Browser.Events
-import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
+import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, int, left, margin, marginLeft, marginTop, position, property, px, relative, rem, rgb, solid, top)
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
 import Data.Grid as Grid exposing (Grid)
@@ -161,9 +161,11 @@ viewGame game =
 viewPuzzleError : List Parser.DeadEnd -> Html Msg
 viewPuzzleError errors =
     div
-        [ class "flex flex-column"
-        , css
-            [ Css.padding (px 15) ]
+        [ css
+            [ Css.displayFlex
+            , Css.flexDirection Css.column
+            , Css.padding (px 15)
+            ]
         ]
         [ h2 [] [ text "Oh No!" ]
         , div [] [ text "There was an error loading your puzzle." ]
@@ -172,7 +174,14 @@ viewPuzzleError errors =
 
 viewGameStart : { puzzle : Puzzle } -> Html Msg
 viewGameStart gameState =
-    div [ class "flex justify-center flex-column items-center" ]
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.flexDirection Css.column
+            , Css.justifyContent Css.center
+            , Css.alignItems Css.center
+            ]
+        ]
         [ div
             [ css
                 [ Styles.isMobile
@@ -197,9 +206,12 @@ viewGameEnd : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html 
 viewGameEnd gameState =
     div []
         [ div
-            [ class "flex justify-center flex-column items-center"
-            , css
-                [ Css.backgroundColor Styles.colors.lightGreen
+            [ css
+                [ Css.displayFlex
+                , Css.flexDirection Css.column
+                , Css.justifyContent Css.center
+                , Css.alignItems Css.center
+                , Css.backgroundColor Styles.colors.lightGreen
                 , Css.padding (px 16)
                 ]
             ]
@@ -210,7 +222,14 @@ viewGameEnd gameState =
 
 viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
 viewCrossword gameState =
-    div [ class "flex justify-center flex-column items-center" ]
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.flexDirection Css.column
+            , Css.justifyContent Css.center
+            , Css.alignItems Css.center
+            ]
+        ]
         [ div
             [ css
                 [ Styles.isMobile
@@ -237,7 +256,13 @@ viewCrossword gameState =
                             , puzzle = gameState.puzzle
                             }
                         ]
-                    , div [ class "flex justify-around mt2" ]
+                    , div
+                        [ css
+                            [ Css.displayFlex
+                            , Css.justifyContent Css.spaceAround
+                            , Css.marginTop (rem 0.5)
+                            ]
+                        ]
                         [ ourButton [ onClick (OnKeyPress UndoKey) ] [ text "undo" ]
                         , ourButton [ onClick (OnKeyPress RedoKey) ] [ text "redo" ]
                         ]
@@ -264,8 +289,18 @@ viewMetadata metadata =
             (case Maybe.andThen PuzzleDate.parseDateString metadata.date of
                 Just { weekDay, englishMonth, dayNum, year } ->
                     [ h2 [ css [ Css.marginBottom (px 6) ] ]
-                        [ span [ class "fw7" ] [ text (weekDay ++ " ") ]
-                        , span [ class "fw4" ] [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ]
+                        [ span
+                            [ css
+                                [ Css.fontWeight (int 700)
+                                ]
+                            ]
+                            [ text (weekDay ++ " ") ]
+                        , span
+                            [ css
+                                [ Css.fontWeight (int 400)
+                                ]
+                            ]
+                            [ text (englishMonth ++ " " ++ dayNum ++ ", " ++ year) ]
                         ]
                     ]
 
@@ -283,7 +318,13 @@ viewMetadata metadata =
 
 viewToolbar : Html Msg
 viewToolbar =
-    div [ class "flex justify-start mb2" ]
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.justifyContent Css.flexStart
+            , Css.marginBottom (rem 0.5)
+            ]
+        ]
         [ ourButton [ onClick ResetPuzzle ] [ text "Reset Puzzle" ]
         , ourButton [ onClick RevealSelectedCell ] [ text "Reveal Square" ]
         , ourButton [ onClick RevealSelectedWord ] [ text "Reveal Word" ]
@@ -378,15 +419,9 @@ viewClue selectedClue clue =
 
 
 ourButton attrs children =
-    -- TODO: remove tachyons, clean this up
-    let
-        styles =
-            class "button-reset fw5 mr2 bn-ns pa2 hover-hot-pink bg-animate hover-bg-white pointer link"
-    in
     button
         (attrs
-            ++ [ styles
-               , css
+            ++ [ css
                     [ Css.backgroundColor Styles.colors.lightGrey
                     ]
                ]
