@@ -411,7 +411,7 @@ viewClue selectedClue clue =
                 backgroundColor Styles.colors.selectedWord
 
               else
-                backgroundColor (rgb 255 255 255)
+                backgroundColor Css.transparent
             ]
         , onClick (OnClueClick clue)
         ]
