@@ -101,7 +101,10 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
-                        , SvgA.css [ Css.property "touch-action" "manipulation" ]
+                        , SvgA.css
+                            [ Css.property "touch-action" "manipulation"
+                            , Css.property "-webkit-tap-highlight-color" "transparent"
+                            ]
                         , if selectionVisible && isSelected then
                             SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
 
