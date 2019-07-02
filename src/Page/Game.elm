@@ -420,12 +420,7 @@ viewClue selectedClue clue =
 
 ourButton attrs children =
     button
-        (attrs
-            ++ [ css
-                    [ Css.backgroundColor Styles.colors.lightGrey
-                    ]
-               ]
-        )
+        (attrs ++ [ css [Styles.buttonStyle]])
         children
 
 

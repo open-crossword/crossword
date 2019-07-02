@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
+module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
 
 import Css exposing (..)
 import Css.Animations as CssA
@@ -56,11 +56,9 @@ colorToRgbString { red, green, blue } =
 
 
 buttonStyle =
-    Css.batch
-        [ hover
-            [ backgroundColor colors.white
-            ]
-        ]
+    Css.batch [ backgroundColor colors.lightGrey, border3 (px 1) solid colors.black
+              , margin (px 2)
+              , padding (px 7)]
 
 
 justifyContentCenter =
