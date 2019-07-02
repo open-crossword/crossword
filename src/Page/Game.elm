@@ -233,7 +233,7 @@ viewCrossword gameState =
         [ div
             [ css
                 [ Styles.isMobile
-                    [ Styles.widths.p90 ]
+                    [ Styles.widths.p100 ]
                     [ Styles.widths.p70 ]
                 ]
             ]
