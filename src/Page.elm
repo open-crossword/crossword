@@ -47,7 +47,7 @@ viewHeader config =
             , Css.alignItems Css.center
             , Css.padding (px 14)
             , Styles.fonts.avenir
-            , Styles.isMobile
+            , Styles.ifMobileElse
                 [ Css.flexDirection Css.column ]
                 []
             ]
@@ -89,7 +89,7 @@ viewHeader config =
 hamburgerMenuToggle onMenuToggle =
     div
         [ css
-            [ Styles.isMobile
+            [ Styles.ifMobileElse
                 [ Css.position Css.absolute
                 , Css.cursor Css.pointer
                 , Css.right (px 30)
@@ -113,7 +113,7 @@ viewHeaderLink session route string =
     in
     a
         [ css
-            [ Styles.isMobile
+            [ Styles.ifMobileElse
                 showMenu
                 [ Css.paddingRight (px 20) ]
             , Css.textDecoration Css.none

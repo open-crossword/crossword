@@ -184,7 +184,7 @@ viewGameStart gameState =
         ]
         [ div
             [ css
-                [ Styles.isMobile
+                [ Styles.ifMobileElse
                     [ Styles.widths.p90 ]
                     [ Styles.widths.p70 ]
                 ]
@@ -232,7 +232,7 @@ viewCrossword gameState =
         ]
         [ div
             [ css
-                [ Styles.isMobile
+                [ Styles.ifMobileElse
                     [ Styles.widths.p100 ]
                     [ Styles.widths.p70 ]
                 ]
@@ -420,7 +420,7 @@ viewClue selectedClue clue =
 
 ourButton attrs children =
     button
-        (attrs ++ [ css [Styles.buttonStyle]])
+        (attrs ++ [ css [ Styles.buttonStyle ] ])
         children
 
 

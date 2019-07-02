@@ -97,7 +97,7 @@ cardStyle =
         [ Css.width (pct 20)
         , Css.minWidth (px 200)
         , Css.maxWidth (px 400)
-        , Styles.isMobile
+        , Styles.ifMobileElse
             [ Css.margin (pct 3) ]
             [ Css.margin (pct 1) ]
         , Css.marginBottom (pct 4)

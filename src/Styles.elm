@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, hideOnMobile, isMobile, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
+module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, forDesktop, forMobile, hideOnDesktop, hideOnMobile, ifMobileElse, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
 
 import Css exposing (..)
 import Css.Animations as CssA
@@ -56,9 +56,12 @@ colorToRgbString { red, green, blue } =
 
 
 buttonStyle =
-    Css.batch [ backgroundColor colors.lightGrey, border3 (px 1) solid colors.black
-              , margin (px 2)
-              , padding (px 7)]
+    Css.batch
+        [ backgroundColor colors.lightGrey
+        , border3 (px 1) solid colors.black
+        , margin (px 2)
+        , padding (px 7)
+        ]
 
 
 justifyContentCenter =
@@ -138,18 +141,35 @@ toolbar =
         ]
 
 
+mobileBreakWidth =
+    px 500
+
+
+forMobile css_ =
+    CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth mobileBreakWidth ] ]
+        css_
+
+
+forDesktop css_ =
+    CssM.withMedia [ CssM.only CssM.screen [ CssM.minWidth mobileBreakWidth ] ]
+        css_
+
+
 hideOnMobile =
-    CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
+    forMobile
         [ display none ]
 
 
-isMobile : List Css.Style -> List Css.Style -> Css.Style
-isMobile mobileCss nonMobileCss =
+hideOnDesktop =
+    forDesktop
+        [ display none ]
+
+
+ifMobileElse : List Css.Style -> List Css.Style -> Css.Style
+ifMobileElse mobileCss nonMobileCss =
     Css.batch
-        [ CssM.withMedia [ CssM.only CssM.screen [ CssM.maxWidth (px 500) ] ]
-            mobileCss
-        , CssM.withMedia [ CssM.only CssM.screen [ CssM.minWidth (px 500) ] ]
-            nonMobileCss
+        [ forMobile mobileCss
+        , forDesktop nonMobileCss
         ]
 
 
