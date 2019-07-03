@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, forDesktop, forMobile, hideOnDesktop, hideOnMobile, ifMobileElse, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
+module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, forDesktop, forMobile, hideOnDesktop, hideOnMobile, ifMobileElse, justifyContentCenter, justifyContentSpaceBetween, letterCell, mobileInputTextarea, row, shadedCell, shimmerAnimation, toolbar, widths)
 
 import Css exposing (..)
 import Css.Animations as CssA
@@ -193,4 +193,11 @@ shimmerAnimation =
                 [ stop2 (hex "#F0F0F5") <| pct 36 ]
             )
         , Css.backgroundSize2 (px 1200) (pct 100)
+        ]
+
+
+mobileInputTextarea =
+    Css.batch
+        [ resize none
+        , color colors.white
         ]

@@ -1,7 +1,7 @@
 module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser
-import Browser.Dom
+import Browser.Dom as Dom
 import Browser.Events
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, int, left, margin, marginLeft, marginTop, position, property, px, relative, rem, rgb, solid, top)
 import Data.Board as Board exposing (Board)
@@ -98,7 +98,7 @@ init session puzzleId =
                     loadGame SamplePuzzle.id SamplePuzzle.puzzle
       }
     , Cmd.batch
-        [ Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
+        [ focus "game-grid"
         , case puzzleId of
             Just id ->
                 Http.Puzzle.get (GotPuzzle id) id
@@ -107,6 +107,11 @@ init session puzzleId =
                 Cmd.none
         ]
     )
+
+
+focus : String -> Cmd Msg
+focus targetId =
+    Task.attempt (always NoOp) (Dom.focus targetId)
 
 
 loadGame : PuzzleId -> String -> Game
@@ -255,6 +260,12 @@ viewCrossword gameState =
                             , board = gameState.board
                             , puzzle = gameState.puzzle
                             }
+                        , textarea
+                            [ css [ Styles.mobileInputTextarea ]
+                            , value ""
+                            , id "mobile-keyboard-hack"
+                            ]
+                            []
                         ]
                     , div
                         [ css
@@ -454,27 +465,31 @@ update msg model =
             ( model, Cmd.none )
 
         ( _, game ) ->
-            ( { model | game = updateGameState msg game }, Cmd.none )
+            let
+                ( newGame, newMsg ) =
+                    updateGameState msg game
+            in
+            ( { model | game = newGame }, newMsg )
 
 
-updateGameState : Msg -> Game -> Game
+updateGameState : Msg -> Game -> ( Game, Cmd Msg )
 updateGameState msg gameState =
     case gameState of
         Initialized initializedGame ->
-            updateInitializedGame msg initializedGame
+            ( updateInitializedGame msg initializedGame, Cmd.none )
 
         InProgress inProgressGame ->
             updateInProgressGame msg inProgressGame
 
         Loading ->
-            gameState
+            ( gameState, Cmd.none )
 
         Ended endedState ->
             -- TODO
-            gameState
+            ( gameState, Cmd.none )
 
         Error ->
-            gameState
+            ( gameState, Cmd.none )
 
 
 updateInitializedGame : Msg -> InitializedState -> Game
@@ -487,27 +502,35 @@ updateInitializedGame msg state =
             Initialized state
 
 
-updateInProgressGame : Msg -> InProgressState -> Game
+updateInProgressGame : Msg -> InProgressState -> ( Game, Cmd Msg )
 updateInProgressGame msg gameState =
     let
         noOp =
-            InProgress gameState
+            ( InProgress gameState, Cmd.none )
 
-        updateBoard : InProgressState -> Board -> Game
+        updateBoard : InProgressState -> Board -> ( Game, Cmd Msg )
         updateBoard game board =
             let
                 isPuzzleCorrect =
                     Grid.equals board.grid game.puzzle.grid
             in
             if isPuzzleCorrect then
-                Ended
+                ( Ended
                     { puzzle = game.puzzle
                     , board = board
                     , timeSeconds = game.timeSeconds
                     }
+                , Cmd.none
+                )
 
             else
-                InProgress { game | board = board, undoList = UndoList.new board game.undoList }
+                ( InProgress
+                    { game
+                        | board = board
+                        , undoList = UndoList.new board game.undoList
+                    }
+                , Cmd.none
+                )
     in
     case msg of
         TimerTick ->
@@ -515,7 +538,7 @@ updateInProgressGame msg gameState =
                 newTime =
                     gameState.timeSeconds + 1
             in
-            InProgress { gameState | timeSeconds = newTime }
+            ( InProgress { gameState | timeSeconds = newTime }, Cmd.none )
 
         OnCellClick point ->
             let
@@ -531,8 +554,11 @@ updateInProgressGame msg gameState =
 
                 newBoard =
                     Board.updateSelection point direction gameState.board
+
+                ( newGame, _ ) =
+                    updateBoard gameState newBoard
             in
-            updateBoard gameState newBoard
+            ( newGame, Cmd.none )
 
         OnClueClick clue ->
             updateBoard gameState (Board.moveSelectionToWord clue gameState.puzzle gameState.board)
@@ -542,7 +568,7 @@ updateInProgressGame msg gameState =
                 newBoard =
                     Board.fromPuzzle gameState.puzzle
             in
-            freshInProgress gameState.puzzle
+            ( freshInProgress gameState.puzzle, Cmd.none )
 
         RevealSelectedWord ->
             updateBoard gameState (Board.revealSelectedWord gameState.puzzle gameState.board)
@@ -635,22 +661,26 @@ updateInProgressGame msg gameState =
                 undoList =
                     UndoList.undo gameState.undoList
             in
-            InProgress
+            ( InProgress
                 { gameState
                     | undoList = undoList
                     , board = undoList.present
                 }
+            , Cmd.none
+            )
 
         OnKeyPress RedoKey ->
             let
                 undoList =
                     UndoList.redo gameState.undoList
             in
-            InProgress
+            ( InProgress
                 { gameState
                     | undoList = undoList
                     , board = undoList.present
                 }
+            , Cmd.none
+            )
 
         OnKeyPress OtherKey ->
             noOp

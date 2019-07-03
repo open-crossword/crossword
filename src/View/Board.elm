@@ -1,5 +1,6 @@
 module View.Board exposing (view)
 
+import Json.Decode as JD
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Board as Board exposing (Board)
 import Data.Grid as Grid exposing (Grid)
@@ -63,7 +64,7 @@ viewRow ({ puzzle, board } as config) y row =
 
 
 viewCell : Config msg -> Int -> Int -> Cell -> Svg msg
-viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x cell =
+viewCell { puzzle, board, clueIndicesVisible, selectionVisible, onCellClicked } y x cell =
     let
         point =
             ( x, y )
@@ -96,15 +97,16 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                 Svg.g
                     []
                     [ Svg.rect
-                        [ SvgE.onMouseDown (config.onCellClicked point)
+                        [ SvgA.css
+                            [ Css.property "touch-action" "manipulation"
+                            , Css.property "-webkit-tap-highlight-color" "transparent"
+                            ]
+                        -- , SvgE.onMouseDown (onCellClicked point)
+                        , SvgE.on "touchstart" (JD.succeed (onCellClicked point))
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
-                        , SvgA.css
-                            [ Css.property "touch-action" "manipulation"
-                            , Css.property "-webkit-tap-highlight-color" "transparent"
-                            ]
                         , if selectionVisible && isSelected then
                             SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
 
