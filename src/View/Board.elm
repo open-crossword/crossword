@@ -5,6 +5,7 @@ import Data.Board as Board exposing (Board)
 import Data.Grid as Grid exposing (Grid)
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
+import Json.Decode as JD
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
@@ -96,9 +97,10 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                 Svg.g
                     []
                     [ Svg.rect
-                        [ SvgE.onMouseDown (config.onCellClicked point)
+                        [ SvgE.on "touchstart" (JD.succeed (config.onCellClicked point))
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
+                        , SvgE.onMouseDown (config.onCellClicked point)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
                         , SvgA.css
