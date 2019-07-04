@@ -3,7 +3,7 @@ module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
 import Browser
 import Browser.Dom
 import Browser.Events
-import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, int, left, margin, marginLeft, marginTop, position, property, px, relative, rem, rgb, solid, top)
+import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, int, left, margin, marginLeft, marginTop, pct, position, property, px, relative, rem, rgb, solid, top)
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
 import Data.Grid as Grid exposing (Grid)
@@ -15,6 +15,7 @@ import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Data.TimeFormat as TimeFormat
 import DateTime
 import Dict exposing (Dict)
+import FeatherIcons
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -135,8 +136,114 @@ view model =
             , css [ Styles.fonts.avenir ]
             ]
             [ viewGame model.game
+            , case model.game of
+                InProgress { board, puzzle } ->
+                    viewKeyboard
+                        { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
+                        , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
+                        , onKeyPress = \char -> OnKeyPress (LetterKey char)
+                        , onDeleteKeyPressed = OnKeyPress DeleteKey
+                        , clue = Board.selectedClue puzzle board
+                        }
+
+                _ ->
+                    div [] []
             ]
     }
+
+
+type alias KeyboardState msg =
+    { onArrowLeft : msg
+    , onArrowRight : msg
+    , onKeyPress : Char -> msg
+    , clue : Maybe Clue
+    , onDeleteKeyPressed : msg
+    }
+
+
+viewKeyboard : KeyboardState msg -> Html msg
+viewKeyboard keyboardState =
+    let
+        chevronLeft =
+            (FeatherIcons.chevronLeft |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+
+        chevronRight =
+            (FeatherIcons.chevronRight |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+
+        arrow isLeft msg =
+            div
+                [ css [ Css.displayFlex, Css.alignItems Css.center ], onClick msg ]
+                [ if isLeft then
+                    chevronLeft
+
+                  else
+                    chevronRight
+                ]
+
+        viewClueBar maybeClue =
+            div [ css [ Styles.boardClue, Styles.keyboard.clues ] ]
+                [ arrow True keyboardState.onArrowLeft
+                , case maybeClue of
+                    Just { id, clue } ->
+                        div [ css [ Styles.widths.p100 ] ]
+                            [ b [] [ text (Puzzle.clueIdToDisplayString id) ]
+                            , text (" " ++ clue)
+                            ]
+
+                    Nothing ->
+                        div [] []
+                , arrow False keyboardState.onArrowRight
+                ]
+
+        viewCharKey char =
+            span
+                [ css [ Styles.keyboard.key ]
+                , onClick (keyboardState.onKeyPress char)
+                ]
+                [ text (String.fromChar char) ]
+
+        viewDeleteKey =
+            div
+                [ css [ Styles.keyboard.key ]
+                , onClick keyboardState.onDeleteKeyPressed
+                ]
+                [ (FeatherIcons.delete |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+                ]
+
+        viewKeys =
+            let
+                firstRow =
+                    "qwertyuiop"
+
+                secondRow =
+                    "asdfghjkl"
+
+                thirdRow =
+                    "zxcvbnm"
+
+                stringToKeys str =
+                    List.map viewCharKey (String.toList str)
+
+                viewKeyRow attrs row =
+                    div [ css ([ Styles.keyboard.row ] ++ attrs) ]
+                        row
+            in
+            div []
+                [ viewKeyRow
+                    [ Css.padding2 (px 0) (pct 5) ]
+                    (stringToKeys firstRow)
+                , viewKeyRow
+                    [ Css.padding2 (px 0) (pct 10) ]
+                    (stringToKeys secondRow)
+                , viewKeyRow
+                    [ Css.padding2 (px 0) (pct 15) ]
+                    (stringToKeys thirdRow ++ [ viewDeleteKey ])
+                ]
+    in
+    div [ css [ Styles.keyboard.container ] ]
+        [ viewClueBar keyboardState.clue
+        , viewKeys
+        ]
 
 
 viewGame : Game -> Html Msg
@@ -346,7 +453,10 @@ viewSelectedClue puzzle board =
                 Nothing ->
                     ( "", "" )
     in
-    div [ css [ Styles.boardClue ] ] [ b [] [ text clueNumber ], text (" " ++ clueText) ]
+    div [ css [ Styles.boardClue, Styles.hideOnMobile ] ]
+        [ b [] [ text clueNumber ]
+        , text (" " ++ clueText)
+        ]
 
 
 viewClues : Puzzle -> Board -> Html Msg

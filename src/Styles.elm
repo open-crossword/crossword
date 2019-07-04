@@ -1,4 +1,4 @@
-module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, forDesktop, forMobile, hideOnDesktop, hideOnMobile, ifMobileElse, justifyContentCenter, justifyContentSpaceBetween, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
+module Styles exposing (board, boardClue, buttonStyle, cell, cellId, clue, colorToRgbString, colors, fonts, forDesktop, forMobile, hideOnDesktop, hideOnMobile, ifMobileElse, justifyContentCenter, justifyContentSpaceBetween, keyboard, letterCell, row, shadedCell, shimmerAnimation, toolbar, widths)
 
 import Css exposing (..)
 import Css.Animations as CssA
@@ -194,3 +194,38 @@ shimmerAnimation =
             )
         , Css.backgroundSize2 (px 1200) (pct 100)
         ]
+
+
+keyboard =
+    { container =
+        batch
+            [ position fixed
+            , width (pct 100)
+            , height (px 250)
+            , backgroundColor colors.hotPink
+            , bottom (px 0)
+            , left (px 0)
+            ]
+    , row =
+        batch
+            [ displayFlex
+            , justifyContentSpaceBetween
+            , padding2 (px 0) (pct 5)
+            ]
+    , key =
+        batch
+            [ backgroundColor colors.white
+            , width (pct 30)
+            , margin (px 5)
+            , height (px 40)
+            , displayFlex
+            , justifyContentCenter
+            , alignItems center
+            ]
+    , clues =
+        batch
+            [ displayFlex
+            , justifyContentSpaceBetween
+            , alignItems center
+            ]
+    }
