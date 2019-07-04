@@ -23,6 +23,7 @@ import Http
 import Http.Puzzle
 import Json.Decode as Decode exposing (Decoder)
 import List.Extra as List
+import Maybe.Extra as Maybe
 import Parser exposing (Parser)
 import Puzzle.Format.Xd
 import SamplePuzzle
@@ -764,42 +765,53 @@ type KeyType
 keyDecoder : Decode.Decoder KeyType
 keyDecoder =
     Decode.map3 keyCodeToKeyEvent
-        (Decode.field "keyCode" Decode.int)
+        (Decode.field "key" Decode.string)
         (Decode.field "metaKey" Decode.bool)
         (Decode.field "shiftKey" Decode.bool)
 
 
-keyCodeToKeyEvent : Int -> Bool -> Bool -> KeyType
-keyCodeToKeyEvent code meta shiftKey =
-    case code of
-        37 ->
-            ArrowKey Grid.Left
+keyCodeToKeyEvent : String -> Bool -> Bool -> KeyType
+keyCodeToKeyEvent codeString meta shiftKey =
+    let
+        keyDict =
+            Dict.fromList
+                [ ( "Left", ArrowKey Grid.Left )
+                , ( "ArrowLeft", ArrowKey Grid.Left )
+                , ( "Right", ArrowKey Grid.Right )
+                , ( "ArrowRight", ArrowKey Grid.Right )
+                , ( "Up", ArrowKey Grid.Up )
+                , ( "ArrowUp", ArrowKey Grid.Up )
+                , ( "Down", ArrowKey Grid.Down )
+                , ( "ArrowDown", ArrowKey Grid.Down )
+                , ( "Backspace", DeleteKey )
+                , ( "Tab", CycleSelectedClueKey )
+                ]
 
-        39 ->
-            ArrowKey Grid.Right
+        maybeCharKey =
+            case
+                String.toList codeString
+                    |> List.map (Char.toUpper >> Char.toCode)
+            of
+                code :: [] ->
+                    if meta && code == 90 then
+                        if shiftKey then
+                            Just RedoKey
 
-        38 ->
-            ArrowKey Grid.Up
+                        else
+                            Just UndoKey
 
-        40 ->
-            ArrowKey Grid.Down
+                    else if (64 <= code && code <= 90) || (code == 32) then
+                        Just (LetterKey (Char.fromCode code))
 
-        8 ->
-            DeleteKey
+                    else if code == 9 || code == 13 then
+                        Just CycleSelectedClueKey
 
-        _ ->
-            if meta && code == 90 then
-                if shiftKey then
-                    RedoKey
+                    else
+                        Nothing
 
-                else
-                    UndoKey
-
-            else if (64 <= code && code <= 90) || (code == 32) then
-                LetterKey (Char.fromCode code)
-
-            else if code == 9 || code == 13 then
-                CycleSelectedClueKey
-
-            else
-                OtherKey
+                _ ->
+                    Nothing
+    in
+    Dict.get codeString keyDict
+        |> Maybe.or maybeCharKey
+        |> Maybe.withDefault OtherKey
