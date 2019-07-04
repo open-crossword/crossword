@@ -1,4 +1,4 @@
-module Data.Board exposing (Board, Selection, cycleSelectedClue, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
+module Data.Board exposing (Board, CycleDirection(..), Selection, cycleSelectedClue, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -19,6 +19,11 @@ type alias Selection =
     { cursor : Point
     , direction : Direction
     }
+
+
+type CycleDirection
+    = Forward
+    | Backward
 
 
 {-| Creates a default board state for a given puzzle.
@@ -254,8 +259,8 @@ moveSelection direction board =
     updateSelection newPoint selection.direction board
 
 
-cycleSelectedClue : Puzzle -> Board -> Board
-cycleSelectedClue puzzle board =
+cycleSelectedClue : CycleDirection -> Puzzle -> Board -> Board
+cycleSelectedClue direction puzzle board =
     let
         selection =
             board.selection
@@ -269,6 +274,22 @@ cycleSelectedClue puzzle board =
                 Nothing ->
                     Nothing
 
+        comparator =
+            case direction of
+                Forward ->
+                    (>)
+
+                Backward ->
+                    (<)
+
+        wordStarts =
+            case direction of
+                Forward ->
+                    puzzle.wordStarts
+
+                Backward ->
+                    List.reverse puzzle.wordStarts
+
         isNextWord word =
             case selectedWordStart of
                 Just wordStart ->
@@ -280,13 +301,13 @@ cycleSelectedClue puzzle board =
                             Grid.pointToIndex wordStart.point board.grid
                     in
                     Puzzle.wordStartMatchesDirection word.direction selection.direction
-                        && (wordIndex > selectionStartIndex)
+                        && comparator wordIndex selectionStartIndex
 
                 Nothing ->
                     False
 
         nextMatchingWordStart =
-            puzzle.wordStarts
+            wordStarts
                 |> List.find isNextWord
     in
     case nextMatchingWordStart of
@@ -301,7 +322,7 @@ cycleSelectedClue puzzle board =
                     Direction.swap selection.direction
 
                 firstDifferentWordStart =
-                    puzzle.wordStarts
+                    wordStarts
                         |> List.find (\word -> Puzzle.wordStartMatchesDirection word.direction flippedDir)
             in
             case firstDifferentWordStart of

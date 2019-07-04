@@ -597,10 +597,10 @@ updateInProgressGame msg gameState =
             in
             updateBoard gameState newBoard
 
-        OnKeyPress CycleSelectedClueKey ->
+        OnKeyPress (CycleSelectedClueKey direction) ->
             let
                 newBoard =
-                    Board.cycleSelectedClue gameState.puzzle gameState.board
+                    Board.cycleSelectedClue direction gameState.puzzle gameState.board
             in
             updateBoard gameState newBoard
 
@@ -725,7 +725,7 @@ type KeyType
     = ArrowKey Grid.Direction
     | LetterKey Char
     | DeleteKey
-    | CycleSelectedClueKey
+    | CycleSelectedClueKey Board.CycleDirection
     | UndoKey
     | RedoKey
     | OtherKey
@@ -769,7 +769,11 @@ keyCodeToKeyEvent code meta shiftKey =
                 LetterKey (Char.fromCode code)
 
             else if code == 9 || code == 13 then
-                CycleSelectedClueKey
+                if shiftKey then
+                    CycleSelectedClueKey Board.Backward
+
+                else
+                    CycleSelectedClueKey Board.Forward
 
             else
                 OtherKey
