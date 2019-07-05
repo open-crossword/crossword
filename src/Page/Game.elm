@@ -172,7 +172,7 @@ viewKeyboard keyboardState =
 
         arrow isLeft msg =
             div
-                [ css [ Css.displayFlex, Css.alignItems Css.center ], onClick msg ]
+                [ css [ Styles.keyboard.arrow ], onClick msg ]
                 [ if isLeft then
                     chevronLeft
 
@@ -181,7 +181,7 @@ viewKeyboard keyboardState =
                 ]
 
         viewClueBar maybeClue =
-            div [ css [ Styles.boardClue, Styles.keyboard.clues ] ]
+            div [ css [ Styles.keyboard.clues ] ]
                 [ arrow True keyboardState.onArrowLeft
                 , case maybeClue of
                     Just { id, clue } ->
@@ -213,13 +213,13 @@ viewKeyboard keyboardState =
         viewKeys =
             let
                 firstRow =
-                    "qwertyuiop"
+                    "QWERTYUIOP"
 
                 secondRow =
-                    "asdfghjkl"
+                    "ASDFGHJKL"
 
                 thirdRow =
-                    "zxcvbnm"
+                    "ZXCVBNM"
 
                 stringToKeys str =
                     List.map viewCharKey (String.toList str)
@@ -228,15 +228,15 @@ viewKeyboard keyboardState =
                     div [ css ([ Styles.keyboard.row ] ++ attrs) ]
                         row
             in
-            div []
+            div [css [Styles.keyboard.keys]]
                 [ viewKeyRow
-                    [ Css.padding2 (px 0) (pct 5) ]
+                    []
                     (stringToKeys firstRow)
                 , viewKeyRow
-                    [ Css.padding2 (px 0) (pct 10) ]
+                    []
                     (stringToKeys secondRow)
                 , viewKeyRow
-                    [ Css.padding2 (px 0) (pct 15) ]
+                    []
                     (stringToKeys thirdRow ++ [ viewDeleteKey ])
                 ]
     in

@@ -196,36 +196,62 @@ shimmerAnimation =
         ]
 
 
+noSelection =
+    batch
+        [ property "-webkit-user-select" "none"
+        , property "-moz-user-select" "none"
+        , property "-ms-user-select" "none"
+        , property "user-select" "none"
+        ]
+
+
 keyboard =
     { container =
         batch
             [ position fixed
             , width (pct 100)
-            , height (px 250)
             , backgroundColor colors.hotPink
             , bottom (px 0)
             , left (px 0)
+            , paddingBottom (px 5)
+            , noSelection
             ]
     , row =
         batch
             [ displayFlex
-            , justifyContentSpaceBetween
-            , padding2 (px 0) (pct 5)
+            , justifyContentCenter
+
+            -- , padding2 (px 0) (pct 5)
+            ]
+    , keys =
+        batch
+            [ padding (px 5)
             ]
     , key =
         batch
             [ backgroundColor colors.white
-            , width (pct 30)
-            , margin (px 5)
+            , width (pct 9)
+            , margin (px 3)
             , height (px 40)
             , displayFlex
             , justifyContentCenter
             , alignItems center
+            , property "touch-action" "manipulation"
+            , borderRadius (px 3)
             ]
     , clues =
         batch
             [ displayFlex
             , justifyContentSpaceBetween
             , alignItems center
+            , fontSize fontSizes.sm
+            , backgroundColor colors.selectedWord
+            , padding (px 8)
+            ]
+    , arrow =
+        batch
+            [ displayFlex
+            , alignItems center
+            , property "touch-action" "manipulation"
             ]
     }
