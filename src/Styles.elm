@@ -243,7 +243,24 @@ keyboard =
             , justifyContentCenter
             , alignItems center
             , borderRadius (px 3)
-            , Css.boxShadow4 (px 0) (px 2) (px 0) (Css.rgba 0 0 0 0.1)
+            , position relative
+            , boxShadow4 (px 0) (px 2) (px 0) (rgba 0 0 0 0.1)
+            ]
+    , mushroom =
+        batch
+            [
+             position absolute
+            , height (px 90)
+            , backgroundColor colors.white
+            , widths.p100
+            , displayFlex
+            , justifyContentCenter
+            , borderRadius (px 3)
+            , paddingTop (px 6)
+            , bottom (px 0)
+            , border3 (px 1) solid colors.grey
+            , boxShadow5 (px 0) (px 0) (px 2) (px 2) (rgba 0 0 0 0.1)
+            , fontSize fontSizes.xl
             ]
     , clues =
         batch

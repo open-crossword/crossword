@@ -101,20 +101,25 @@ view state config =
                 ]
 
         viewCharKey char =
+            let
+                touched =
+                    Set.member char state.touchedKeys
+
+                mushroom =
+                    div [ css [ Styles.keyboard.mushroom ] ]
+                        [ text (String.fromChar char) ]
+            in
             span
                 [ css [ Styles.keyboard.key ]
                 , onTouchEnd (config.toMsg (OnTouchEnd char (config.onKeyPress char)))
                 , onTouchStart (config.toMsg (OnTouchStart char))
-                , if Set.member char state.touchedKeys then
-                    css
-                        [ Css.backgroundColor Styles.colors.black
-                        , Css.color Styles.colors.white
-                        ]
+                ]
+                [ if touched then
+                    mushroom
 
                   else
-                    css []
+                    text (String.fromChar char)
                 ]
-                [ text (String.fromChar char) ]
 
         viewDeleteKey =
             div
@@ -143,7 +148,7 @@ view state config =
                     List.map (Char.toUpper >> viewCharKey) (String.toList str)
 
                 viewKeyRow row =
-                    div [ css ([ Styles.keyboard.row ]) ]
+                    div [ css [ Styles.keyboard.row ] ]
                         row
             in
             div [ css [ Styles.keyboard.keys ] ]
