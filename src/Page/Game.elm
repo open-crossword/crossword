@@ -144,6 +144,7 @@ view model =
                         , onKeyPress = \char -> OnKeyPress (LetterKey char)
                         , onDeleteKeyPressed = OnKeyPress DeleteKey
                         , clue = Board.selectedClue puzzle board
+                        , onCluePress = OnCellClick board.selection.cursor
                         }
 
                 _ ->
@@ -158,6 +159,7 @@ type alias KeyboardState msg =
     , onKeyPress : Char -> msg
     , clue : Maybe Clue
     , onDeleteKeyPressed : msg
+    , onCluePress : msg
     }
 
 
@@ -185,7 +187,10 @@ viewKeyboard keyboardState =
                 [ arrow True keyboardState.onArrowLeft
                 , case maybeClue of
                     Just { id, clue } ->
-                        div [ css [ Styles.widths.p100 ] ]
+                        div
+                            [ css [ Styles.widths.p100 ]
+                            , onClick keyboardState.onCluePress
+                            ]
                             [ b [] [ text (Puzzle.clueIdToDisplayString id) ]
                             , text (" " ++ clue)
                             ]
@@ -228,7 +233,7 @@ viewKeyboard keyboardState =
                     div [ css ([ Styles.keyboard.row ] ++ attrs) ]
                         row
             in
-            div [css [Styles.keyboard.keys]]
+            div [ css [ Styles.keyboard.keys ] ]
                 [ viewKeyRow
                     []
                     (stringToKeys firstRow)
