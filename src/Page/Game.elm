@@ -15,7 +15,7 @@ import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Data.TimeFormat as TimeFormat
 import DateTime
 import Dict exposing (Dict)
-import FeatherIcons
+import FeatherIcons as Icons
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
@@ -29,6 +29,7 @@ import Puzzle.Format.Xd
 import SamplePuzzle
 import Session exposing (Session)
 import Styles
+import Svg.Attributes as USvgA
 import Svg.Styled as Svg exposing (Svg)
 import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
@@ -167,10 +168,10 @@ viewKeyboard : KeyboardState msg -> Html msg
 viewKeyboard keyboardState =
     let
         chevronLeft =
-            (FeatherIcons.chevronLeft |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+            (Icons.chevronLeft |> Icons.toHtml []) |> Html.Styled.fromUnstyled
 
         chevronRight =
-            (FeatherIcons.chevronRight |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+            (Icons.chevronRight |> Icons.toHtml []) |> Html.Styled.fromUnstyled
 
         arrow isLeft msg =
             div
@@ -212,7 +213,11 @@ viewKeyboard keyboardState =
                 [ css [ Styles.keyboard.key ]
                 , onClick keyboardState.onDeleteKeyPressed
                 ]
-                [ (FeatherIcons.delete |> FeatherIcons.toHtml []) |> Html.Styled.fromUnstyled
+                [ Icons.delete
+                    |> Icons.withSize 50
+                    |> Icons.withSizeUnit "%"
+                    |> Icons.toHtml []
+                    |> Html.Styled.fromUnstyled
                 ]
 
         viewKeys =
