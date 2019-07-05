@@ -19,7 +19,7 @@ import FeatherIcons as Icons
 import File exposing (File)
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
-import Html.Styled.Events exposing (onClick, preventDefaultOn)
+import Html.Styled.Events exposing (on, onClick, preventDefaultOn)
 import Http
 import Http.Puzzle
 import Json.Decode as Decode exposing (Decoder)
@@ -37,6 +37,7 @@ import Task
 import Time
 import UndoList exposing (UndoList)
 import View.Board as Board
+import View.Keyboard as Keyboard
 
 
 type alias InitializedState =
@@ -49,6 +50,7 @@ type alias InProgressState =
     , board : Board
     , undoList : UndoList Board
     , timeSeconds : Int
+    , keyboardState : Keyboard.State
     }
 
 
@@ -86,6 +88,7 @@ type Msg
     | RevealSelectedWord
     | RevealSelectedCell
     | GotPuzzle PuzzleId (Result Http.Puzzle.Error Puzzle)
+    | OnKeyboardMsg (Keyboard.Msg Msg)
     | NoOp
 
 
@@ -138,122 +141,22 @@ view model =
             ]
             [ viewGame model.game
             , case model.game of
-                InProgress { board, puzzle } ->
-                    viewKeyboard
+                InProgress { board, puzzle, keyboardState } ->
+                    Keyboard.view
+                        keyboardState
                         { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
                         , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
                         , onKeyPress = \char -> OnKeyPress (LetterKey char)
                         , onDeleteKeyPressed = OnKeyPress DeleteKey
                         , clue = Board.selectedClue puzzle board
                         , onCluePress = OnCellClick board.selection.cursor
+                        , toMsg = OnKeyboardMsg
                         }
 
                 _ ->
                     div [] []
             ]
     }
-
-
-type alias KeyboardState msg =
-    { onArrowLeft : msg
-    , onArrowRight : msg
-    , onKeyPress : Char -> msg
-    , clue : Maybe Clue
-    , onDeleteKeyPressed : msg
-    , onCluePress : msg
-    }
-
-
-viewKeyboard : KeyboardState msg -> Html msg
-viewKeyboard keyboardState =
-    let
-        chevronLeft =
-            (Icons.chevronLeft |> Icons.toHtml []) |> Html.Styled.fromUnstyled
-
-        chevronRight =
-            (Icons.chevronRight |> Icons.toHtml []) |> Html.Styled.fromUnstyled
-
-        arrow isLeft msg =
-            div
-                [ css [ Styles.keyboard.arrow ], onClick msg ]
-                [ if isLeft then
-                    chevronLeft
-
-                  else
-                    chevronRight
-                ]
-
-        viewClueBar maybeClue =
-            div [ css [ Styles.keyboard.clues ] ]
-                [ arrow True keyboardState.onArrowLeft
-                , case maybeClue of
-                    Just { id, clue } ->
-                        div
-                            [ css [ Styles.widths.p100 ]
-                            , onClick keyboardState.onCluePress
-                            ]
-                            [ b [] [ text (Puzzle.clueIdToDisplayString id) ]
-                            , text (" " ++ clue)
-                            ]
-
-                    Nothing ->
-                        div [] []
-                , arrow False keyboardState.onArrowRight
-                ]
-
-        viewCharKey char =
-            span
-                [ css [ Styles.keyboard.key ]
-                , onClick (keyboardState.onKeyPress char)
-                ]
-                [ text (String.fromChar char) ]
-
-        viewDeleteKey =
-            div
-                [ css [ Styles.keyboard.key ]
-                , onClick keyboardState.onDeleteKeyPressed
-                ]
-                [ Icons.delete
-                    |> Icons.withSize 50
-                    |> Icons.withSizeUnit "%"
-                    |> Icons.toHtml []
-                    |> Html.Styled.fromUnstyled
-                ]
-
-        viewKeys =
-            let
-                firstRow =
-                    "QWERTYUIOP"
-
-                secondRow =
-                    "ASDFGHJKL"
-
-                thirdRow =
-                    "ZXCVBNM"
-
-                stringToKeys str =
-                    List.map viewCharKey (String.toList str)
-
-                viewKeyRow attrs row =
-                    div [ css ([ Styles.keyboard.row ] ++ attrs) ]
-                        row
-            in
-            div [ css [ Styles.keyboard.keys ] ]
-                [ viewKeyRow
-                    []
-                    (stringToKeys firstRow)
-                , viewKeyRow
-                    []
-                    (stringToKeys secondRow)
-                , viewKeyRow
-                    []
-                    (stringToKeys thirdRow ++ [ viewDeleteKey ])
-                ]
-    in
-    div [ css [ Styles.keyboard.container ] ]
-        [ viewClueBar keyboardState.clue
-        , viewKeys
-        ]
 
 
 viewGame : Game -> Html Msg
@@ -575,27 +478,31 @@ update msg model =
             ( model, Cmd.none )
 
         ( _, game ) ->
-            ( { model | game = updateGameState msg game }, Cmd.none )
+            let
+                ( g, c ) =
+                    updateGameState msg game
+            in
+            ( { model | game = g }, c )
 
 
-updateGameState : Msg -> Game -> Game
+updateGameState : Msg -> Game -> ( Game, Cmd Msg )
 updateGameState msg gameState =
     case gameState of
         Initialized initializedGame ->
-            updateInitializedGame msg initializedGame
+            ( updateInitializedGame msg initializedGame, Cmd.none )
 
         InProgress inProgressGame ->
             updateInProgressGame msg inProgressGame
 
         Loading ->
-            gameState
+            ( gameState, Cmd.none )
 
         Ended endedState ->
             -- TODO
-            gameState
+            ( gameState, Cmd.none )
 
         Error ->
-            gameState
+            ( gameState, Cmd.none )
 
 
 updateInitializedGame : Msg -> InitializedState -> Game
@@ -608,27 +515,31 @@ updateInitializedGame msg state =
             Initialized state
 
 
-updateInProgressGame : Msg -> InProgressState -> Game
+updateInProgressGame : Msg -> InProgressState -> ( Game, Cmd Msg )
 updateInProgressGame msg gameState =
     let
         noOp =
-            InProgress gameState
+            ( InProgress gameState, Cmd.none )
 
-        updateBoard : InProgressState -> Board -> Game
+        updateBoard : InProgressState -> Board -> ( Game, Cmd Msg )
         updateBoard game board =
             let
                 isPuzzleCorrect =
                     Grid.equals board.grid game.puzzle.grid
             in
             if isPuzzleCorrect then
-                Ended
+                ( Ended
                     { puzzle = game.puzzle
                     , board = board
                     , timeSeconds = game.timeSeconds
                     }
+                , Cmd.none
+                )
 
             else
-                InProgress { game | board = board, undoList = UndoList.new board game.undoList }
+                ( InProgress { game | board = board, undoList = UndoList.new board game.undoList }
+                , Cmd.none
+                )
     in
     case msg of
         TimerTick ->
@@ -636,7 +547,7 @@ updateInProgressGame msg gameState =
                 newTime =
                     gameState.timeSeconds + 1
             in
-            InProgress { gameState | timeSeconds = newTime }
+            ( InProgress { gameState | timeSeconds = newTime }, Cmd.none )
 
         OnCellClick point ->
             let
@@ -663,7 +574,7 @@ updateInProgressGame msg gameState =
                 newBoard =
                     Board.fromPuzzle gameState.puzzle
             in
-            freshInProgress gameState.puzzle
+            ( freshInProgress gameState.puzzle, Cmd.none )
 
         RevealSelectedWord ->
             updateBoard gameState (Board.revealSelectedWord gameState.puzzle gameState.board)
@@ -756,22 +667,38 @@ updateInProgressGame msg gameState =
                 undoList =
                     UndoList.undo gameState.undoList
             in
-            InProgress
+            ( InProgress
                 { gameState
                     | undoList = undoList
                     , board = undoList.present
                 }
+            , Cmd.none
+            )
 
         OnKeyPress RedoKey ->
             let
                 undoList =
                     UndoList.redo gameState.undoList
             in
-            InProgress
+            ( InProgress
                 { gameState
                     | undoList = undoList
                     , board = undoList.present
                 }
+            , Cmd.none
+            )
+
+        OnKeyboardMsg keyboardMsg ->
+            let
+                ( s, c ) =
+                    Keyboard.update gameState.keyboardState keyboardMsg
+            in
+            ( InProgress
+                { gameState
+                    | keyboardState = s
+                }
+            , c
+            )
 
         OnKeyPress OtherKey ->
             noOp
@@ -803,6 +730,7 @@ freshInProgress puzzle =
         , board = freshBoard
         , undoList = UndoList.fresh freshBoard
         , timeSeconds = 0
+        , keyboardState = Keyboard.init
         }
 
 
