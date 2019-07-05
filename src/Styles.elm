@@ -12,6 +12,7 @@ colors =
     , selectedCursor = hex "#FFDA00"
     , selectedWord = hex "#A7D8FF"
     , lightGrey = hex "#FAFAFA"
+    , grey = hex "#AAAAAA"
     , lightGreen = hex "#9EEBCF"
     }
 
@@ -210,7 +211,7 @@ keyboard =
         batch
             [ position fixed
             , width (pct 100)
-            , backgroundColor colors.hotPink
+            , backgroundColor colors.grey
             , bottom (px 0)
             , left (px 0)
             , paddingBottom (px 5)
@@ -238,6 +239,7 @@ keyboard =
             , alignItems center
             , property "touch-action" "manipulation"
             , borderRadius (px 3)
+            , Css.boxShadow4 (px 0) (px 2) (px 0) (Css.rgba 0 0 0 0.1)
             ]
     , clues =
         batch
