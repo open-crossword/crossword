@@ -142,19 +142,16 @@ view state config =
                 stringToKeys str =
                     List.map viewCharKey (String.toList str)
 
-                viewKeyRow attrs row =
-                    div [ css ([ Styles.keyboard.row ] ++ attrs) ]
+                viewKeyRow row =
+                    div [ css ([ Styles.keyboard.row ]) ]
                         row
             in
             div [ css [ Styles.keyboard.keys ] ]
                 [ viewKeyRow
-                    []
                     (stringToKeys firstRow)
                 , viewKeyRow
-                    []
                     (stringToKeys secondRow)
                 , viewKeyRow
-                    []
                     (stringToKeys thirdRow ++ [ viewDeleteKey ])
                 ]
     in
