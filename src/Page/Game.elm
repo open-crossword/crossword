@@ -299,6 +299,7 @@ viewGameStart gameState =
                 [ Styles.ifMobileElse
                     [ Styles.widths.p90 ]
                     [ Styles.widths.p70 ]
+                , Css.paddingBottom (px 193)
                 ]
             ]
             [ viewMetadata gameState.puzzle.metadata
