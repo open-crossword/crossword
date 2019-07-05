@@ -131,16 +131,16 @@ view state config =
         viewKeys =
             let
                 firstRow =
-                    "QWERTYUIOP"
+                    "qwertyuiop"
 
                 secondRow =
-                    "ASDFGHJKL"
+                    "asdfghjkl"
 
                 thirdRow =
-                    "ZXCVBNM"
+                    "zxcvbnm"
 
                 stringToKeys str =
-                    List.map viewCharKey (String.toList str)
+                    List.map (Char.toUpper >> viewCharKey) (String.toList str)
 
                 viewKeyRow row =
                     div [ css ([ Styles.keyboard.row ]) ]
