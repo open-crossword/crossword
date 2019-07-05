@@ -206,6 +206,10 @@ noSelection =
         ]
 
 
+touchActionManipulation =
+    property "touch-action" "manipulation"
+
+
 keyboard =
     { container =
         batch
@@ -216,6 +220,7 @@ keyboard =
             , left (px 0)
             , paddingBottom (px 5)
             , noSelection
+            , touchActionManipulation
             ]
     , row =
         batch
@@ -237,7 +242,6 @@ keyboard =
             , displayFlex
             , justifyContentCenter
             , alignItems center
-            , property "touch-action" "manipulation"
             , borderRadius (px 3)
             , Css.boxShadow4 (px 0) (px 2) (px 0) (Css.rgba 0 0 0 0.1)
             ]
@@ -254,6 +258,5 @@ keyboard =
         batch
             [ displayFlex
             , alignItems center
-            , property "touch-action" "manipulation"
             ]
     }
