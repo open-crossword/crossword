@@ -61,8 +61,9 @@
 	  }
 
 	  connectedCallback() {
-	      const hammertime = new Hammer(this);
+	      const hammertime = new Hammer(this, {domEvents: true});
 	      hammertime.get('pinch').set({ enable: true });
+	      console.log(hammertime.options)
 
 	      const self = this;
 	      hammertime.on('pinch', function(ev) {
@@ -70,6 +71,7 @@
 	      });
 
 	      hammertime.on('pan', function(ev) {
+		  console.log(ev)
 		  self.dispatchEvent(new CustomEvent('pan', {detail: {hammerdata: ev}}));
 	      });
 	  }

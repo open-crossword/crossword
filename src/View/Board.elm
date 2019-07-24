@@ -34,6 +34,7 @@ view ({ puzzle, board } as config) =
     Svg.svg
         [ SvgA.viewBox ("-2 -2 " ++ String.fromInt (viewboxWidth + 4) ++ " " ++ String.fromInt (viewboxHeight + 4))
         , SvgA.id "game-grid"
+        , SvgA.css [Css.property "pointer-events" "all"]
         ]
         [ Svg.rect
             [ SvgA.width (String.fromInt (viewboxWidth + 2))

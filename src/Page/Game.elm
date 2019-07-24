@@ -151,6 +151,7 @@ view model =
             , css [ Styles.fonts.avenir ]
             ]
             [ viewGame model.game
+
             -- , case model.game of
             --     InProgress { board, puzzle, keyboardState } ->
             --         Keyboard.view
@@ -163,7 +164,6 @@ view model =
             --             , onCluePress = OnCellClick board.selection.cursor
             --             , toMsg = OnKeyboardMsg
             --             }
-
             --     _ ->
             --         div [] []
             ]
@@ -284,7 +284,7 @@ viewCrossword gameState =
                 [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
                     , Hammer.view { onPan = OnCrosswordPan, onZoom = OnCrosswordZoom }
-                        [ css [ Css.marginTop (px 15), Css.backgroundColor Styles.colors.hotPink ] ]
+                        [ css [ Css.marginTop (px 15), Css.display Css.block, Css.position Css.relative, Css.property "pointer-events" "none" ] ]
                         [ Board.view
                             { clueIndicesVisible = True
                             , selectionVisible = True
@@ -292,6 +292,18 @@ viewCrossword gameState =
                             , board = gameState.board
                             , puzzle = gameState.puzzle
                             }
+                        -- , 
+                        --     [ css
+                        --         [ Css.position Css.absolute
+                        --         , Css.top (px 0)
+                        --         , Css.left (px 0)
+                        --         , Css.right (px 0)
+                        --         , Css.bottom (px 0)
+                        --         , Css.backgroundColor Styles.colors.hotPink
+                        --         , Css.opacity (Css.num 0.2)
+                        --         ]
+                        --     ]
+                        --     []
                         ]
                     , div
                         [ css
@@ -742,6 +754,7 @@ updateInProgressGame msg gameState =
                     | boardTransform =
                         { boardTransform
                             | zoomAmount = ev.scale
+
                             -- , offsetX = boardTransform.offsetX + ev.deltaX
                             -- , offsetY = boardTransform.offsetY + ev.deltaY
                         }
