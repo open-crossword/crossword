@@ -17,6 +17,7 @@ import DateTime
 import Dict exposing (Dict)
 import FeatherIcons as Icons
 import File exposing (File)
+import Hammer
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (on, onClick, preventDefaultOn)
@@ -51,6 +52,14 @@ type alias InProgressState =
     , undoList : UndoList Board
     , timeSeconds : Int
     , keyboardState : Keyboard.State
+    , boardTransform : BoardTransform
+    }
+
+
+type alias BoardTransform =
+    { zoomAmount : Float
+    , offsetX : Float
+    , offsetY : Float
     }
 
 
@@ -89,6 +98,8 @@ type Msg
     | RevealSelectedCell
     | GotPuzzle PuzzleId (Result Http.Puzzle.Error Puzzle)
     | OnKeyboardMsg (Keyboard.Msg Msg)
+    | OnCrosswordPan Hammer.PanData
+    | OnCrosswordZoom Hammer.ZoomData
     | NoOp
 
 
@@ -140,21 +151,21 @@ view model =
             , css [ Styles.fonts.avenir ]
             ]
             [ viewGame model.game
-            , case model.game of
-                InProgress { board, puzzle, keyboardState } ->
-                    Keyboard.view
-                        keyboardState
-                        { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
-                        , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
-                        , onKeyPress = \char -> OnKeyPress (LetterKey char)
-                        , onDeleteKeyPressed = OnKeyPress DeleteKey
-                        , clue = Board.selectedClue puzzle board
-                        , onCluePress = OnCellClick board.selection.cursor
-                        , toMsg = OnKeyboardMsg
-                        }
+            -- , case model.game of
+            --     InProgress { board, puzzle, keyboardState } ->
+            --         Keyboard.view
+            --             keyboardState
+            --             { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
+            --             , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
+            --             , onKeyPress = \char -> OnKeyPress (LetterKey char)
+            --             , onDeleteKeyPressed = OnKeyPress DeleteKey
+            --             , clue = Board.selectedClue puzzle board
+            --             , onCluePress = OnCellClick board.selection.cursor
+            --             , toMsg = OnKeyboardMsg
+            --             }
 
-                _ ->
-                    div [] []
+            --     _ ->
+            --         div [] []
             ]
     }
 
@@ -237,11 +248,16 @@ viewGameEnd gameState =
                 ]
             ]
             [ text ("Puzzle completed in " ++ TimeFormat.formatSeconds gameState.timeSeconds ++ "!") ]
-        , viewCrossword gameState
+        , viewCrossword
+            { board = gameState.board
+            , puzzle = gameState.puzzle
+            , timeSeconds = gameState.timeSeconds
+            , boardTransform = BoardTransform 0 0 0
+            }
         ]
 
 
-viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
+viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int, boardTransform : BoardTransform } -> Html Msg
 viewCrossword gameState =
     div
         [ css
@@ -263,12 +279,12 @@ viewCrossword gameState =
                 , text (TimeFormat.formatSeconds gameState.timeSeconds)
                 ]
             , div [ css [ Styles.toolbar ] ]
-                [ viewToolbar ]
+                [ span [] [ text (Debug.toString gameState.boardTransform) ], viewToolbar ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
                 [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
-                    , div
-                        [ css [ Css.marginTop (px 15) ] ]
+                    , Hammer.view { onPan = OnCrosswordPan, onZoom = OnCrosswordZoom }
+                        [ css [ Css.marginTop (px 15), Css.backgroundColor Styles.colors.hotPink ] ]
                         [ Board.view
                             { clueIndicesVisible = True
                             , selectionVisible = True
@@ -700,6 +716,39 @@ updateInProgressGame msg gameState =
             , c
             )
 
+        OnCrosswordPan ev ->
+            let
+                boardTransform =
+                    gameState.boardTransform
+            in
+            ( InProgress
+                { gameState
+                    | boardTransform =
+                        { boardTransform
+                            | offsetX = boardTransform.offsetX + ev.deltaX
+                            , offsetY = boardTransform.offsetY + ev.deltaY
+                        }
+                }
+            , Cmd.none
+            )
+
+        OnCrosswordZoom ev ->
+            let
+                boardTransform =
+                    gameState.boardTransform
+            in
+            ( InProgress
+                { gameState
+                    | boardTransform =
+                        { boardTransform
+                            | zoomAmount = ev.scale
+                            -- , offsetX = boardTransform.offsetX + ev.deltaX
+                            -- , offsetY = boardTransform.offsetY + ev.deltaY
+                        }
+                }
+            , Cmd.none
+            )
+
         OnKeyPress OtherKey ->
             noOp
 
@@ -731,6 +780,7 @@ freshInProgress puzzle =
         , undoList = UndoList.fresh freshBoard
         , timeSeconds = 0
         , keyboardState = Keyboard.init
+        , boardTransform = BoardTransform 0 0 0
         }
 
 

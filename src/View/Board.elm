@@ -6,6 +6,7 @@ import Data.Grid as Grid exposing (Grid)
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Html.Styled exposing (..)
+import Html.Styled.Lazy exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
 import List.Extra as List
@@ -49,7 +50,7 @@ view ({ puzzle, board } as config) =
                 |> Grid.to2DList
                 -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
                 |> List.map (List.filterMap identity)
-                |> List.indexedMap (viewRow config)
+                |> List.indexedMap (\(i) -> (lazy3 viewRow) config i)
             )
         ]
 
