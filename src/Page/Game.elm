@@ -52,15 +52,9 @@ type alias InProgressState =
     , undoList : UndoList Board
     , timeSeconds : Int
     , keyboardState : Keyboard.State
-    , boardTransform : BoardTransform
+    , boardTransform : Board.Transform
     }
 
-
-type alias BoardTransform =
-    { zoomAmount : Float
-    , offsetX : Float
-    , offsetY : Float
-    }
 
 
 type alias EndedState =
@@ -125,6 +119,7 @@ init session puzzleId =
     )
 
 
+
 loadGame : PuzzleId -> String -> Game
 loadGame id =
     parsePuzzle id
@@ -152,20 +147,20 @@ view model =
             ]
             [ viewGame model.game
 
-            -- , case model.game of
-            --     InProgress { board, puzzle, keyboardState } ->
-            --         Keyboard.view
-            --             keyboardState
-            --             { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
-            --             , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
-            --             , onKeyPress = \char -> OnKeyPress (LetterKey char)
-            --             , onDeleteKeyPressed = OnKeyPress DeleteKey
-            --             , clue = Board.selectedClue puzzle board
-            --             , onCluePress = OnCellClick board.selection.cursor
-            --             , toMsg = OnKeyboardMsg
-            --             }
-            --     _ ->
-            --         div [] []
+            , case model.game of
+                InProgress { board, puzzle, keyboardState } ->
+                    Keyboard.view
+                        keyboardState
+                        { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
+                        , onArrowRight = OnKeyPress (CycleSelectedClueKey Board.Forward)
+                        , onKeyPress = \char -> OnKeyPress (LetterKey char)
+                        , onDeleteKeyPressed = OnKeyPress DeleteKey
+                        , clue = Board.selectedClue puzzle board
+                        , onCluePress = OnCellClick board.selection.cursor
+                        , toMsg = OnKeyboardMsg
+                        }
+                _ ->
+                    div [] []
             ]
     }
 
@@ -252,12 +247,18 @@ viewGameEnd gameState =
             { board = gameState.board
             , puzzle = gameState.puzzle
             , timeSeconds = gameState.timeSeconds
-            , boardTransform = BoardTransform 0 0 0
+            , boardTransform = Board.initTransform
             }
         ]
 
 
-viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int, boardTransform : BoardTransform } -> Html Msg
+-- Css.transforms
+-- [ Css.scale bg.scale
+-- , Css.translate3d (px bg.offsetX) (px bg.offsetY) (px 0)
+-- ]
+
+
+viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int, boardTransform : Board.Transform } -> Html Msg
 viewCrossword gameState =
     div
         [ css
@@ -279,31 +280,19 @@ viewCrossword gameState =
                 , text (TimeFormat.formatSeconds gameState.timeSeconds)
                 ]
             , div [ css [ Styles.toolbar ] ]
-                [ span [] [ text (Debug.toString gameState.boardTransform) ], viewToolbar ]
+                [ viewToolbar ]
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
                 [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
                     , Hammer.view { onPan = OnCrosswordPan, onZoom = OnCrosswordZoom }
                         [ css [ Css.marginTop (px 15), Css.display Css.block, Css.position Css.relative, Css.property "pointer-events" "none" ] ]
-                        [ Board.view
+                        [ Board.view gameState.boardTransform
                             { clueIndicesVisible = True
                             , selectionVisible = True
                             , onCellClicked = OnCellClick
                             , board = gameState.board
                             , puzzle = gameState.puzzle
                             }
-                        -- , 
-                        --     [ css
-                        --         [ Css.position Css.absolute
-                        --         , Css.top (px 0)
-                        --         , Css.left (px 0)
-                        --         , Css.right (px 0)
-                        --         , Css.bottom (px 0)
-                        --         , Css.backgroundColor Styles.colors.hotPink
-                        --         , Css.opacity (Css.num 0.2)
-                        --         ]
-                        --     ]
-                        --     []
                         ]
                     , div
                         [ css
@@ -737,8 +726,8 @@ updateInProgressGame msg gameState =
                 { gameState
                     | boardTransform =
                         { boardTransform
-                            | offsetX = boardTransform.offsetX + ev.deltaX
-                            , offsetY = boardTransform.offsetY + ev.deltaY
+                            | offsetX = boardTransform.offsetX + ev.velocityX
+                            , offsetY = boardTransform.offsetY + ev.velocityY
                         }
                 }
             , Cmd.none
@@ -748,15 +737,22 @@ updateInProgressGame msg gameState =
             let
                 boardTransform =
                     gameState.boardTransform
+
+                initScale =
+                    if ev.isStart then
+                        boardTransform.scale
+
+                    else
+                        boardTransform.initScale
             in
             ( InProgress
                 { gameState
                     | boardTransform =
                         { boardTransform
-                            | zoomAmount = ev.scale
-
-                            -- , offsetX = boardTransform.offsetX + ev.deltaX
-                            -- , offsetY = boardTransform.offsetY + ev.deltaY
+                            | initScale = initScale
+                            , scale = initScale * ev.scale
+                            , offsetX = boardTransform.offsetX + ev.velocityX
+                            , offsetY = boardTransform.offsetY + ev.velocityY
                         }
                 }
             , Cmd.none
@@ -793,7 +789,7 @@ freshInProgress puzzle =
         , undoList = UndoList.fresh freshBoard
         , timeSeconds = 0
         , keyboardState = Keyboard.init
-        , boardTransform = BoardTransform 0 0 0
+        , boardTransform = Board.initTransform
         }
 
 

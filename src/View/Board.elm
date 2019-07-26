@@ -1,4 +1,4 @@
-module View.Board exposing (view)
+module View.Board exposing (Config, Transform, initTransform, view)
 
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, left, margin, marginLeft, marginTop, position, property, px, relative, rgb, solid, top)
 import Data.Board as Board exposing (Board)
@@ -6,14 +6,31 @@ import Data.Grid as Grid exposing (Grid)
 import Data.Point as Point exposing (Point)
 import Data.Puzzle as Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle)
 import Html.Styled exposing (..)
-import Html.Styled.Lazy exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (onClick, preventDefaultOn)
+import Html.Styled.Lazy exposing (..)
 import List.Extra as List
 import Styles
 import Svg.Styled as Svg exposing (Svg)
 import Svg.Styled.Attributes as SvgA
 import Svg.Styled.Events as SvgE
+
+
+type alias Transform =
+    { initScale : Float
+    , scale : Float
+    , offsetX : Float
+    , offsetY : Float
+    }
+
+
+initTransform : Transform
+initTransform =
+    { initScale = 1
+    , offsetX = 0
+    , offsetY = 0
+    , scale = 1
+    }
 
 
 type alias Config msg =
@@ -25,8 +42,8 @@ type alias Config msg =
     }
 
 
-view : Config msg -> Html msg
-view ({ puzzle, board } as config) =
+view : Transform -> Config msg -> Html msg
+view boardTransform ({ puzzle, board } as config) =
     let
         ( viewboxWidth, viewboxHeight ) =
             viewboxDimensions puzzle.grid
@@ -34,25 +51,27 @@ view ({ puzzle, board } as config) =
     Svg.svg
         [ SvgA.viewBox ("-2 -2 " ++ String.fromInt (viewboxWidth + 4) ++ " " ++ String.fromInt (viewboxHeight + 4))
         , SvgA.id "game-grid"
-        , SvgA.css [Css.property "pointer-events" "all"]
+        , SvgA.css [ Css.property "pointer-events" "all" ]
         ]
-        [ Svg.rect
-            [ SvgA.width (String.fromInt (viewboxWidth + 2))
-            , SvgA.height (String.fromInt (viewboxHeight + 2))
-            , SvgA.x "-1"
-            , SvgA.y "-1"
-            , SvgA.fill "none"
-            , SvgA.stroke "black"
-            , SvgA.strokeWidth "2"
+        [ Svg.g [ SvgA.transform (boardTransformToCssTransform boardTransform ( viewboxWidth, viewboxHeight )) ]
+            [ Svg.rect
+                [ SvgA.width (String.fromInt (viewboxWidth + 2))
+                , SvgA.height (String.fromInt (viewboxHeight + 2))
+                , SvgA.x "-1"
+                , SvgA.y "-1"
+                , SvgA.fill "none"
+                , SvgA.stroke "black"
+                , SvgA.strokeWidth "2"
+                ]
+                []
+            , Svg.g []
+                (board.grid
+                    |> Grid.to2DList
+                    -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
+                    |> List.map (List.filterMap identity)
+                    |> List.indexedMap (\i -> lazy3 viewRow config i)
+                )
             ]
-            []
-        , Svg.g []
-            (board.grid
-                |> Grid.to2DList
-                -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
-                |> List.map (List.filterMap identity)
-                |> List.indexedMap (\(i) -> (lazy3 viewRow) config i)
-            )
         ]
 
 
@@ -156,12 +175,44 @@ viewCellClueIndex number =
     span [] [ text (String.fromInt number) ]
 
 
+svgScale =
+    10
+
+
 viewboxDimensions : Grid a -> ( Int, Int )
 viewboxDimensions grid =
-    let
-        svgScale =
-            10
-    in
     ( Grid.width grid * svgScale
     , Grid.height grid * svgScale
     )
+
+
+boardTransformToCssTransform : Transform -> ( Int, Int ) -> String
+boardTransformToCssTransform bg ( viewboxW, viewboxH ) =
+    let
+        translateX2 =
+            String.fromFloat (bg.offsetX * svgScale)
+
+        translateY2 =
+            String.fromFloat (bg.offsetY * svgScale)
+
+        sx =
+            bg.scale
+
+        sy =
+            bg.scale
+
+        cx =
+            toFloat viewboxH / 2
+
+        cy =
+            toFloat viewboxH / 2
+
+        matrix a b c d e f =
+            "matrix(" ++ String.join "," (List.map String.fromFloat [ a, b, c, d, e, f ]) ++ ")"
+    in
+    String.join " "
+        [ matrix sx 0 0 sy (cx - sx * cx) (cy - sy * cy)
+
+        -- TODO: should be able to merge this transform into the matrix
+        , "translate(" ++ translateX2 ++ ", " ++ translateY2 ++ ")"
+        ]

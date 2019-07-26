@@ -132,9 +132,8 @@ viewPuzzle puzzle =
         [ css [ cardStyle ]
         , Route.gameForId puzzle.id
         ]
-        [ div
-            []
-            [ Board.view
+        [ div []
+            [ Board.view Board.initTransform
                 { onCellClicked = always NoOp
                 , clueIndicesVisible = False
                 , selectionVisible = False

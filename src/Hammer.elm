@@ -14,12 +14,17 @@ type alias Config msg =
 
 type alias ZoomData =
     { scale : Float
+    , velocityX : Float
+    , velocityY : Float
+    , isStart : Bool
     }
 
 
 type alias PanData =
     { deltaX : Float
     , deltaY : Float
+    , velocityX : Float
+    , velocityY : Float
     }
 
 
@@ -37,17 +42,22 @@ view config attrs children =
 zoomDecoder : Decode.Decoder ZoomData
 zoomDecoder =
     Decode.at [ "detail", "hammerdata" ]
-        (Decode.map ZoomData
+        (Decode.map4 ZoomData
             (Decode.field "scale" Decode.float)
-            -- (Decode.field "deltaX" Decode.float)
-            -- (Decode.field "deltaY" Decode.float)
+            (Decode.field "velocityX" Decode.float)
+            (Decode.field "velocityY" Decode.float)
+            (Decode.field "type" Decode.string
+                |> Decode.map (\str -> str == "pinchstart")
+            )
         )
 
 
 panDecoder : Decode.Decoder PanData
 panDecoder =
     Decode.at [ "detail", "hammerdata" ]
-        (Decode.map2 PanData
+        (Decode.map4 PanData
             (Decode.field "deltaX" Decode.float)
             (Decode.field "deltaY" Decode.float)
+            (Decode.field "velocityX" Decode.float)
+            (Decode.field "velocityY" Decode.float)
         )
