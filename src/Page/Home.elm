@@ -7,6 +7,7 @@ import Data.Loadable as Loadable exposing (Loadable)
 import Data.Puzzle as Puzzle exposing (Puzzle)
 import Data.Puzzle.Date as PuzzleDate
 import Data.Puzzle.Id as PuzzleId
+import FeatherIcons as Icons
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Http
@@ -66,7 +67,7 @@ content model =
                 viewCards (List.map Just puzzles)
 
             Loadable.Failed err ->
-                pre [] [ text (Debug.toString err) ]
+                viewError
         ]
 
 
@@ -90,6 +91,30 @@ viewCard maybePuzzle =
 
         Nothing ->
             viewPuzzleLoading
+
+
+viewError : Html Msg
+viewError =
+    div
+        [ css
+            [ Css.displayFlex
+            , Css.flexDirection Css.column
+            , Css.alignItems Css.center
+            , Css.paddingTop (px 50)
+            ]
+        ]
+        [ div
+            [ css
+                [ Css.color Styles.colors.grey ]
+            ]
+            [ (Icons.alertOctagon
+                |> Icons.withSize 100
+                |> Icons.toHtml []
+              )
+                |> Html.Styled.fromUnstyled
+            ]
+        , text "Sorry we couldn't load any puzzles for you! Try again later."
+        ]
 
 
 cardStyle =
