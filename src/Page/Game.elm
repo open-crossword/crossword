@@ -499,7 +499,7 @@ update msg model =
             ( Model <| Initialized <| InitializedState puzzle, Cmd.none )
 
         ( GotPuzzle id (Err p), _ ) ->
-            ( model, Cmd.none )
+            ( Model Error, Cmd.none )
 
         ( _, game ) ->
             let
