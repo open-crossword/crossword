@@ -513,7 +513,7 @@ updateGameState : Msg -> Game -> ( Game, Cmd Msg )
 updateGameState msg gameState =
     case gameState of
         Initialized initializedGame ->
-            ( updateInitializedGame msg initializedGame, Cmd.none )
+            updateInitializedGame msg initializedGame
 
         InProgress inProgressGame ->
             updateInProgressGame msg inProgressGame
@@ -521,22 +521,21 @@ updateGameState msg gameState =
         Loading ->
             ( gameState, Cmd.none )
 
-        Ended endedState ->
-            -- TODO
-            ( gameState, Cmd.none )
+        Ended endedGame ->
+            updateEndedGame msg endedGame
 
         Error ->
             ( gameState, Cmd.none )
 
 
-updateInitializedGame : Msg -> InitializedState -> Game
+updateInitializedGame : Msg -> InitializedState -> ( Game, Cmd Msg )
 updateInitializedGame msg state =
     case msg of
         OnGameStart ->
-            freshInProgress state.puzzle
+            ( freshInProgress state.puzzle, Cmd.none )
 
         _ ->
-            Initialized state
+            ( Initialized state, Cmd.none )
 
 
 updateInProgressGame : Msg -> InProgressState -> ( Game, Cmd Msg )
@@ -594,10 +593,6 @@ updateInProgressGame msg gameState =
             updateBoard gameState (Board.moveSelectionToWord clue gameState.puzzle gameState.board)
 
         ResetPuzzle ->
-            let
-                newBoard =
-                    Board.fromPuzzle gameState.puzzle
-            in
             ( freshInProgress gameState.puzzle, Cmd.none )
 
         RevealSelectedWord ->
@@ -782,6 +777,16 @@ updateInProgressGame msg gameState =
 
         GotPuzzle _ _ ->
             noOp
+
+
+updateEndedGame : Msg -> EndedState -> ( Game, Cmd Msg )
+updateEndedGame msg gameState =
+    case msg of
+        ResetPuzzle ->
+            ( freshInProgress gameState.puzzle, Cmd.none )
+
+        _ ->
+            ( Ended gameState, Cmd.none )
 
 
 freshInProgress : Puzzle -> Game
