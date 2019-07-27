@@ -143,7 +143,7 @@ view session model =
             , hijackOn "dragover" (Decode.succeed NoOp)
             , css [ Styles.fonts.avenir ]
             ]
-            [ viewGame model.game
+            [ viewGame model.game session.probablyMobile
             , case ( model.game, session.probablyMobile ) of
                 ( InProgress { board, puzzle, keyboardState }, True ) ->
                     Keyboard.view
@@ -163,14 +163,14 @@ view session model =
     }
 
 
-viewGame : Game -> Html Msg
-viewGame game =
+viewGame : Game -> Bool -> Html Msg
+viewGame game probablyMobile =
     case game of
         Initialized gameState ->
             viewGameStart gameState
 
         InProgress gameState ->
-            viewCrossword gameState
+            viewCrossword probablyMobile gameState
 
         Ended gameState ->
             viewGameEnd gameState
@@ -241,7 +241,7 @@ viewGameEnd gameState =
                 ]
             ]
             [ text ("Puzzle completed in " ++ TimeFormat.formatSeconds gameState.timeSeconds ++ "!") ]
-        , viewCrossword
+        , viewCrossword False
             { board = gameState.board
             , puzzle = gameState.puzzle
             , timeSeconds = gameState.timeSeconds
@@ -257,8 +257,8 @@ viewGameEnd gameState =
 -- ]
 
 
-viewCrossword : { a | board : Board, puzzle : Puzzle, timeSeconds : Int, boardTransform : Board.Transform } -> Html Msg
-viewCrossword gameState =
+viewCrossword : Bool -> { a | board : Board, puzzle : Puzzle, timeSeconds : Int, boardTransform : Board.Transform } -> Html Msg
+viewCrossword probablyMobile gameState =
     div
         [ css
             [ Css.displayFlex
@@ -283,7 +283,7 @@ viewCrossword gameState =
             , div [ css [ displayFlex, Css.justifyContent Css.center ] ]
                 [ div [ css [ Styles.widths.p100 ] ]
                     [ viewSelectedClue gameState.puzzle gameState.board
-                    , Hammer.view { onPan = OnCrosswordPan, onZoom = OnCrosswordZoom }
+                    , hammerIf probablyMobile
                         [ css [ Css.marginTop (px 15), Css.display Css.block, Css.position Css.relative, Css.property "pointer-events" "none" ] ]
                         [ Board.view gameState.boardTransform
                             { clueIndicesVisible = True
@@ -315,6 +315,14 @@ viewCrossword gameState =
                 ]
             ]
         ]
+
+
+hammerIf cond =
+    if cond then
+        Hammer.view { onPan = OnCrosswordPan, onZoom = OnCrosswordZoom }
+
+    else
+        div
 
 
 viewMetadata : Metadata -> Html Msg
