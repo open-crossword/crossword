@@ -43,7 +43,7 @@
 
       var app = Elm.Main.init({
           node: document.getElementById('elm'),
-	  flags: { isProbablyMobile }
+	  flags: { isProbablyMobile: true }
       });
 
       // Prevent scrolling with arrow and space keys
@@ -73,7 +73,6 @@
 	      });
 
 	      hammertime.on('panstart panmove', function(ev) {
-		  console.log(ev)
 		  self.dispatchEvent(new CustomEvent('pan', {detail: {hammerdata: ev}}));
 	      });
 	  }
