@@ -1,18 +1,24 @@
 module Session exposing (Session, collapseMenu, init, navKey, toggleMenuCollapsed)
 
 import Browser.Navigation as Nav
+import Json.Decode as Decode exposing (Value)
 
 
 type alias Session =
     { navKey : Nav.Key
     , menuCollapsed : Bool
+    , probablyMobile : Bool
     }
 
 
-init : Nav.Key -> Session
-init key =
+init : Nav.Key -> Value -> Session
+init key flags =
     { navKey = key
     , menuCollapsed = True
+    , probablyMobile =
+        flags
+            |> Decode.decodeValue (Decode.field "isProbablyMobile" Decode.bool)
+            |> Result.withDefault False
     }
 
 

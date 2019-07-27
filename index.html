@@ -39,8 +39,11 @@
     <div id="elm"></div>
     <script src="elm.js"></script>
     <script>
+      var isProbablyMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
       var app = Elm.Main.init({
-          node: document.getElementById('elm')
+          node: document.getElementById('elm'),
+	  flags: { isProbablyMobile }
       });
 
       // Prevent scrolling with arrow and space keys

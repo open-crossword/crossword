@@ -36,10 +36,10 @@ type alias Model =
     }
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
+init : Value -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
     changeRouteTo (Route.fromUrl url)
-        { session = Session.init navKey
+        { session = Session.init navKey flags
         , pageModel = Redirect
         }
 
@@ -124,7 +124,7 @@ view model =
             viewPage Page.Home GotHomeMsg (Home.view subModel)
 
         Game subModel ->
-            viewPage Page.Game GotGameMsg (Game.view subModel)
+            viewPage Page.Game GotGameMsg (Game.view model.session subModel)
 
         About subModel ->
             viewPage Page.About GotAboutMsg (About.view subModel)
@@ -209,7 +209,7 @@ subscriptions model =
 -- MAIN --
 
 
-main : Program () Model Msg
+main : Program Value Model Msg
 main =
     Browser.application
         { init = init

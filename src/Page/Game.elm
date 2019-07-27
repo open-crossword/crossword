@@ -56,7 +56,6 @@ type alias InProgressState =
     }
 
 
-
 type alias EndedState =
     { puzzle : Puzzle
     , board : Board
@@ -119,7 +118,6 @@ init session puzzleId =
     )
 
 
-
 loadGame : PuzzleId -> String -> Game
 loadGame id =
     parsePuzzle id
@@ -136,8 +134,8 @@ parsePuzzle id input =
 --- VIEW ---
 
 
-view : Model -> { content : Html Msg, title : String }
-view model =
+view : Session -> Model -> { content : Html Msg, title : String }
+view session model =
     { title = "Game"
     , content =
         div
@@ -146,9 +144,8 @@ view model =
             , css [ Styles.fonts.avenir ]
             ]
             [ viewGame model.game
-
-            , case model.game of
-                InProgress { board, puzzle, keyboardState } ->
+            , case ( model.game, session.probablyMobile ) of
+                ( InProgress { board, puzzle, keyboardState }, True ) ->
                     Keyboard.view
                         keyboardState
                         { onArrowLeft = OnKeyPress (CycleSelectedClueKey Board.Backward)
@@ -159,6 +156,7 @@ view model =
                         , onCluePress = OnCellClick board.selection.cursor
                         , toMsg = OnKeyboardMsg
                         }
+
                 _ ->
                     div [] []
             ]
@@ -250,6 +248,7 @@ viewGameEnd gameState =
             , boardTransform = Board.initTransform
             }
         ]
+
 
 
 -- Css.transforms
