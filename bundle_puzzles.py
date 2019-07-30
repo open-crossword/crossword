@@ -12,8 +12,8 @@ puzzle_ids = ["nyt1952-04-22",
               "nyt1951-09-23",
               "lat1924-11-27"]
 
-with open('src/BundledPuzzles.elm', 'w') as elm_file:
-    elm_file.write("module BundledPuzzles exposing (puzzles)\n")
+with open('src/gen/BundledPuzzles.elm', 'w') as elm_file:
+    elm_file.write("module Gen.BundledPuzzles exposing (puzzles)\n")
 
     elm_file.write("puzzles = [")
     elm_file.write(','.join(['puzzle{}'.format(i) for i in range(len(puzzle_ids))]))

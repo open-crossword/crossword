@@ -3,6 +3,7 @@ module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
 import Browser
 import Browser.Dom
 import Browser.Events
+import BundledPuzzles
 import Css exposing (absolute, alignItems, backgroundColor, border3, center, displayFlex, fontSize, int, left, margin, marginLeft, marginTop, pct, position, property, px, relative, rem, rgb, solid, top)
 import Data.Board as Board exposing (Board)
 import Data.Direction as Direction
@@ -110,7 +111,14 @@ init session puzzleId =
         [ Task.attempt (\_ -> NoOp) (Browser.Dom.focus "game-grid")
         , case puzzleId of
             Just id ->
-                Http.Puzzle.get (GotPuzzle id) id
+                -- try to load a bundled puzzle, fallback to http request
+                case BundledPuzzles.getBundledPuzzleById id of
+                    Just bundledPuzzle ->
+                        Task.succeed (Ok bundledPuzzle)
+                            |> Task.perform (GotPuzzle id)
+
+                    Nothing ->
+                        Http.Puzzle.get (GotPuzzle id) id
 
             Nothing ->
                 Cmd.none

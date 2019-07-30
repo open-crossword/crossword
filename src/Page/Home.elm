@@ -68,18 +68,7 @@ content model =
                 viewCards (List.map Just puzzles)
 
             Loadable.Failed err ->
-                let
-                    parseBundledPuzzle i string =
-                        string
-                            |> Puzzle.Format.Xd.parse (Puzzle.bundledId i)
-                            |> Result.toMaybe
-
-                    cards =
-                        List.indexedMap
-                            parseBundledPuzzle
-                            BundledPuzzles.puzzles
-                in
-                viewError (viewCards cards)
+                viewError (viewCards (List.map Just BundledPuzzles.puzzles))
         ]
 
 

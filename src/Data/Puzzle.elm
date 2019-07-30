@@ -1,4 +1,4 @@
-module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), bundledId, clueIdToDisplayString, clueIdToIndex, getMatchingClueId, wordStartMatchesDirection)
+module Data.Puzzle exposing (Cell(..), Clue, ClueId, Metadata, Puzzle, WordStart, WordStartDirection(..), clueIdToDisplayString, clueIdToIndex, getMatchingClueId, wordStartMatchesDirection)
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -6,12 +6,7 @@ import Data.OneOrTwo exposing (OneOrTwo(..))
 import Data.Point exposing (Point)
 import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Dict exposing (Dict)
-
-
-bundledId : Int -> PuzzleId
-bundledId i =
-    ("bundled_" ++ String.fromInt i)
-        |> PuzzleId.fromString
+import List.Extra as List
 
 
 type alias CellIndex =
