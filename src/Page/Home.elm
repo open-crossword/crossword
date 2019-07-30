@@ -1,5 +1,6 @@
 module Page.Home exposing (Model, Msg, init, update, view)
 
+import BundledPuzzles
 import Css exposing (pct, px)
 import Css.Transitions
 import Data.Board as Board exposing (Board)
@@ -67,7 +68,22 @@ content model =
                 viewCards (List.map Just puzzles)
 
             Loadable.Failed err ->
-                viewError
+                let
+                    bundledId i =
+                        ("bundled_" ++ String.fromInt i)
+                            |> PuzzleId.fromString
+
+                    parseBundledPuzzle i string =
+                        string
+                            |> Puzzle.Format.Xd.parse (bundledId i)
+                            |> Result.toMaybe
+
+                    cards =
+                        List.indexedMap
+                            parseBundledPuzzle
+                            BundledPuzzles.puzzles
+                in
+                viewError (viewCards cards)
         ]
 
 
@@ -93,28 +109,30 @@ viewCard maybePuzzle =
             viewPuzzleLoading
 
 
-viewError : Html Msg
-viewError =
-    div
-        [ css
-            [ Css.displayFlex
-            , Css.flexDirection Css.column
-            , Css.alignItems Css.center
-            , Css.paddingTop (px 50)
-            ]
-        ]
-        [ div
-            [ css
-                [ Css.color Styles.colors.grey ]
-            ]
-            [ (Icons.alertOctagon
-                |> Icons.withSize 100
-                |> Icons.toHtml []
-              )
-                |> Html.Styled.fromUnstyled
-            ]
-        , text "Sorry we couldn't load any puzzles for you! Try again later."
-        ]
+viewError : Html Msg -> Html Msg
+viewError contents =
+    let
+        errorBar =
+            div
+                [ css
+                    [ Css.position Css.fixed
+                    , Css.height (px 50)
+                    , Css.bottom (px 0)
+                    , Css.left (px 0)
+                    , Css.right (px 0)
+                    , Css.backgroundColor Styles.colors.hotPink
+                    , Css.displayFlex
+                    , Css.alignItems Css.center
+                    , Styles.justifyContentCenter
+                    , Css.color Styles.colors.white
+                    , Css.textAlign Css.center
+                    ]
+                ]
+                [ text "Sorry, we had some trouble downloading random puzzles. In the meantime, here are a few samples."
+                ]
+    in
+    div []
+        [ contents, errorBar ]
 
 
 cardStyle =
