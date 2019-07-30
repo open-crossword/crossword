@@ -69,13 +69,9 @@ content model =
 
             Loadable.Failed err ->
                 let
-                    bundledId i =
-                        ("bundled_" ++ String.fromInt i)
-                            |> PuzzleId.fromString
-
                     parseBundledPuzzle i string =
                         string
-                            |> Puzzle.Format.Xd.parse (bundledId i)
+                            |> Puzzle.Format.Xd.parse (Puzzle.bundledId i)
                             |> Result.toMaybe
 
                     cards =
