@@ -248,8 +248,7 @@ keyboard =
             ]
     , mushroom =
         batch
-            [
-             position absolute
+            [ position absolute
             , height (px 90)
             , backgroundColor colors.white
             , widths.p100

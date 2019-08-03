@@ -1,7 +1,12 @@
 module Gen.BundledPuzzles exposing (puzzles)
-puzzles = [puzzle0,puzzle1,puzzle2,puzzle3,puzzle4,puzzle5,puzzle6,puzzle7]
 
-puzzle0 = """Title: New York Times, Tuesday, April 22, 1952
+
+puzzles =
+    [ puzzle0, puzzle1, puzzle2, puzzle3, puzzle4, puzzle5, puzzle6, puzzle7 ]
+
+
+puzzle0 =
+    """Title: New York Times, Tuesday, April 22, 1952
 Author: Unknown
 Editor: Margaret Farrar
 Date: 1952-04-22
@@ -99,8 +104,10 @@ D53. "___ Misérables.” ~ LES
 D55. Governor of Utah. ~ LEE
 
 """
-            
-puzzle1 = """Title: Leave a Cup Out
+
+
+puzzle1 =
+    """Title: Leave a Cup Out
 Author: Mike Selinker & Gaby Weidling
 Copyright: © 2013 Eltana
 Number: 60
@@ -207,8 +214,10 @@ D59. Boston harbor contents on December 16, 1773 ~ TEA
 D61. One trusted on a one? ~ GOD
 
 """
-            
-puzzle2 = """Title: Send a Food Basket
+
+
+puzzle2 =
+    """Title: Send a Food Basket
 Author: Mike Selinker
 Copyright: © 2013 Eltana
 Number: 58
@@ -299,8 +308,10 @@ D48. Ooh and ___ ~ AAH
 D49. Org. that may change its ban on gays ~ BSA
 
 """
-            
-puzzle3 = """Title: New York Times, Wednesday, November 22, 1950
+
+
+puzzle3 =
+    """Title: New York Times, Wednesday, November 22, 1950
 Author: Henry A. Wolfe
 Editor: Margaret Farrar
 Date: 1950-11-22
@@ -398,8 +409,10 @@ D57. Norse name. ~ OLA
 D59. Pronoun. ~ YOU
 
 """
-            
-puzzle4 = """Title: Write a Poem
+
+
+puzzle4 =
+    """Title: Write a Poem
 Author: Mike Selinker
 Copyright: © 2013 Eltana
 Number: 68
@@ -508,8 +521,10 @@ D67. Mental reading ~ ESP
 D68. Type of internet feed ~ RSS
 
 """
-            
-puzzle5 = """Title: Build, Then Furnish
+
+
+puzzle5 =
+    """Title: Build, Then Furnish
 Author: Mike Selinker
 Copyright: © 2014 Eltana
 Number: 99
@@ -593,8 +608,10 @@ D41. Ms. Dinesen of letters ~ ISAK
 D42. Spongy tissue in fruit ~ PITH
 
 """
-            
-puzzle6 = """Title: TAPESTRY OF WORDS [New York Times, Sunday, September 23, 1951]
+
+
+puzzle6 =
+    """Title: TAPESTRY OF WORDS [New York Times, Sunday, September 23, 1951]
 Author: Israel Gitter
 Editor: Margaret Farrar
 Date: 1951-09-23
@@ -768,8 +785,10 @@ D102. Where Kokomo is: Abbr. ~ IND
 D103. French summer. ~ ETE
 
 """
-            
-puzzle7 = """Title: LA Times, Nov 27, 1924  Tetracruciform (see notepad)
+
+
+puzzle7 =
+    """Title: LA Times, Nov 27, 1924  Tetracruciform (see notepad)
 Copyright: © 1924, The Ball Syndicate, Inc
 Date: 1924-11-27
 Notes: A mystical design combined with everyday words shorter than the name it bears.  Note: Clue headings were "Horizontal" and "Vertical" in this "Cross Word Puzzle".
@@ -881,4 +900,3 @@ D70. Happen ~ BE
 D72. Execute ~ DO
 
 """
-            
