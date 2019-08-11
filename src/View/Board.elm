@@ -114,18 +114,18 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
             viewboxHeight // Grid.height puzzle.grid
     in
     Svg.g
-        [ SvgA.transform ("translate(" ++ String.fromInt (x * w) ++ "," ++ String.fromInt (y * h) ++ ")")
-        ]
-        [ case cell of
-            Letter char ->
-                Svg.g
-                    []
+        []
+        (List.concat
+            [ case cell of
+                Letter char ->
                     [ Svg.rect
                         [ SvgE.onMouseDown (config.onCellClicked point)
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
                         , SvgA.stroke "black"
                         , SvgA.strokeWidth ".5"
+                        , SvgA.x (String.fromInt (x * w))
+                        , SvgA.y (String.fromInt (y * h))
                         , SvgA.css
                             [ Css.property "touch-action" "manipulation"
                             , Css.property "-webkit-tap-highlight-color" "transparent"
@@ -142,8 +142,8 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                         []
                     , Svg.text_
                         [ SvgA.css [ Css.fontSize (px 5), Css.property "pointer-events" "none" ]
-                        , SvgA.x "5"
-                        , SvgA.y "8"
+                        , SvgA.x (String.fromInt (x * w + 5))
+                        , SvgA.y (String.fromInt (y * h + 8))
                         , SvgA.textAnchor "middle"
                         , SvgA.width (String.fromInt w)
                         , SvgA.height (String.fromInt h)
@@ -151,27 +151,32 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
                         [ Svg.text (String.fromChar char) ]
                     ]
 
-            Shaded ->
-                Svg.rect
-                    [ SvgA.width (String.fromInt w)
-                    , SvgA.height (String.fromInt h)
-                    , SvgA.fill "black"
-                    , SvgA.stroke "black"
-                    , SvgA.strokeWidth ".5"
+                Shaded ->
+                    [ Svg.rect
+                        [ SvgA.width (String.fromInt w)
+                        , SvgA.height (String.fromInt h)
+                        , SvgA.fill "black"
+                        , SvgA.stroke "black"
+                        , SvgA.x (String.fromInt (x * w))
+                        , SvgA.y (String.fromInt (y * h))
+                        , SvgA.strokeWidth ".5"
+                        ]
+                        []
                     ]
-                    []
-        , case ( clueIndicesVisible, wordStartNumber ) of
-            ( True, Just n ) ->
-                Svg.text_
-                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
-                    , SvgA.x "1"
-                    , SvgA.y "3"
+            , case ( clueIndicesVisible, wordStartNumber ) of
+                ( True, Just n ) ->
+                    [ Svg.text_
+                        [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
+                        , SvgA.x (String.fromInt (x * w + 1))
+                        , SvgA.y (String.fromInt (y * h + 3))
+                        ]
+                        [ Svg.text (String.fromInt n) ]
                     ]
-                    [ Svg.text (String.fromInt n) ]
 
-            ( _, _ ) ->
-                Svg.g [] []
-        ]
+                ( _, _ ) ->
+                    []
+            ]
+        )
 
 
 viewCellClueIndex : Int -> Html msg
