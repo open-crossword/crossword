@@ -91,7 +91,7 @@ viewCell : (Point -> msg) -> Bool -> Bool -> Board -> Puzzle -> Int -> Int -> Ce
 viewCell onCellClicked clueIndicesVisible selectionVisible board puzzle y x cell =
     let
         point =
-            Debug.log "MEE" ( x, y )
+            ( x, y )
 
         isSelected =
             board.selection.cursor == point
