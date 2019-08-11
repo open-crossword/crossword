@@ -6,6 +6,7 @@ import FeatherIcons as Icons
 import Html.Styled exposing (..)
 import Html.Styled.Attributes exposing (..)
 import Html.Styled.Events exposing (on, onClick, preventDefaultOn)
+import Html.Styled.Lazy exposing (..)
 import Json.Decode as Decode exposing (Decoder)
 import Set exposing (Set)
 import Styles
@@ -61,6 +62,11 @@ update state msg =
 
 view : State -> Config msg -> Html msg
 view state config =
+    lazy2 lazyView state config
+
+
+lazyView : State -> Config msg -> Html msg
+lazyView state config =
     let
         chevronLeft =
             Icons.chevronLeft
