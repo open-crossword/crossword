@@ -64,33 +64,34 @@ view boardTransform ({ puzzle, board } as config) =
                 , SvgA.strokeWidth "2"
                 ]
                 []
-            , lazy
-                (\conf ->
-                    Svg.g []
-                        (conf.board.grid
-                            |> Grid.to2DList
-                            -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
-                            |> List.map (List.filterMap identity)
-                            |> List.indexedMap (viewRow conf)
-                            |> List.concat
-                        )
-                )
-                config
+            , lazy5 lazyThing config.onCellClicked config.selectionVisible config.clueIndicesVisible config.board config.puzzle
             ]
         ]
 
 
-viewRow : Config msg -> Int -> List Cell -> List (Svg msg)
-viewRow ({ puzzle, board } as config) y row =
-    List.indexedMap (viewCell config y) row
+lazyThing : (Point -> msg) -> Bool -> Bool -> Board -> Puzzle -> Svg msg
+lazyThing onCellClicked clueIndicesVisible selectionVisible board puzzle =
+    Svg.g []
+        (board.grid
+            |> Grid.to2DList
+            -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
+            |> List.map (List.filterMap identity)
+            |> List.indexedMap (viewRow onCellClicked clueIndicesVisible selectionVisible board puzzle)
+            |> List.concat
+        )
+
+
+viewRow : (Point -> msg) -> Bool -> Bool -> Board -> Puzzle -> Int -> List Cell -> List (Svg msg)
+viewRow onCellClicked clueIndicesVisible selectionVisible board puzzle y row =
+    List.indexedMap (viewCell onCellClicked clueIndicesVisible selectionVisible board puzzle y) row
         |> List.concat
 
 
-viewCell : Config msg -> Int -> Int -> Cell -> List (Svg msg)
-viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x cell =
+viewCell : (Point -> msg) -> Bool -> Bool -> Board -> Puzzle -> Int -> Int -> Cell -> List (Svg msg)
+viewCell onCellClicked clueIndicesVisible selectionVisible board puzzle y x cell =
     let
         point =
-            ( x, y )
+            Debug.log "MEE" ( x, y )
 
         isSelected =
             board.selection.cursor == point
@@ -116,7 +117,7 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
         [ case cell of
             Letter char ->
                 [ Svg.rect
-                    [ SvgE.onMouseDown (config.onCellClicked point)
+                    [ SvgE.onMouseDown (onCellClicked point)
                     , SvgA.width (String.fromInt w)
                     , SvgA.height (String.fromInt h)
                     , SvgA.stroke "black"
