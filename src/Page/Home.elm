@@ -117,7 +117,12 @@ viewError contents =
                 ]
     in
     div []
-        [ contents, errorBar ]
+        [ div
+            [ css [ Css.marginBottom (px 50) ]
+            ]
+            [ contents ]
+        , errorBar
+        ]
 
 
 cardStyle =
