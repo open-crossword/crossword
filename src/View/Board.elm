@@ -64,13 +64,17 @@ view boardTransform ({ puzzle, board } as config) =
                 , SvgA.strokeWidth "2"
                 ]
                 []
-            , Svg.g []
-                (board.grid
-                    |> Grid.to2DList
-                    -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
-                    |> List.map (List.filterMap identity)
-                    |> List.indexedMap (\i -> lazy3 viewRow config i)
+            , lazy
+                (\conf ->
+                    Svg.g []
+                        (conf.board.grid
+                            |> Grid.to2DList
+                            -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
+                            |> List.map (List.filterMap identity)
+                            |> List.indexedMap (viewRow conf)
+                        )
                 )
+                config
             ]
         ]
 
