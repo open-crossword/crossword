@@ -15,7 +15,7 @@
     <link rel="apple-touch-icon" sizes="144x144" href="assets/favicons/apple-icon-144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="assets/favicons/apple-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/favicons/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="assets/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicons/android-icon-192x192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="assets/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="assets/favicons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="assets/favicons/favicon-16x16.png">
@@ -26,11 +26,12 @@
     <script src="vendor/hammer.js"></script>
 
     <style>
-     html, body {
-         height: 100%;
-         font-family: avenir next, avenir, san-serif;
-         background-color: #FAFAFA;
-     }
+        html,
+        body {
+            height: 100%;
+            font-family: avenir next, avenir, san-serif;
+            background-color: #FAFAFA;
+        }
     </style>
 
 </head>
@@ -39,46 +40,46 @@
     <div id="elm"></div>
     <script src="elm.js"></script>
     <script>
-      var isProbablyMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        var isProbablyMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-      var app = Elm.Main.init({
-          node: document.getElementById('elm'),
-	  flags: { isProbablyMobile }
-      });
+        var app = Elm.Main.init({
+            node: document.getElementById('elm'),
+            flags: { isProbablyMobile }
+        });
 
-      // Prevent scrolling with arrow and space keys
-      // Prevent tab and enter from updating elements
-      // Elm doesn't support global preventDefaults
-      window.addEventListener('keydown', function (e) {
-          if ([32, 37, 38, 39, 40, 8, 9, 13].indexOf(e.keyCode) > -1) {
-              e.preventDefault();
-          }
-      }, false);
+        // Prevent scrolling with arrow and space keys
+        // Prevent tab and enter from updating elements
+        // Elm doesn't support global preventDefaults
+        window.addEventListener('keydown', function (e) {
+            if ([32, 37, 38, 39, 40, 8, 9, 13].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+            }
+        }, false);
 
-      // Capture focus
-      window.focus();
+        // Capture focus
+        window.focus();
 
-      class HammerWrapper extends HTMLElement {
-	  constructor() {
-	      super();
-	  }
+        class HammerWrapper extends HTMLElement {
+            constructor() {
+                super();
+            }
 
-	  connectedCallback() {
-	      const hammertime = new Hammer(this, {domEvents: true});
-	      hammertime.get('pinch').set({ enable: true });
+            connectedCallback() {
+                const hammertime = new Hammer(this, { domEvents: true });
+                hammertime.get('pinch').set({ enable: true });
 
-	      const self = this;
-	      hammertime.on('pinchstart pinchmove', function(ev) {
-		  self.dispatchEvent(new CustomEvent('pinch', {detail: {hammerdata: ev}}));
-	      });
+                const self = this;
+                hammertime.on('pinchstart pinchmove', function (ev) {
+                    self.dispatchEvent(new CustomEvent('pinch', { detail: { hammerdata: ev } }));
+                });
 
-	      hammertime.on('panstart panmove', function(ev) {
-		  self.dispatchEvent(new CustomEvent('pan', {detail: {hammerdata: ev}}));
-	      });
-	  }
-      }
+                hammertime.on('panstart panmove', function (ev) {
+                    self.dispatchEvent(new CustomEvent('pan', { detail: { hammerdata: ev } }));
+                });
+            }
+        }
 
-      customElements.define('hammer-wrapper', HammerWrapper);
+        customElements.define('hammer-wrapper', HammerWrapper);
 
     </script>
 </body>
