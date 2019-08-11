@@ -12,7 +12,7 @@ puzzle_ids = ["nyt1952-04-22",
               "nyt1951-09-23",
               "lat1924-11-27"]
 
-with open('src/gen/BundledPuzzles.elm', 'w') as elm_file:
+with open('src/Gen/BundledPuzzles.elm', 'w') as elm_file:
     elm_file.write("module Gen.BundledPuzzles exposing (puzzles)\n")
 
     elm_file.write("puzzles = [")
