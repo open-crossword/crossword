@@ -101,7 +101,7 @@ viewError contents =
             div
                 [ css
                     [ Css.position Css.fixed
-                    , Css.height (px 50)
+                    , Css.minHeight (px 50)
                     , Css.bottom (px 0)
                     , Css.left (px 0)
                     , Css.right (px 0)
