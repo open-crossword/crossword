@@ -61,6 +61,7 @@ type alias EndedState =
     { puzzle : Puzzle
     , board : Board
     , timeSeconds : Int
+    , boardTransform : Board.Transform
     }
 
 
@@ -181,7 +182,7 @@ viewGame game probablyMobile =
             viewCrossword probablyMobile gameState
 
         Ended gameState ->
-            viewGameEnd gameState
+            viewGameEnd probablyMobile gameState
 
         Loading ->
             div [] [ text "loading..." ]
@@ -235,8 +236,8 @@ viewGameStart gameState =
         ]
 
 
-viewGameEnd : { a | board : Board, puzzle : Puzzle, timeSeconds : Int } -> Html Msg
-viewGameEnd gameState =
+viewGameEnd : Bool -> EndedState -> Html Msg
+viewGameEnd isProbablyMobile gameState =
     div []
         [ div
             [ css
@@ -249,11 +250,11 @@ viewGameEnd gameState =
                 ]
             ]
             [ text ("Puzzle completed in " ++ TimeFormat.formatSeconds gameState.timeSeconds ++ "!") ]
-        , viewCrossword False
+        , viewCrossword isProbablyMobile
             { board = gameState.board
             , puzzle = gameState.puzzle
             , timeSeconds = gameState.timeSeconds
-            , boardTransform = Board.initTransform
+            , boardTransform = gameState.boardTransform
             }
         ]
 
@@ -546,6 +547,46 @@ updateInitializedGame msg state =
             ( Initialized state, Cmd.none )
 
 
+updateOnCellClick : Point -> Board -> Board
+updateOnCellClick point board =
+    let
+        oldSelection =
+            board.selection
+
+        direction =
+            if oldSelection.cursor == point then
+                Direction.swap oldSelection.direction
+
+            else
+                oldSelection.direction
+    in
+    Board.updateSelection point direction board
+
+
+updateOnArrowKey : Grid.Direction -> Board -> Board
+updateOnArrowKey direction board =
+    let
+        selection =
+            board.selection
+
+        isChangingDirection =
+            (selection.direction == Direction.Across && (direction == Grid.Up || direction == Grid.Down))
+                || (selection.direction == Direction.Down && (direction == Grid.Left || direction == Grid.Right))
+
+        newDirection =
+            if isChangingDirection then
+                Direction.swap selection.direction
+
+            else
+                selection.direction
+    in
+    if isChangingDirection then
+        Board.updateSelection selection.cursor newDirection board
+
+    else
+        Board.moveSelectionSkip direction board
+
+
 updateInProgressGame : Msg -> InProgressState -> ( Game, Cmd Msg )
 updateInProgressGame msg gameState =
     let
@@ -563,6 +604,7 @@ updateInProgressGame msg gameState =
                     { puzzle = game.puzzle
                     , board = board
                     , timeSeconds = game.timeSeconds
+                    , boardTransform = Board.initTransform
                     }
                 , Cmd.none
                 )
@@ -581,21 +623,7 @@ updateInProgressGame msg gameState =
             ( InProgress { gameState | timeSeconds = newTime }, Cmd.none )
 
         OnCellClick point ->
-            let
-                oldSelection =
-                    gameState.board.selection
-
-                direction =
-                    if oldSelection.cursor == point then
-                        Direction.swap oldSelection.direction
-
-                    else
-                        oldSelection.direction
-
-                newBoard =
-                    Board.updateSelection point direction gameState.board
-            in
-            updateBoard gameState newBoard
+            updateBoard gameState (updateOnCellClick point gameState.board)
 
         OnClueClick clue ->
             updateBoard gameState (Board.moveSelectionToWord clue gameState.puzzle gameState.board)
@@ -657,37 +685,10 @@ updateInProgressGame msg gameState =
             updateBoard gameState newBoard
 
         OnKeyPress (CycleSelectedClueKey direction) ->
-            let
-                newBoard =
-                    Board.cycleSelectedClue direction gameState.puzzle gameState.board
-            in
-            updateBoard gameState newBoard
+            updateBoard gameState (Board.cycleSelectedClue direction gameState.puzzle gameState.board)
 
-        -- TODO We just want this case to pattern match on arrow keys
         OnKeyPress (ArrowKey direction) ->
-            let
-                selection =
-                    gameState.board.selection
-
-                isChangingDirection =
-                    (selection.direction == Direction.Across && (direction == Grid.Up || direction == Grid.Down))
-                        || (selection.direction == Direction.Down && (direction == Grid.Left || direction == Grid.Right))
-
-                newDirection =
-                    if isChangingDirection then
-                        Direction.swap selection.direction
-
-                    else
-                        selection.direction
-
-                newBoard =
-                    if isChangingDirection then
-                        Board.updateSelection selection.cursor newDirection gameState.board
-
-                    else
-                        Board.moveSelectionSkip direction gameState.board
-            in
-            updateBoard gameState newBoard
+            updateBoard gameState (updateOnArrowKey direction gameState.board)
 
         OnKeyPress UndoKey ->
             let
@@ -728,63 +729,56 @@ updateInProgressGame msg gameState =
             )
 
         OnCrosswordPan ev ->
-            let
-                boardTransform =
-                    gameState.boardTransform
-            in
-            ( InProgress
-                { gameState
-                    | boardTransform =
-                        { boardTransform
-                            | offsetX = boardTransform.offsetX + ev.velocityX
-                            , offsetY = boardTransform.offsetY + ev.velocityY
-                        }
-                }
+            ( InProgress (onUpdatePan gameState ev)
             , Cmd.none
             )
 
         OnCrosswordZoom ev ->
-            let
-                boardTransform =
-                    gameState.boardTransform
-
-                initScale =
-                    if ev.isStart then
-                        boardTransform.scale
-
-                    else
-                        boardTransform.initScale
-            in
-            ( InProgress
-                { gameState
-                    | boardTransform =
-                        { boardTransform
-                            | initScale = initScale
-                            , scale = initScale * ev.scale
-                            , offsetX = boardTransform.offsetX + ev.velocityX
-                            , offsetY = boardTransform.offsetY + ev.velocityY
-                        }
-                }
+            ( InProgress (onUpdateZoom gameState ev)
             , Cmd.none
             )
 
-        OnKeyPress OtherKey ->
+        _ ->
             noOp
 
-        OnDropFile file _ ->
-            noOp
 
-        OnFileRead content ->
-            noOp
+onUpdatePan : { a | boardTransform : Board.Transform } -> Hammer.PanData -> { a | boardTransform : Board.Transform }
+onUpdatePan record ev =
+    let
+        boardTransform =
+            record.boardTransform
+    in
+    { record
+        | boardTransform =
+            { boardTransform
+                | offsetX = boardTransform.offsetX + ev.velocityX
+                , offsetY = boardTransform.offsetY + ev.velocityY
+            }
+    }
 
-        NoOp ->
-            noOp
 
-        OnGameStart ->
-            noOp
+onUpdateZoom : { a | boardTransform : Board.Transform } -> Hammer.ZoomData -> { a | boardTransform : Board.Transform }
+onUpdateZoom record ev =
+    let
+        boardTransform =
+            record.boardTransform
 
-        GotPuzzle _ _ ->
-            noOp
+        initScale =
+            if ev.isStart then
+                boardTransform.scale
+
+            else
+                boardTransform.initScale
+    in
+    { record
+        | boardTransform =
+            { boardTransform
+                | initScale = initScale
+                , scale = initScale * ev.scale
+                , offsetX = boardTransform.offsetX + ev.velocityX
+                , offsetY = boardTransform.offsetY + ev.velocityY
+            }
+    }
 
 
 updateEndedGame : Msg -> EndedState -> ( Game, Cmd Msg )
@@ -792,6 +786,28 @@ updateEndedGame msg gameState =
     case msg of
         ResetPuzzle ->
             ( freshInProgress gameState.puzzle, Cmd.none )
+
+        OnCellClick point ->
+            ( Ended { gameState | board = updateOnCellClick point gameState.board }, Cmd.none )
+
+        OnClueClick clue ->
+            ( Ended { gameState | board = Board.moveSelectionToWord clue gameState.puzzle gameState.board }, Cmd.none )
+
+        OnKeyPress (ArrowKey direction) ->
+            ( Ended { gameState | board = updateOnArrowKey direction gameState.board }, Cmd.none )
+
+        OnKeyPress (CycleSelectedClueKey direction) ->
+            ( Ended { gameState | board = Board.cycleSelectedClue direction gameState.puzzle gameState.board }, Cmd.none )
+
+        OnCrosswordPan ev ->
+            ( Ended (onUpdatePan gameState ev)
+            , Cmd.none
+            )
+
+        OnCrosswordZoom ev ->
+            ( Ended (onUpdateZoom gameState ev)
+            , Cmd.none
+            )
 
         _ ->
             ( Ended gameState, Cmd.none )
@@ -825,6 +841,10 @@ subscriptions model =
                 [ Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder)
                 , Time.every 1000 (always TimerTick)
                 ]
+
+        Ended _ ->
+            Sub.batch
+                [ Browser.Events.onKeyDown (Decode.map OnKeyPress keyDecoder) ]
 
         _ ->
             Sub.none
