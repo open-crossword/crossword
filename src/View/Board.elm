@@ -72,6 +72,7 @@ view boardTransform ({ puzzle, board } as config) =
                             -- this could probably be part of Grid.to2DList (to2DListNonEmpty?)
                             |> List.map (List.filterMap identity)
                             |> List.indexedMap (viewRow conf)
+                            |> List.concat
                         )
                 )
                 config
@@ -79,15 +80,13 @@ view boardTransform ({ puzzle, board } as config) =
         ]
 
 
-viewRow : Config msg -> Int -> List Cell -> Svg msg
+viewRow : Config msg -> Int -> List Cell -> List (Svg msg)
 viewRow ({ puzzle, board } as config) y row =
-    Svg.g
-        [-- css [ rowStyle ]
-        ]
-        (List.indexedMap (viewCell config y) row)
+    List.indexedMap (viewCell config y) row
+        |> List.concat
 
 
-viewCell : Config msg -> Int -> Int -> Cell -> Svg msg
+viewCell : Config msg -> Int -> Int -> Cell -> List (Svg msg)
 viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x cell =
     let
         point =
@@ -113,70 +112,67 @@ viewCell ({ puzzle, board, clueIndicesVisible, selectionVisible } as config) y x
         h =
             viewboxHeight // Grid.height puzzle.grid
     in
-    Svg.g
-        []
-        (List.concat
-            [ case cell of
-                Letter char ->
-                    [ Svg.rect
-                        [ SvgE.onMouseDown (config.onCellClicked point)
-                        , SvgA.width (String.fromInt w)
-                        , SvgA.height (String.fromInt h)
-                        , SvgA.stroke "black"
-                        , SvgA.strokeWidth ".5"
-                        , SvgA.x (String.fromInt (x * w))
-                        , SvgA.y (String.fromInt (y * h))
-                        , SvgA.css
-                            [ Css.property "touch-action" "manipulation"
-                            , Css.property "-webkit-tap-highlight-color" "transparent"
-                            ]
-                        , if selectionVisible && isSelected then
-                            SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
-
-                          else if selectionVisible && Board.isSelectedWord point puzzle board then
-                            SvgA.fill (Styles.colorToRgbString Styles.colors.selectedWord)
-
-                          else
-                            SvgA.fill "white"
+    List.concat
+        [ case cell of
+            Letter char ->
+                [ Svg.rect
+                    [ SvgE.onMouseDown (config.onCellClicked point)
+                    , SvgA.width (String.fromInt w)
+                    , SvgA.height (String.fromInt h)
+                    , SvgA.stroke "black"
+                    , SvgA.strokeWidth ".5"
+                    , SvgA.x (String.fromInt (x * w))
+                    , SvgA.y (String.fromInt (y * h))
+                    , SvgA.css
+                        [ Css.property "touch-action" "manipulation"
+                        , Css.property "-webkit-tap-highlight-color" "transparent"
                         ]
-                        []
-                    , Svg.text_
-                        [ SvgA.css [ Css.fontSize (px 5), Css.property "pointer-events" "none" ]
-                        , SvgA.x (String.fromInt (x * w + 5))
-                        , SvgA.y (String.fromInt (y * h + 8))
-                        , SvgA.textAnchor "middle"
-                        , SvgA.width (String.fromInt w)
-                        , SvgA.height (String.fromInt h)
-                        ]
-                        [ Svg.text (String.fromChar char) ]
+                    , if selectionVisible && isSelected then
+                        SvgA.fill (Styles.colorToRgbString Styles.colors.selectedCursor)
+
+                      else if selectionVisible && Board.isSelectedWord point puzzle board then
+                        SvgA.fill (Styles.colorToRgbString Styles.colors.selectedWord)
+
+                      else
+                        SvgA.fill "white"
                     ]
-
-                Shaded ->
-                    [ Svg.rect
-                        [ SvgA.width (String.fromInt w)
-                        , SvgA.height (String.fromInt h)
-                        , SvgA.fill "black"
-                        , SvgA.stroke "black"
-                        , SvgA.x (String.fromInt (x * w))
-                        , SvgA.y (String.fromInt (y * h))
-                        , SvgA.strokeWidth ".5"
-                        ]
-                        []
-                    ]
-            , case ( clueIndicesVisible, wordStartNumber ) of
-                ( True, Just n ) ->
-                    [ Svg.text_
-                        [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
-                        , SvgA.x (String.fromInt (x * w + 1))
-                        , SvgA.y (String.fromInt (y * h + 3))
-                        ]
-                        [ Svg.text (String.fromInt n) ]
-                    ]
-
-                ( _, _ ) ->
                     []
-            ]
-        )
+                , Svg.text_
+                    [ SvgA.css [ Css.fontSize (px 5), Css.property "pointer-events" "none" ]
+                    , SvgA.x (String.fromInt (x * w + 5))
+                    , SvgA.y (String.fromInt (y * h + 8))
+                    , SvgA.textAnchor "middle"
+                    , SvgA.width (String.fromInt w)
+                    , SvgA.height (String.fromInt h)
+                    ]
+                    [ Svg.text (String.fromChar char) ]
+                ]
+
+            Shaded ->
+                [ Svg.rect
+                    [ SvgA.width (String.fromInt w)
+                    , SvgA.height (String.fromInt h)
+                    , SvgA.fill "black"
+                    , SvgA.stroke "black"
+                    , SvgA.x (String.fromInt (x * w))
+                    , SvgA.y (String.fromInt (y * h))
+                    , SvgA.strokeWidth ".5"
+                    ]
+                    []
+                ]
+        , case ( clueIndicesVisible, wordStartNumber ) of
+            ( True, Just n ) ->
+                [ Svg.text_
+                    [ SvgA.css [ Css.fontSize (px 3), Css.property "pointer-events" "none" ]
+                    , SvgA.x (String.fromInt (x * w + 1))
+                    , SvgA.y (String.fromInt (y * h + 3))
+                    ]
+                    [ Svg.text (String.fromInt n) ]
+                ]
+
+            ( _, _ ) ->
+                []
+        ]
 
 
 viewCellClueIndex : Int -> Html msg
