@@ -12,7 +12,7 @@ function publish {
     git -C $TMP reset
     git -C $TMP clean -dxf
     ./build.sh "prod"
-    cp index.html elm.js $TMP/
+    cp CNAME index.html elm.js $TMP/
     cp -r assets/ $TMP/assets/
     cp -r vendor/ $TMP/vendor/
     git -C $TMP add .
