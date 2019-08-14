@@ -12,7 +12,9 @@ function publish {
     git -C $TMP reset
     git -C $TMP clean -dxf
     ./build.sh "prod"
-    cp -r index.html elm.js assets/ vendor/ $TMP/
+    cp index.html elm.js $TMP/
+    cp -r assets/ $TMP/assets/
+    cp -r vendor/ $TMP/vendor/
     git -C $TMP add .
     git -C $TMP commit -m "Update crossword website"
     git -C $TMP push origin gh-pages -f
