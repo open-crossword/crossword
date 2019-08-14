@@ -68,5 +68,5 @@ parserToDecoder parser =
     -- this is a nice general function, ruined by that \n bullshit
     JD.string
         |> JD.map (\x -> Parser.run parser (x ++ "\n"))
-        |> JD.map (Result.mapError Debug.toString)
+        |> JD.map (Result.mapError (always "Failed to parse puzzle!"))
         |> JD.andThen (Result.unpack JD.fail JD.succeed)
