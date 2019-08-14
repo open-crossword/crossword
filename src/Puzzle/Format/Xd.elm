@@ -59,7 +59,8 @@ oneOrTwoMerge left right =
 
                 ( a, b ) ->
                     -- TODO!!! NOT SUPPOSED TO HAPPEN!!! FIX MEEEEEEEEEEEEEE
-                    Debug.todo ("YA BOY FUCKED UP: " ++ Debug.toString ( a, b ))
+                    -- Arbitrarily keeping the first object
+                    Dict.insert key a acc
     in
     Dict.merge onlyInOne inBoth onlyInOne left right Dict.empty
 
