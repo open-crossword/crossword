@@ -113,7 +113,7 @@ viewError contents =
                     , Css.textAlign Css.center
                     ]
                 ]
-                [ text "Sorry, we had some trouble downloading random puzzles. In the meantime, here are a few samples."
+                [ text "Sorry, we had some trouble downloading puzzles. In the meantime, here are a few samples."
                 ]
     in
     div []
