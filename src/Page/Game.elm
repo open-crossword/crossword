@@ -1,4 +1,11 @@
-module Page.Game exposing (Model, Msg, init, subscriptions, update, view)
+module Page.Game exposing
+    ( Model
+    , Msg
+    , init
+    , subscriptions
+    , update
+    , view
+    )
 
 import Browser
 import Browser.Dom
@@ -423,8 +430,13 @@ viewClues puzzle board =
         selectedClue =
             Board.selectedClueId puzzle board
 
+        transverseClue =
+            Board.transverseClueId puzzle board
+
         helper =
-            Dict.values >> List.sortBy (.id >> .number) >> List.map (viewClue selectedClue)
+            Dict.values
+                >> List.sortBy (.id >> .number)
+                >> List.map (viewClue selectedClue transverseClue)
     in
     div [ css [ displayFlex ] ]
         [ div
@@ -447,14 +459,14 @@ viewClues puzzle board =
         ]
 
 
-viewClue : Maybe ClueId -> Clue -> Html Msg
-viewClue selectedClue clue =
+viewClue : Maybe ClueId -> Maybe ClueId -> Clue -> Html Msg
+viewClue selectedClue transverseClue clue =
     let
         viewIndex =
             b [] [ text (String.fromInt clue.id.number) ]
 
-        isSelected =
-            case selectedClue of
+        isSelected maybeClueId =
+            case maybeClueId of
                 Nothing ->
                     False
 
@@ -464,11 +476,16 @@ viewClue selectedClue clue =
     div
         [ css
             [ Styles.clue
-            , if isSelected then
+            , if isSelected selectedClue then
                 backgroundColor Styles.colors.selectedWord
 
               else
                 backgroundColor Css.transparent
+            , if isSelected transverseClue then
+                Css.outline3 (px 1) Css.solid Styles.colors.selectedWord
+
+              else
+                Css.outline Css.none
             ]
         , onClick (OnClueClick clue)
         ]

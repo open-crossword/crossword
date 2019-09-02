@@ -1,4 +1,21 @@
-module Data.Board exposing (Board, CycleDirection(..), Selection, cycleSelectedClue, fromPuzzle, isSelectedWord, moveSelection, moveSelectionSkip, moveSelectionToWord, revealPuzzle, revealSelectedCell, revealSelectedWord, selectedClue, selectedClueId, updateSelection)
+module Data.Board exposing
+    ( Board
+    , CycleDirection(..)
+    , Selection
+    , cycleSelectedClue
+    , fromPuzzle
+    , isSelectedWord
+    , moveSelection
+    , moveSelectionSkip
+    , moveSelectionToWord
+    , revealPuzzle
+    , revealSelectedCell
+    , revealSelectedWord
+    , selectedClue
+    , selectedClueId
+    , transverseClueId
+    , updateSelection
+    )
 
 import Data.Direction as Direction exposing (Direction)
 import Data.Grid as Grid exposing (Grid)
@@ -146,6 +163,15 @@ selectedClueId puzzle board =
     puzzle.cluesForCell
         |> Dict.get (Grid.pointToIndex board.selection.cursor puzzle.grid)
         |> Maybe.andThen (Puzzle.getMatchingClueId board.selection.direction)
+
+
+{-| get the clueId which lies along the axis orthogonal to the selected clue's direction
+-}
+transverseClueId : Puzzle -> Board -> Maybe ClueId
+transverseClueId puzzle board =
+    puzzle.cluesForCell
+        |> Dict.get (Grid.pointToIndex board.selection.cursor puzzle.grid)
+        |> Maybe.andThen (Puzzle.getMatchingClueId (Direction.swap board.selection.direction))
 
 
 selectedClue : Puzzle -> Board -> Maybe Clue
