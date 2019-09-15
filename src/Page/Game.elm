@@ -126,7 +126,7 @@ init session puzzleId =
                             |> Task.perform (GotPuzzle id)
 
                     Nothing ->
-                        Http.Puzzle.get (GotPuzzle id) id
+                        Http.Puzzle.get session.env (GotPuzzle id) id
 
             Nothing ->
                 Cmd.none

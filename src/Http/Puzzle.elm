@@ -1,12 +1,15 @@
 module Http.Puzzle exposing (Error, get, random)
 
+import Data.Env exposing (Env)
 import Data.Puzzle as Puzzle exposing (Puzzle)
 import Data.Puzzle.Id as PuzzleId exposing (PuzzleId)
 import Http
+import Http.Api as Api
 import Json.Decode as JD exposing (Decoder)
 import Parser exposing (Parser)
 import Puzzle.Format.Xd
 import Result.Extra as Result
+import Url.Builder as Url
 
 
 type Error
@@ -14,15 +17,15 @@ type Error
     | ParseError (List Parser.DeadEnd)
 
 
-get : (Result Error Puzzle -> msg) -> PuzzleId -> Cmd msg
-get toMsg puzzleId =
+get : Env -> (Result Error Puzzle -> msg) -> PuzzleId -> Cmd msg
+get env toMsg puzzleId =
     let
         parse : String -> Result (List Parser.DeadEnd) Puzzle
         parse puzzleStr =
             Puzzle.Format.Xd.parse puzzleId puzzleStr
     in
     Http.get
-        { url = "http://localhost:8080/puzzles/" ++ PuzzleId.toString puzzleId
+        { url = Api.makeUrl env [ "puzzles", PuzzleId.toString puzzleId ] []
         , expect =
             Http.expectString
                 (Result.mapError HttpError
@@ -33,10 +36,10 @@ get toMsg puzzleId =
         }
 
 
-random : (Result Error (List Puzzle) -> msg) -> Int -> Cmd msg
-random toMsg howMany =
+random : Env -> (Result Error (List Puzzle) -> msg) -> Int -> Cmd msg
+random env toMsg howMany =
     Http.get
-        { url = "http://localhost:8080/puzzles?n=" ++ String.fromInt howMany
+        { url = Api.makeUrl env [ "puzzles" ] [ Url.int "n" howMany ]
         , expect = Http.expectJson (errorify toMsg) (JD.list puzzleDecoder)
         }
 

@@ -38,7 +38,7 @@ type alias Model =
 init : Session -> ( Model, Cmd Msg )
 init session =
     ( { samplePuzzles = Loadable.Loading }
-    , Http.Puzzle.random GotRandomPuzzles 8
+    , Http.Puzzle.random session.env GotRandomPuzzles 8
     )
 
 
