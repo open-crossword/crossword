@@ -11,4 +11,4 @@ makeUrl env =
             crossOrigin "http://localhost:8080"
 
         Env.Prod ->
-            absolute
+            crossOrigin "http://157.245.166.221"
