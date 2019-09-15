@@ -1,12 +1,8 @@
 module Session exposing (Session, collapseMenu, init, navKey, toggleMenuCollapsed)
 
 import Browser.Navigation as Nav
+import Data.Env as Env exposing (Env)
 import Json.Decode as Decode exposing (Value)
-
-
-type Env
-    = Dev
-    | Prod
 
 
 type alias Session =
@@ -27,22 +23,9 @@ init key flags =
             |> Result.withDefault False
     , env =
         flags
-            |> Decode.decodeValue (Decode.field "isProd" decodeEnv)
-            |> Result.withDefault Dev
+            |> Decode.decodeValue (Decode.field "isProd" Env.decode)
+            |> Result.withDefault Env.Dev
     }
-
-
-decodeEnv : Decode.Decoder Env
-decodeEnv =
-    Decode.bool
-        |> Decode.map
-            (\isProd ->
-                if isProd then
-                    Prod
-
-                else
-                    Dev
-            )
 
 
 navKey : { a | navKey : Nav.Key } -> Nav.Key
