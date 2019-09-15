@@ -4,10 +4,16 @@ import Browser.Navigation as Nav
 import Json.Decode as Decode exposing (Value)
 
 
+type Env
+    = Dev
+    | Prod
+
+
 type alias Session =
     { navKey : Nav.Key
     , menuCollapsed : Bool
     , probablyMobile : Bool
+    , env : Env
     }
 
 
@@ -19,7 +25,24 @@ init key flags =
         flags
             |> Decode.decodeValue (Decode.field "isProbablyMobile" Decode.bool)
             |> Result.withDefault False
+    , env =
+        flags
+            |> Decode.decodeValue (Decode.field "isProd" decodeEnv)
+            |> Result.withDefault Dev
     }
+
+
+decodeEnv : Decode.Decoder Env
+decodeEnv =
+    Decode.bool
+        |> Decode.map
+            (\isProd ->
+                if isProd then
+                    Prod
+
+                else
+                    Dev
+            )
 
 
 navKey : { a | navKey : Nav.Key } -> Nav.Key
