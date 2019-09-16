@@ -1,0 +1,88 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>crossword</title>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="assets/favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="assets/favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="assets/favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="assets/favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="assets/favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="assets/favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="assets/favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="assets/favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="assets/favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicons/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="assets/favicons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <script src="vendor/hammer.js"></script>
+
+    <style>
+        html,
+        body {
+            height: 100%;
+            font-family: avenir next, avenir, san-serif;
+            background-color: #FAFAFA;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="elm"></div>
+    <script src="elm.js"></script>
+    <script>
+        var isProbablyMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        var isProd = (location.hostname === 'xword.games');
+
+        var app = Elm.Main.init({
+            node: document.getElementById('elm'),
+            flags: { isProbablyMobile, isProd }
+        });
+
+        // Prevent scrolling with arrow and space keys
+        // Prevent tab and enter from updating elements
+        // Elm doesn't support global preventDefaults
+        window.addEventListener('keydown', function (e) {
+            if ([32, 37, 38, 39, 40, 8, 9, 13].indexOf(e.keyCode) > -1) {
+                e.preventDefault();
+            }
+        }, false);
+
+        // Capture focus
+        window.focus();
+
+        class HammerWrapper extends HTMLElement {
+            constructor() {
+                super();
+            }
+
+            connectedCallback() {
+                const hammertime = new Hammer(this, { domEvents: true });
+                hammertime.get('pinch').set({ enable: true });
+
+                const self = this;
+                hammertime.on('pinchstart pinchmove', function (ev) {
+                    self.dispatchEvent(new CustomEvent('pinch', { detail: { hammerdata: ev } }));
+                });
+
+                hammertime.on('panstart panmove', function (ev) {
+                    self.dispatchEvent(new CustomEvent('pan', { detail: { hammerdata: ev } }));
+                });
+            }
+        }
+
+        customElements.define('hammer-wrapper', HammerWrapper);
+
+    </script>
+</body>
+
+</html>
