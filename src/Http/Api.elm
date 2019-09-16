@@ -11,4 +11,4 @@ makeUrl env =
             crossOrigin "http://localhost:8080"
 
         Env.Prod ->
-            crossOrigin "http://157.245.166.221"
+            crossOrigin "https://api.xword.games"
